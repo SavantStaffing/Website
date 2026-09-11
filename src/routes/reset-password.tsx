@@ -52,15 +52,13 @@ function ResetPassword() {
       return;
     }
     toast.success("Password updated.");
-    navigate({ to: "/hub" });
+    navigate({ to: "/dashboard" });
   }
 
   return (
     <div className="mx-auto grid min-h-[70vh] max-w-md place-items-center px-6">
       <div className="w-full">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-          Recovery
-        </p>
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Recovery</p>
         <h1 className="mt-6 text-4xl font-semibold leading-tight">Set a new password.</h1>
 
         {!ready ? (

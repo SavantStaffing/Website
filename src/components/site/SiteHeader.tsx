@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import { useState } from "react";
 import savantLogo from "@/assets/savant-logo.png";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { getDashboardPath } from "@/lib/auth/session";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -13,22 +13,8 @@ const NAV = [
 ] as const;
 
 export function SiteHeader() {
-  const [user, setUser] = useState<User | null>(null);
+  const { auth, loading } = useAuth();
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    // Supabase isn't connected until this project is linked in Lovable Cloud —
-    // guard against that so the header still renders in the meantime.
-    try {
-      supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
-      const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-        setUser(session?.user ?? null);
-      });
-      return () => sub.subscription.unsubscribe();
-    } catch (error) {
-      console.error(error);
-    }
-  }, []);
 
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--color-hairline)] bg-background/90 backdrop-blur">
@@ -52,12 +38,12 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-6 md:flex">
-          {user ? (
+          {loading ? null : auth ? (
             <Link
-              to="/hub"
+              to={getDashboardPath(auth.role)}
               className="text-[13px] tracking-wide text-foreground underline-offset-4 [@media(hover:hover)]:hover:underline"
             >
-              My Hub
+              Dashboard
             </Link>
           ) : (
             <>
@@ -104,9 +90,13 @@ export function SiteHeader() {
               </Link>
             ))}
             <div className="mt-4 border-t border-[color:var(--color-hairline)] pt-4">
-              {user ? (
-                <Link to="/hub" onClick={() => setOpen(false)} className="text-sm">
-                  My Hub
+              {loading ? null : auth ? (
+                <Link
+                  to={getDashboardPath(auth.role)}
+                  onClick={() => setOpen(false)}
+                  className="text-sm"
+                >
+                  Dashboard
                 </Link>
               ) : (
                 <div className="flex gap-4">

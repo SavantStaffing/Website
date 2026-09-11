@@ -27,7 +27,7 @@ function Callback() {
         if (data.session) {
           if (cancelled) return;
           if (target) window.location.replace(target);
-          else navigate({ to: "/hub", replace: true });
+          else navigate({ to: "/dashboard", replace: true });
           return;
         }
         await new Promise((r) => setTimeout(r, 200));
@@ -42,9 +42,7 @@ function Callback() {
   return (
     <div className="mx-auto grid min-h-[60vh] max-w-md place-items-center px-6">
       <div className="text-center">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-          Please wait
-        </p>
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Please wait</p>
         <h1 className="mt-4 text-2xl font-semibold">
           {error ? "Sign-in failed" : "Signing you in…"}
         </h1>

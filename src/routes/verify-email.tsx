@@ -29,7 +29,7 @@ function VerifyEmail() {
       if (data.user?.email_confirmed_at) {
         setTimeout(() => {
           if (target) window.location.replace(target);
-          else navigate({ to: "/hub", replace: true });
+          else navigate({ to: "/dashboard", replace: true });
         }, 1500);
       }
     })();
@@ -38,15 +38,9 @@ function VerifyEmail() {
   return (
     <div className="mx-auto grid min-h-[70vh] max-w-lg place-items-center px-6 text-center">
       <div>
-        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-          Verification
-        </p>
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Verification</p>
         <h1 className="mt-6 text-4xl font-semibold leading-tight">
-          {verified === null
-            ? "Confirming…"
-            : verified
-              ? "Email verified."
-              : "Almost there."}
+          {verified === null ? "Confirming…" : verified ? "Email verified." : "Almost there."}
         </h1>
         <p className="mt-6 text-sm text-muted-foreground">
           {verified === null

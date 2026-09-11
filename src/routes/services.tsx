@@ -21,9 +21,7 @@ function Services() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-24 lg:px-10 lg:py-32">
       <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Services</p>
-      <h1 className="mt-6 text-5xl font-semibold leading-tight md:text-6xl">
-        How we staff.
-      </h1>
+      <h1 className="mt-6 text-5xl font-semibold leading-tight md:text-6xl">How we staff.</h1>
       <p className="mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground">
         Content coming soon.
       </p>

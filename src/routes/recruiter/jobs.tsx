@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export const Route = createFileRoute("/_authenticated/hub/recruiter")({
+export const Route = createFileRoute("/recruiter/jobs")({
   head: () => ({
-    meta: [{ title: "Your postings" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Manage Jobs" }, { name: "robots", content: "noindex" }],
   }),
-  component: Recruiter,
+  component: RecruiterJobs,
 });
 
 type JobRow = {
@@ -26,8 +26,8 @@ const schema = z.object({
   description: z.string().trim().max(4000).optional().or(z.literal("")),
 });
 
-function Recruiter() {
-  const { user } = Route.useRouteContext();
+function RecruiterJobs() {
+  const { userId, profile } = Route.useRouteContext();
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,10 +38,14 @@ function Recruiter() {
   const [posting, setPosting] = useState(false);
 
   async function loadJobs() {
+    if (!profile.organizationId) {
+      setLoading(false);
+      return;
+    }
     const { data } = await supabase
       .from("jobs")
       .select("id, title, location, type, created_at")
-      .eq("posted_by", user.id)
+      .eq("organization_id", profile.organizationId)
       .order("created_at", { ascending: false });
     setJobs((data as JobRow[]) ?? []);
     setLoading(false);
@@ -49,7 +53,18 @@ function Recruiter() {
 
   useEffect(() => {
     loadJobs();
-  }, [user.id]);
+  }, [profile.organizationId]);
+
+  if (!profile.organizationId) {
+    return (
+      <div className="rounded-sm border border-[color:var(--color-hairline)] p-6">
+        <p className="text-sm text-muted-foreground">
+          Your account isn't linked to an organization yet, so you can't post jobs. Contact your
+          Savant admin.
+        </p>
+      </div>
+    );
+  }
 
   async function post(e: React.FormEvent) {
     e.preventDefault();
@@ -60,7 +75,8 @@ function Recruiter() {
     }
     setPosting(true);
     const { error } = await supabase.from("jobs").insert({
-      posted_by: user.id,
+      posted_by: userId,
+      organization_id: profile.organizationId!,
       title: parsed.data.title,
       location: parsed.data.location || null,
       type: parsed.data.type || null,
@@ -87,7 +103,12 @@ function Recruiter() {
           <Field label="Title" value={title} onChange={setTitle} />
           <div className="grid grid-cols-2 gap-4">
             <Field label="Location" value={location} onChange={setLocation} />
-            <Field label="Type" value={type} onChange={setType} placeholder="Full-time, Contract…" />
+            <Field
+              label="Type"
+              value={type}
+              onChange={setType}
+              placeholder="Full-time, Contract…"
+            />
           </div>
           <label className="block">
             <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
@@ -111,7 +132,7 @@ function Recruiter() {
       </div>
 
       <div>
-        <h2 className="text-2xl font-semibold">Your postings</h2>
+        <h2 className="text-2xl font-semibold">Your organization's postings</h2>
         {loading ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
         ) : jobs.length === 0 ? (
@@ -146,9 +167,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-        {label}
-      </span>
+      <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
       <input
         type="text"
         value={value}

@@ -2,11 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/_authenticated/hub/candidate")({
+export const Route = createFileRoute("/talent/applications")({
   head: () => ({
-    meta: [{ title: "Your applications" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Your Applications" }, { name: "robots", content: "noindex" }],
   }),
-  component: Candidate,
+  component: Applications,
 });
 
 type ApplicationRow = {
@@ -16,8 +16,8 @@ type ApplicationRow = {
   jobs: { title: string; location: string | null; type: string | null } | null;
 };
 
-function Candidate() {
-  const { user } = Route.useRouteContext();
+function Applications() {
+  const { userId } = Route.useRouteContext();
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,19 +26,17 @@ function Candidate() {
       const { data } = await supabase
         .from("job_applications")
         .select("id, status, created_at, jobs (title, location, type)")
-        .eq("applicant_id", user.id)
+        .eq("applicant_id", userId)
         .order("created_at", { ascending: false });
       setApplications((data as unknown as ApplicationRow[]) ?? []);
       setLoading(false);
     })();
-  }, [user.id]);
+  }, [userId]);
 
   return (
     <section>
       <h2 className="text-2xl font-semibold">Your applications</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Roles you've applied to through Savant.
-      </p>
+      <p className="mt-2 text-sm text-muted-foreground">Roles you've applied to through Savant.</p>
 
       {loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Loading…</p>
@@ -46,7 +44,7 @@ function Candidate() {
         <div className="mt-10 rounded-sm border border-[color:var(--color-hairline)] p-6">
           <p className="text-sm text-muted-foreground">
             No applications yet.{" "}
-            <Link to="/jobs" className="text-foreground underline underline-offset-4">
+            <Link to="/talent/jobs" className="text-foreground underline underline-offset-4">
               Browse open roles
             </Link>
             .

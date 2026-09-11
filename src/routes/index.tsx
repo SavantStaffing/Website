@@ -41,8 +41,8 @@ function HeroSection() {
         Talent, placed with <span className="text-brass">precision.</span>
       </h1>
       <p className="mt-8 max-w-xl text-base leading-relaxed text-muted-foreground">
-        We match businesses with people who fit — across temporary staffing,
-        direct hire, and executive search. Content coming soon.
+        We match businesses with people who fit — across temporary staffing, direct hire, and
+        executive search. Content coming soon.
       </p>
       <div className="mt-10 flex flex-wrap gap-6 text-[12px] uppercase tracking-[0.2em]">
         <Link
@@ -119,8 +119,8 @@ function ProgramsPreview() {
           Investing beyond the placement.
         </h2>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          Training, apprenticeships, and career-development programs built
-          alongside our clients. Content coming soon.
+          Training, apprenticeships, and career-development programs built alongside our clients.
+          Content coming soon.
         </p>
         <div className="mt-10">
           <Link

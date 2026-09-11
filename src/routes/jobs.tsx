@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { User } from "@supabase/supabase-js";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 export const Route = createFileRoute("/jobs")({
   head: () => ({
@@ -28,8 +28,8 @@ type JobRow = {
 };
 
 function Jobs() {
+  const { auth, can } = useAuth();
   const [jobs, setJobs] = useState<JobRow[] | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const [applied, setApplied] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -45,18 +45,22 @@ function Jobs() {
         console.error(error);
       }
     })();
-    try {
-      supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
-    } catch (error) {
-      console.error(error);
-    }
   }, []);
 
+  useEffect(() => {
+    if (!auth) return;
+    supabase
+      .from("job_applications")
+      .select("job_id")
+      .eq("applicant_id", auth.userId)
+      .then(({ data }) => setApplied(new Set((data ?? []).map((r) => r.job_id))));
+  }, [auth]);
+
   async function apply(jobId: string) {
-    if (!user) return;
+    if (!auth) return;
     const { error } = await supabase
       .from("job_applications")
-      .insert({ job_id: jobId, applicant_id: user.id });
+      .insert({ job_id: jobId, applicant_id: auth.userId });
     if (error) {
       toast.error(error.message);
       return;
@@ -67,6 +71,7 @@ function Jobs() {
 
   const listings = jobs ?? PLACEHOLDER;
   const isLive = jobs !== null;
+  const canApply = can("application:create");
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-24 lg:px-10 lg:py-32">
@@ -98,14 +103,14 @@ function Jobs() {
               <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 Applied
               </span>
-            ) : user ? (
+            ) : canApply ? (
               <button
                 onClick={() => apply(job.id)}
                 className="text-[11px] uppercase tracking-[0.2em] [@media(hover:hover)]:hover:text-muted-foreground"
               >
                 Apply →
               </button>
-            ) : (
+            ) : auth ? null : (
               <Link
                 to="/auth"
                 search={{ mode: "login", next: "/jobs" } as never}

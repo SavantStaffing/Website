@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export const Route = createFileRoute("/_authenticated/hub/")({
+export const Route = createFileRoute("/talent/profile")({
   head: () => ({
-    meta: [{ title: "Account settings" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Your Profile" }, { name: "robots", content: "noindex" }],
   }),
-  component: Account,
+  component: Profile,
 });
 
 const schema = z.object({
@@ -17,10 +17,10 @@ const schema = z.object({
   phone: z.string().trim().max(30).optional().or(z.literal("")),
 });
 
-function Account() {
-  const { user } = Route.useRouteContext();
+function Profile() {
+  const { userId, email: authEmail } = Route.useRouteContext();
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState(user.email ?? "");
+  const [email, setEmail] = useState(authEmail ?? "");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [initial, setInitial] = useState(true);
@@ -30,16 +30,16 @@ function Account() {
       const { data } = await supabase
         .from("profiles")
         .select("username, email, phone")
-        .eq("id", user.id)
+        .eq("id", userId)
         .maybeSingle();
       if (data) {
         setUsername(data.username ?? "");
-        setEmail(data.email ?? user.email ?? "");
+        setEmail(data.email ?? authEmail ?? "");
         setPhone(data.phone ?? "");
       }
       setInitial(false);
     })();
-  }, [user.id, user.email]);
+  }, [userId, authEmail]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -56,9 +56,9 @@ function Account() {
         phone: parsed.data.phone || null,
         email: parsed.data.email,
       })
-      .eq("id", user.id);
+      .eq("id", userId);
     let emailError = null;
-    if (parsed.data.email !== user.email) {
+    if (parsed.data.email !== authEmail) {
       const { error } = await supabase.auth.updateUser({ email: parsed.data.email });
       emailError = error;
     }
@@ -74,7 +74,7 @@ function Account() {
 
   return (
     <section>
-      <h2 className="text-2xl font-semibold">Account settings</h2>
+      <h2 className="text-2xl font-semibold">Your profile</h2>
       <form onSubmit={save} className="mt-8 max-w-md space-y-6">
         <Field label="Username" value={username} onChange={setUsername} />
         <Field label="Email" type="email" value={email} onChange={setEmail} />
@@ -104,9 +104,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-        {label}
-      </span>
+      <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
       <input
         type={type}
         value={value}

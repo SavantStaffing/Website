@@ -6,10 +6,11 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
 type Mode = "login" | "signup" | "forgot";
-type SignupRole = "job_seeker" | "recruiter";
+type SignupRole = "talent" | "recruiter";
+type AuthSearch = { mode: Mode; next?: string };
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): AuthSearch => ({
     mode: (s.mode as Mode) ?? "login",
     next: typeof s.next === "string" ? s.next : undefined,
   }),
@@ -29,7 +30,7 @@ const loginSchema = z.object({
 });
 const signupSchema = loginSchema.extend({
   username: z.string().trim().min(2).max(40),
-  role: z.enum(["job_seeker", "recruiter"]),
+  role: z.enum(["talent", "recruiter"]),
 });
 
 /** Only same-origin relative paths are honored as post-login redirects. */
@@ -52,7 +53,7 @@ function AuthPage() {
       supabase.auth.getUser().then(({ data }) => {
         if (!data.user) return;
         if (next) window.location.replace(next);
-        else navigate({ to: "/hub", replace: true });
+        else navigate({ to: "/dashboard", replace: true });
       });
     } catch (error) {
       console.error(error);
@@ -92,17 +93,29 @@ function AuthPage() {
 
         <div className="mt-10 flex flex-wrap gap-6 text-[12px] uppercase tracking-[0.2em] text-muted-foreground">
           {mode !== "login" && (
-            <Link to="/auth" search={{ mode: "login" }} className="[@media(hover:hover)]:hover:text-foreground">
+            <Link
+              to="/auth"
+              search={{ mode: "login" }}
+              className="[@media(hover:hover)]:hover:text-foreground"
+            >
               Log in
             </Link>
           )}
           {mode !== "signup" && (
-            <Link to="/auth" search={{ mode: "signup" }} className="[@media(hover:hover)]:hover:text-foreground">
+            <Link
+              to="/auth"
+              search={{ mode: "signup" }}
+              className="[@media(hover:hover)]:hover:text-foreground"
+            >
               Sign up
             </Link>
           )}
           {mode !== "forgot" && (
-            <Link to="/auth" search={{ mode: "forgot" }} className="[@media(hover:hover)]:hover:text-foreground">
+            <Link
+              to="/auth"
+              search={{ mode: "forgot" }}
+              className="[@media(hover:hover)]:hover:text-foreground"
+            >
               Forgot password?
             </Link>
           )}
@@ -135,7 +148,7 @@ function LoginForm() {
     }
     toast.success("Signed in.");
     if (next) window.location.assign(next);
-    else navigate({ to: "/hub" });
+    else navigate({ to: "/dashboard" });
   }
 
   return (
@@ -158,7 +171,7 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [role, setRole] = useState<SignupRole>("job_seeker");
+  const [role, setRole] = useState<SignupRole>("talent");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -191,8 +204,8 @@ function SignupForm() {
       <div className="rounded-sm border border-[color:var(--color-hairline)] p-6">
         <h2 className="text-lg font-medium">Check your email</h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          We sent a confirmation link to <span className="text-foreground">{email}</span>.
-          Click the link to verify and finish signing up.
+          We sent a confirmation link to <span className="text-foreground">{email}</span>. Click the
+          link to verify and finish signing up.
         </p>
       </div>
     );
@@ -206,9 +219,9 @@ function SignupForm() {
         </span>
         <div className="mt-3 grid grid-cols-2 gap-3">
           <RoleOption
-            label="Job Seeker"
-            selected={role === "job_seeker"}
-            onClick={() => setRole("job_seeker")}
+            label="Talent"
+            selected={role === "talent"}
+            onClick={() => setRole("talent")}
           />
           <RoleOption
             label="Recruiter"
@@ -341,9 +354,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-        {label}
-      </span>
+      <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
       <input
         type={type}
         value={value}
@@ -356,13 +367,7 @@ function Field({
   );
 }
 
-function SubmitBtn({
-  children,
-  loading,
-}: {
-  children: React.ReactNode;
-  loading: boolean;
-}) {
+function SubmitBtn({ children, loading }: { children: React.ReactNode; loading: boolean }) {
   return (
     <button
       type="submit"

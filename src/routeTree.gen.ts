@@ -10,27 +10,39 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as ProgramsRouteImport } from './routes/programs'
+import { Route as RecruiterRouteRouteImport } from './routes/recruiter/route'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as TalentRouteRouteImport } from './routes/talent/route'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminJobsRouteImport } from './routes/admin/jobs'
+import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
+import { Route as AdminRecruitersRouteImport } from './routes/admin/recruiters'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminTalentRouteImport } from './routes/admin/talent'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
-import { Route as AuthenticatedHubIndexRouteImport } from './routes/_authenticated/hub.index'
-import { Route as AuthenticatedHubAdminRouteImport } from './routes/_authenticated/hub.admin'
-import { Route as AuthenticatedHubCandidateRouteImport } from './routes/_authenticated/hub.candidate'
-import { Route as AuthenticatedHubRecruiterRouteImport } from './routes/_authenticated/hub.recruiter'
+import { Route as RecruiterIndexRouteImport } from './routes/recruiter/index'
+import { Route as RecruiterApplicationsRouteImport } from './routes/recruiter/applications'
+import { Route as RecruiterCandidatesRouteImport } from './routes/recruiter/candidates'
+import { Route as RecruiterCompanyRouteImport } from './routes/recruiter/company'
+import { Route as RecruiterJobsRouteImport } from './routes/recruiter/jobs'
+import { Route as TalentIndexRouteImport } from './routes/talent/index'
+import { Route as TalentApplicationsRouteImport } from './routes/talent/applications'
+import { Route as TalentJobsRouteImport } from './routes/talent/jobs'
+import { Route as TalentProfileRouteImport } from './routes/talent/profile'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -38,9 +50,24 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForbiddenRoute = ForbiddenRouteImport.update({
+  id: '/forbidden',
+  path: '/forbidden',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsRoute = JobsRouteImport.update({
@@ -53,6 +80,11 @@ const ProgramsRoute = ProgramsRouteImport.update({
   path: '/programs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecruiterRouteRoute = RecruiterRouteRouteImport.update({
+  id: '/recruiter',
+  path: '/recruiter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -63,140 +95,301 @@ const ServicesRoute = ServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TalentRouteRoute = TalentRouteRouteImport.update({
+  id: '/talent',
+  path: '/talent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminJobsRoute = AdminJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRecruitersRoute = AdminRecruitersRouteImport.update({
+  id: '/recruiters',
+  path: '/recruiters',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTalentRoute = AdminTalentRouteImport.update({
+  id: '/talent',
+  path: '/talent',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/callback',
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthenticatedHubIndexRoute = AuthenticatedHubIndexRouteImport.update({
-  id: '/hub/',
-  path: '/hub/',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const RecruiterIndexRoute = RecruiterIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RecruiterRouteRoute,
 } as any)
-const AuthenticatedHubAdminRoute = AuthenticatedHubAdminRouteImport.update({
-  id: '/hub/admin',
-  path: '/hub/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const RecruiterApplicationsRoute = RecruiterApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => RecruiterRouteRoute,
 } as any)
-const AuthenticatedHubCandidateRoute =
-  AuthenticatedHubCandidateRouteImport.update({
-    id: '/hub/candidate',
-    path: '/hub/candidate',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHubRecruiterRoute =
-  AuthenticatedHubRecruiterRouteImport.update({
-    id: '/hub/recruiter',
-    path: '/hub/recruiter',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+const RecruiterCandidatesRoute = RecruiterCandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
+const RecruiterCompanyRoute = RecruiterCompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
+const RecruiterJobsRoute = RecruiterJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
+const TalentIndexRoute = TalentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
+const TalentApplicationsRoute = TalentApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
+const TalentJobsRoute = TalentJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
+const TalentProfileRoute = TalentProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/recruiter': typeof RecruiterRouteRouteWithChildren
+  '/talent': typeof TalentRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/forbidden': typeof ForbiddenRoute
   '/jobs': typeof JobsRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/talent': typeof AdminTalentRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/hub/admin': typeof AuthenticatedHubAdminRoute
-  '/hub/candidate': typeof AuthenticatedHubCandidateRoute
-  '/hub/recruiter': typeof AuthenticatedHubRecruiterRoute
-  '/hub/': typeof AuthenticatedHubIndexRoute
+  '/recruiter/applications': typeof RecruiterApplicationsRoute
+  '/recruiter/candidates': typeof RecruiterCandidatesRoute
+  '/recruiter/company': typeof RecruiterCompanyRoute
+  '/recruiter/jobs': typeof RecruiterJobsRoute
+  '/talent/applications': typeof TalentApplicationsRoute
+  '/talent/jobs': typeof TalentJobsRoute
+  '/talent/profile': typeof TalentProfileRoute
+  '/admin/': typeof AdminIndexRoute
+  '/recruiter/': typeof RecruiterIndexRoute
+  '/talent/': typeof TalentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/forbidden': typeof ForbiddenRoute
   '/jobs': typeof JobsRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/talent': typeof AdminTalentRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/hub/admin': typeof AuthenticatedHubAdminRoute
-  '/hub/candidate': typeof AuthenticatedHubCandidateRoute
-  '/hub/recruiter': typeof AuthenticatedHubRecruiterRoute
-  '/hub': typeof AuthenticatedHubIndexRoute
+  '/recruiter/applications': typeof RecruiterApplicationsRoute
+  '/recruiter/candidates': typeof RecruiterCandidatesRoute
+  '/recruiter/company': typeof RecruiterCompanyRoute
+  '/recruiter/jobs': typeof RecruiterJobsRoute
+  '/talent/applications': typeof TalentApplicationsRoute
+  '/talent/jobs': typeof TalentJobsRoute
+  '/talent/profile': typeof TalentProfileRoute
+  '/admin': typeof AdminIndexRoute
+  '/recruiter': typeof RecruiterIndexRoute
+  '/talent': typeof TalentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/recruiter': typeof RecruiterRouteRouteWithChildren
+  '/talent': typeof TalentRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/forbidden': typeof ForbiddenRoute
   '/jobs': typeof JobsRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/talent': typeof AdminTalentRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/_authenticated/hub/admin': typeof AuthenticatedHubAdminRoute
-  '/_authenticated/hub/candidate': typeof AuthenticatedHubCandidateRoute
-  '/_authenticated/hub/recruiter': typeof AuthenticatedHubRecruiterRoute
-  '/_authenticated/hub/': typeof AuthenticatedHubIndexRoute
+  '/recruiter/applications': typeof RecruiterApplicationsRoute
+  '/recruiter/candidates': typeof RecruiterCandidatesRoute
+  '/recruiter/company': typeof RecruiterCompanyRoute
+  '/recruiter/jobs': typeof RecruiterJobsRoute
+  '/talent/applications': typeof TalentApplicationsRoute
+  '/talent/jobs': typeof TalentJobsRoute
+  '/talent/profile': typeof TalentProfileRoute
+  '/admin/': typeof AdminIndexRoute
+  '/recruiter/': typeof RecruiterIndexRoute
+  '/talent/': typeof TalentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/recruiter'
+    | '/talent'
     | '/about'
     | '/auth'
+    | '/dashboard'
+    | '/forbidden'
     | '/jobs'
     | '/programs'
     | '/reset-password'
     | '/services'
     | '/verify-email'
+    | '/admin/jobs'
+    | '/admin/organizations'
+    | '/admin/recruiters'
+    | '/admin/settings'
+    | '/admin/talent'
+    | '/admin/users'
     | '/auth/callback'
-    | '/hub/admin'
-    | '/hub/candidate'
-    | '/hub/recruiter'
-    | '/hub/'
+    | '/recruiter/applications'
+    | '/recruiter/candidates'
+    | '/recruiter/company'
+    | '/recruiter/jobs'
+    | '/talent/applications'
+    | '/talent/jobs'
+    | '/talent/profile'
+    | '/admin/'
+    | '/recruiter/'
+    | '/talent/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/auth'
+    | '/dashboard'
+    | '/forbidden'
     | '/jobs'
     | '/programs'
     | '/reset-password'
     | '/services'
     | '/verify-email'
+    | '/admin/jobs'
+    | '/admin/organizations'
+    | '/admin/recruiters'
+    | '/admin/settings'
+    | '/admin/talent'
+    | '/admin/users'
     | '/auth/callback'
-    | '/hub/admin'
-    | '/hub/candidate'
-    | '/hub/recruiter'
-    | '/hub'
+    | '/recruiter/applications'
+    | '/recruiter/candidates'
+    | '/recruiter/company'
+    | '/recruiter/jobs'
+    | '/talent/applications'
+    | '/talent/jobs'
+    | '/talent/profile'
+    | '/admin'
+    | '/recruiter'
+    | '/talent'
   id:
     | '__root__'
     | '/'
-    | '/_authenticated'
+    | '/admin'
+    | '/recruiter'
+    | '/talent'
     | '/about'
     | '/auth'
+    | '/dashboard'
+    | '/forbidden'
     | '/jobs'
     | '/programs'
     | '/reset-password'
     | '/services'
     | '/verify-email'
+    | '/admin/jobs'
+    | '/admin/organizations'
+    | '/admin/recruiters'
+    | '/admin/settings'
+    | '/admin/talent'
+    | '/admin/users'
     | '/auth/callback'
-    | '/_authenticated/hub/admin'
-    | '/_authenticated/hub/candidate'
-    | '/_authenticated/hub/recruiter'
-    | '/_authenticated/hub/'
+    | '/recruiter/applications'
+    | '/recruiter/candidates'
+    | '/recruiter/company'
+    | '/recruiter/jobs'
+    | '/talent/applications'
+    | '/talent/jobs'
+    | '/talent/profile'
+    | '/admin/'
+    | '/recruiter/'
+    | '/talent/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  RecruiterRouteRoute: typeof RecruiterRouteRouteWithChildren
+  TalentRouteRoute: typeof TalentRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
+  DashboardRoute: typeof DashboardRoute
+  ForbiddenRoute: typeof ForbiddenRoute
   JobsRoute: typeof JobsRoute
   ProgramsRoute: typeof ProgramsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -213,13 +406,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -227,11 +413,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forbidden': {
+      id: '/forbidden'
+      path: '/forbidden'
+      fullPath: '/forbidden'
+      preLoaderRoute: typeof ForbiddenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs': {
@@ -248,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recruiter': {
+      id: '/recruiter'
+      path: '/recruiter'
+      fullPath: '/recruiter'
+      preLoaderRoute: typeof RecruiterRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -262,12 +476,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/talent': {
+      id: '/talent'
+      path: '/talent'
+      fullPath: '/talent'
+      preLoaderRoute: typeof TalentRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify-email': {
       id: '/verify-email'
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/jobs': {
+      id: '/admin/jobs'
+      path: '/jobs'
+      fullPath: '/admin/jobs'
+      preLoaderRoute: typeof AdminJobsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/organizations': {
+      id: '/admin/organizations'
+      path: '/organizations'
+      fullPath: '/admin/organizations'
+      preLoaderRoute: typeof AdminOrganizationsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/recruiters': {
+      id: '/admin/recruiters'
+      path: '/recruiters'
+      fullPath: '/admin/recruiters'
+      preLoaderRoute: typeof AdminRecruitersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/talent': {
+      id: '/admin/talent'
+      path: '/talent'
+      fullPath: '/admin/talent'
+      preLoaderRoute: typeof AdminTalentRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/auth/callback': {
       id: '/auth/callback'
@@ -276,53 +546,133 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_authenticated/hub/': {
-      id: '/_authenticated/hub/'
-      path: '/hub'
-      fullPath: '/hub/'
-      preLoaderRoute: typeof AuthenticatedHubIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/recruiter/': {
+      id: '/recruiter/'
+      path: '/'
+      fullPath: '/recruiter/'
+      preLoaderRoute: typeof RecruiterIndexRouteImport
+      parentRoute: typeof RecruiterRouteRoute
     }
-    '/_authenticated/hub/admin': {
-      id: '/_authenticated/hub/admin'
-      path: '/hub/admin'
-      fullPath: '/hub/admin'
-      preLoaderRoute: typeof AuthenticatedHubAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/recruiter/applications': {
+      id: '/recruiter/applications'
+      path: '/applications'
+      fullPath: '/recruiter/applications'
+      preLoaderRoute: typeof RecruiterApplicationsRouteImport
+      parentRoute: typeof RecruiterRouteRoute
     }
-    '/_authenticated/hub/candidate': {
-      id: '/_authenticated/hub/candidate'
-      path: '/hub/candidate'
-      fullPath: '/hub/candidate'
-      preLoaderRoute: typeof AuthenticatedHubCandidateRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/recruiter/candidates': {
+      id: '/recruiter/candidates'
+      path: '/candidates'
+      fullPath: '/recruiter/candidates'
+      preLoaderRoute: typeof RecruiterCandidatesRouteImport
+      parentRoute: typeof RecruiterRouteRoute
     }
-    '/_authenticated/hub/recruiter': {
-      id: '/_authenticated/hub/recruiter'
-      path: '/hub/recruiter'
-      fullPath: '/hub/recruiter'
-      preLoaderRoute: typeof AuthenticatedHubRecruiterRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/recruiter/company': {
+      id: '/recruiter/company'
+      path: '/company'
+      fullPath: '/recruiter/company'
+      preLoaderRoute: typeof RecruiterCompanyRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
+    '/recruiter/jobs': {
+      id: '/recruiter/jobs'
+      path: '/jobs'
+      fullPath: '/recruiter/jobs'
+      preLoaderRoute: typeof RecruiterJobsRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
+    '/talent/': {
+      id: '/talent/'
+      path: '/'
+      fullPath: '/talent/'
+      preLoaderRoute: typeof TalentIndexRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
+    '/talent/applications': {
+      id: '/talent/applications'
+      path: '/applications'
+      fullPath: '/talent/applications'
+      preLoaderRoute: typeof TalentApplicationsRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
+    '/talent/jobs': {
+      id: '/talent/jobs'
+      path: '/jobs'
+      fullPath: '/talent/jobs'
+      preLoaderRoute: typeof TalentJobsRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
+    '/talent/profile': {
+      id: '/talent/profile'
+      path: '/profile'
+      fullPath: '/talent/profile'
+      preLoaderRoute: typeof TalentProfileRouteImport
+      parentRoute: typeof TalentRouteRoute
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedHubAdminRoute: typeof AuthenticatedHubAdminRoute
-  AuthenticatedHubCandidateRoute: typeof AuthenticatedHubCandidateRoute
-  AuthenticatedHubRecruiterRoute: typeof AuthenticatedHubRecruiterRoute
-  AuthenticatedHubIndexRoute: typeof AuthenticatedHubIndexRoute
+interface AdminRouteRouteChildren {
+  AdminJobsRoute: typeof AdminJobsRoute
+  AdminOrganizationsRoute: typeof AdminOrganizationsRoute
+  AdminRecruitersRoute: typeof AdminRecruitersRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTalentRoute: typeof AdminTalentRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedHubAdminRoute: AuthenticatedHubAdminRoute,
-  AuthenticatedHubCandidateRoute: AuthenticatedHubCandidateRoute,
-  AuthenticatedHubRecruiterRoute: AuthenticatedHubRecruiterRoute,
-  AuthenticatedHubIndexRoute: AuthenticatedHubIndexRoute,
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminJobsRoute: AdminJobsRoute,
+  AdminOrganizationsRoute: AdminOrganizationsRoute,
+  AdminRecruitersRoute: AdminRecruitersRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminTalentRoute: AdminTalentRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
 }
 
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
+interface RecruiterRouteRouteChildren {
+  RecruiterApplicationsRoute: typeof RecruiterApplicationsRoute
+  RecruiterCandidatesRoute: typeof RecruiterCandidatesRoute
+  RecruiterCompanyRoute: typeof RecruiterCompanyRoute
+  RecruiterJobsRoute: typeof RecruiterJobsRoute
+  RecruiterIndexRoute: typeof RecruiterIndexRoute
+}
+
+const RecruiterRouteRouteChildren: RecruiterRouteRouteChildren = {
+  RecruiterApplicationsRoute: RecruiterApplicationsRoute,
+  RecruiterCandidatesRoute: RecruiterCandidatesRoute,
+  RecruiterCompanyRoute: RecruiterCompanyRoute,
+  RecruiterJobsRoute: RecruiterJobsRoute,
+  RecruiterIndexRoute: RecruiterIndexRoute,
+}
+
+const RecruiterRouteRouteWithChildren = RecruiterRouteRoute._addFileChildren(
+  RecruiterRouteRouteChildren,
+)
+
+interface TalentRouteRouteChildren {
+  TalentApplicationsRoute: typeof TalentApplicationsRoute
+  TalentJobsRoute: typeof TalentJobsRoute
+  TalentProfileRoute: typeof TalentProfileRoute
+  TalentIndexRoute: typeof TalentIndexRoute
+}
+
+const TalentRouteRouteChildren: TalentRouteRouteChildren = {
+  TalentApplicationsRoute: TalentApplicationsRoute,
+  TalentJobsRoute: TalentJobsRoute,
+  TalentProfileRoute: TalentProfileRoute,
+  TalentIndexRoute: TalentIndexRoute,
+}
+
+const TalentRouteRouteWithChildren = TalentRouteRoute._addFileChildren(
+  TalentRouteRouteChildren,
+)
 
 interface AuthRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -336,9 +686,13 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
+  RecruiterRouteRoute: RecruiterRouteRouteWithChildren,
+  TalentRouteRoute: TalentRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
+  DashboardRoute: DashboardRoute,
+  ForbiddenRoute: ForbiddenRoute,
   JobsRoute: JobsRoute,
   ProgramsRoute: ProgramsRoute,
   ResetPasswordRoute: ResetPasswordRoute,

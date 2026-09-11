@@ -9,8 +9,8 @@ export function SiteFooter() {
           <div>
             <img src={savantLogo} alt="Savant" className="h-6 w-auto" />
             <p className="mt-4 max-w-md text-lg leading-snug text-muted-foreground">
-              Staffing built on judgment, not volume. We place people who fit —
-              not just resumes that match.
+              Staffing built on judgment, not volume. We place people who fit — not just resumes
+              that match.
             </p>
           </div>
 
@@ -63,9 +63,7 @@ export function SiteFooter() {
               </ul>
             </div>
             <div>
-              <h4 className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                Contact
-              </h4>
+              <h4 className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Contact</h4>
               <ul className="mt-5 space-y-3 text-muted-foreground">
                 <li>hello@savantstaffing.com</li>
                 <li>Content coming soon</li>

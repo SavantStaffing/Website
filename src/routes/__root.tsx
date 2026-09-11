@@ -14,7 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { supabase } from "@/integrations/supabase/client";
+import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 function NotFoundComponent() {
   return (
@@ -38,7 +38,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -122,36 +122,19 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Supabase isn't connected until this project is linked in Lovable Cloud —
-    // guard against that so the shell still renders in the meantime.
-    let unsubscribe: (() => void) | undefined;
-    try {
-      const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-        if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-          router.invalidate();
-          if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-        }
-      });
-      unsubscribe = () => sub.subscription.unsubscribe();
-    } catch (error) {
-      console.error(error);
-    }
-    return () => unsubscribe?.();
-  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col">
-        <SiteHeader />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <SiteFooter />
-      </div>
-      <Toaster theme="light" position="top-center" />
+      <AuthProvider>
+        <div className="flex min-h-screen flex-col">
+          <SiteHeader />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <SiteFooter />
+        </div>
+        <Toaster theme="light" position="top-center" />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
