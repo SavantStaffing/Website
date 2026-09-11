@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import savantLogo from "@/assets/savant-logo.png";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -32,8 +33,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--color-hairline)] bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-        <Link to="/" className="font-display text-2xl font-semibold tracking-tight">
-          SAVANT
+        <Link to="/" className="flex items-center">
+          <img src={savantLogo} alt="Savant" className="h-6 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-9 md:flex">

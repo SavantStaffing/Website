@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import savantLogo from "@/assets/savant-logo.png";
 
 export function SiteFooter() {
   return (
@@ -6,7 +7,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
         <div className="grid gap-16 md:grid-cols-2 md:gap-24">
           <div>
-            <div className="font-display text-2xl font-semibold tracking-tight">SAVANT</div>
+            <img src={savantLogo} alt="Savant" className="h-6 w-auto" />
             <p className="mt-4 max-w-md text-lg leading-snug text-muted-foreground">
               Staffing built on judgment, not volume. We place people who fit —
               not just resumes that match.
