@@ -9,6 +9,7 @@ type ProfileRow = {
   username: string | null;
   email: string | null;
   organization_id: string | null;
+  created_at: string;
   organizations: { name: string } | null;
 };
 
@@ -23,10 +24,12 @@ export function UserList({
   roleFilter,
   showOrganization = false,
   allowRoleChange = false,
+  showJoined = false,
 }: {
   roleFilter?: AppRole;
   showOrganization?: boolean;
   allowRoleChange?: boolean;
+  showJoined?: boolean;
 }) {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [roles, setRoles] = useState<Record<string, AppRole>>({});
@@ -37,7 +40,7 @@ export function UserList({
     const [{ data: profileRows }, { data: roleRows }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, username, email, organization_id, organizations (name)")
+        .select("id, username, email, organization_id, created_at, organizations (name)")
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role"),
     ]);
@@ -73,36 +76,54 @@ export function UserList({
   if (filtered.length === 0) return <p className="text-sm text-muted-foreground">No users yet.</p>;
 
   return (
-    <ul className="divide-y divide-[color:var(--color-hairline)] border-y border-[color:var(--color-hairline)]">
-      {filtered.map((p) => (
-        <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
-          <div>
-            <div>{p.username ?? "—"}</div>
-            <div className="text-xs text-muted-foreground">{p.email}</div>
-            {showOrganization && (
-              <div className="mt-1 text-xs text-muted-foreground">
-                {p.organizations?.name ?? "No organization assigned"}
-              </div>
+    <>
+      {showJoined && (
+        <p className="mb-4 text-xs text-muted-foreground">
+          {filtered.length} account{filtered.length === 1 ? "" : "s"} ·{" "}
+          {
+            filtered.filter((p) => Date.now() - new Date(p.created_at).getTime() < 7 * 86_400_000)
+              .length
+          }{" "}
+          joined in the last 7 days
+        </p>
+      )}
+      <ul className="divide-y divide-[color:var(--color-hairline)] border-y border-[color:var(--color-hairline)]">
+        {filtered.map((p) => (
+          <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
+            <div>
+              <div>{p.username ?? "—"}</div>
+              <div className="text-xs text-muted-foreground">{p.email}</div>
+              {showJoined && (
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Joined {new Date(p.created_at).toLocaleDateString()}
+                </div>
+              )}
+              {showOrganization && (
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {p.organizations?.name ?? "No organization assigned"}
+                </div>
+              )}
+            </div>
+            {allowRoleChange ? (
+              <select
+                value={roles[p.id] ?? "talent"}
+                disabled={savingId === p.id}
+                onChange={(e) => changeRole(p.id, e.target.value as AppRole)}
+                className="rounded-sm border border-[color:var(--color-hairline)] bg-transparent px-3 py-2 text-[12px] uppercase tracking-[0.15em] disabled:opacity-50"
+              >
+                <option value="talent">Talent</option>
+                <option value="recruiter">Recruiter</option>
+                <option value="career_coach">Career Coach</option>
+                <option value="admin">Admin</option>
+              </select>
+            ) : (
+              <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                {roles[p.id] ?? "—"}
+              </span>
             )}
-          </div>
-          {allowRoleChange ? (
-            <select
-              value={roles[p.id] ?? "talent"}
-              disabled={savingId === p.id}
-              onChange={(e) => changeRole(p.id, e.target.value as AppRole)}
-              className="rounded-sm border border-[color:var(--color-hairline)] bg-transparent px-3 py-2 text-[12px] uppercase tracking-[0.15em] disabled:opacity-50"
-            >
-              <option value="talent">Talent</option>
-              <option value="recruiter">Recruiter</option>
-              <option value="admin">Admin</option>
-            </select>
-          ) : (
-            <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-              {roles[p.id] ?? "—"}
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

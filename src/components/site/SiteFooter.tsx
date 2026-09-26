@@ -46,6 +46,14 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
+                    to="/preparation"
+                    className="text-muted-foreground active:text-foreground [@media(hover:hover)]:hover:text-foreground"
+                  >
+                    Preparation
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/services"
                     className="text-muted-foreground active:text-foreground [@media(hover:hover)]:hover:text-foreground"
                   >
@@ -54,10 +62,10 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
-                    to="/programs"
+                    to="/contact"
                     className="text-muted-foreground active:text-foreground [@media(hover:hover)]:hover:text-foreground"
                   >
-                    Programs
+                    Contact
                   </Link>
                 </li>
               </ul>
@@ -65,8 +73,15 @@ export function SiteFooter() {
             <div>
               <h4 className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Contact</h4>
               <ul className="mt-5 space-y-3 text-muted-foreground">
-                <li>hello@savantstaffing.com</li>
-                <li>Content coming soon</li>
+                <li>info@savantalent.com</li>
+                <li>
+                  <Link
+                    to="/contact"
+                    className="active:text-foreground [@media(hover:hover)]:hover:text-foreground"
+                  >
+                    Send us a message →
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

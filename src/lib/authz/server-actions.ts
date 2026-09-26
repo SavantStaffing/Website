@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const updateRoleSchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum(["talent", "recruiter", "admin"]),
+  role: z.enum(["talent", "recruiter", "career_coach", "admin"]),
 });
 
 /**

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES } from "@/lib/scout/types";
 
 export const Route = createFileRoute("/recruiter/jobs")({
   head: () => ({
@@ -22,7 +23,7 @@ type JobRow = {
 const schema = z.object({
   title: z.string().trim().min(2).max(120),
   location: z.string().trim().max(120).optional().or(z.literal("")),
-  type: z.string().trim().max(60).optional().or(z.literal("")),
+  employment_type: z.enum(EMPLOYMENT_TYPES).optional().or(z.literal("")),
   description: z.string().trim().max(4000).optional().or(z.literal("")),
 });
 
@@ -33,7 +34,8 @@ function RecruiterJobs() {
 
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
-  const [type, setType] = useState("");
+  const [employmentType, setEmploymentType] = useState("");
+  const [remote, setRemote] = useState(false);
   const [description, setDescription] = useState("");
   const [posting, setPosting] = useState(false);
 
@@ -68,7 +70,12 @@ function RecruiterJobs() {
 
   async function post(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = schema.safeParse({ title, location, type, description });
+    const parsed = schema.safeParse({
+      title,
+      location,
+      employment_type: employmentType,
+      description,
+    });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
@@ -79,7 +86,11 @@ function RecruiterJobs() {
       organization_id: profile.organizationId!,
       title: parsed.data.title,
       location: parsed.data.location || null,
-      type: parsed.data.type || null,
+      employment_type: parsed.data.employment_type || null,
+      type: parsed.data.employment_type
+        ? EMPLOYMENT_TYPE_LABELS[parsed.data.employment_type]
+        : null,
+      remote,
       description: parsed.data.description || null,
     });
     setPosting(false);
@@ -90,7 +101,8 @@ function RecruiterJobs() {
     toast.success("Job posted.");
     setTitle("");
     setLocation("");
-    setType("");
+    setEmploymentType("");
+    setRemote(false);
     setDescription("");
     loadJobs();
   }
@@ -103,13 +115,33 @@ function RecruiterJobs() {
           <Field label="Title" value={title} onChange={setTitle} />
           <div className="grid grid-cols-2 gap-4">
             <Field label="Location" value={location} onChange={setLocation} />
-            <Field
-              label="Type"
-              value={type}
-              onChange={setType}
-              placeholder="Full-time, Contract…"
-            />
+            <label className="block">
+              <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+                Schedule
+              </span>
+              <select
+                value={employmentType}
+                onChange={(e) => setEmploymentType(e.target.value)}
+                className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+              >
+                <option value="">Not specified</option>
+                {EMPLOYMENT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {EMPLOYMENT_TYPE_LABELS[t]}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
+          <label className="flex items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={remote}
+              onChange={(e) => setRemote(e.target.checked)}
+              className="accent-foreground"
+            />
+            Remote role
+          </label>
           <label className="block">
             <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
               Description
