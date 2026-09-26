@@ -7,7 +7,20 @@ import type { AtsPlatform } from "./types.ts";
  *
  * Order matters: API/embed patterns are the most specific, so they go first.
  */
-const PATTERNS: { ats: AtsPlatform; rx: RegExp }[] = [
+const PATTERNS: { ats: AtsPlatform; rx: RegExp; token?: (m: RegExpMatchArray) => string }[] = [
+  // Workday: token = "{host}/{tenant}/{site}" (see workday.ts)
+  {
+    ats: "workday",
+    rx: /([\w-]+)\.(wd\d+)\.myworkdayjobs\.com\/(?:wday\/cxs\/[\w-]+\/)?(?:[a-z]{2}-[A-Z]{2}\/)?([\w-]+)/i,
+    token: (m) => `${m[1]}.${m[2]}.myworkdayjobs.com/${m[1]}/${m[3]}`,
+  },
+  {
+    ats: "workday",
+    rx: /(wd\d+)\.myworkdaysite\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?recruiting\/([\w-]+)\/([\w-]+)/i,
+    token: (m) => `${m[1]}.myworkdaysite.com/${m[2]}/${m[3]}`,
+  },
+  // iCIMS: token = portal subdomain
+  { ats: "icims", rx: /\b((?!www\b)[\w-]+)\.icims\.com/i },
   { ats: "greenhouse", rx: /boards-api\.greenhouse\.io\/v1\/boards\/([\w-]+)/i },
   { ats: "greenhouse", rx: /greenhouse\.io\/embed\/job_board(?:\/js)?\?for=([\w-]+)/i },
   { ats: "greenhouse", rx: /(?:boards|job-boards)(?:\.eu)?\.greenhouse\.io\/(?!embed\b)([\w-]+)/i },
@@ -32,16 +45,27 @@ const NOT_TOKENS = new Set([
   "www",
   "apply",
   "static",
+  "wday",
+  "recruiting",
 ]);
 
 export type AtsHit = { ats: AtsPlatform; token: string };
 
+function hitFrom(
+  ats: AtsPlatform,
+  m: RegExpMatchArray,
+  token?: (m: RegExpMatchArray) => string,
+): AtsHit | null {
+  if (!m[1] || NOT_TOKENS.has(m[1].toLowerCase())) return null;
+  if (m[3] && NOT_TOKENS.has(m[3].toLowerCase())) return null;
+  return { ats, token: token ? token(m) : decodeURIComponent(m[1]) };
+}
+
 export function detectAts(text: string): AtsHit | null {
-  for (const { ats, rx } of PATTERNS) {
+  for (const { ats, rx, token } of PATTERNS) {
     const m = rx.exec(text);
-    if (m && m[1] && !NOT_TOKENS.has(m[1].toLowerCase())) {
-      return { ats, token: decodeURIComponent(m[1]) };
-    }
+    const hit = m && hitFrom(ats, m, token);
+    if (hit) return hit;
   }
   return null;
 }
@@ -49,12 +73,11 @@ export function detectAts(text: string): AtsHit | null {
 /** All distinct ATS boards referenced in a page — a careers page can list more than one. */
 export function detectAllAts(html: string): AtsHit[] {
   const seen = new Map<string, AtsHit>();
-  for (const { ats, rx } of PATTERNS) {
+  for (const { ats, rx, token } of PATTERNS) {
     const global = new RegExp(rx.source, "gi");
     for (const m of html.matchAll(global)) {
-      if (!m[1] || NOT_TOKENS.has(m[1].toLowerCase())) continue;
-      const hit = { ats, token: decodeURIComponent(m[1]) };
-      seen.set(`${ats}:${hit.token.toLowerCase()}`, hit);
+      const hit = hitFrom(ats, m, token);
+      if (hit) seen.set(`${ats}:${hit.token.toLowerCase()}`, hit);
     }
   }
   return [...seen.values()];
@@ -73,5 +96,13 @@ export function boardUrl(ats: AtsPlatform, token: string): string {
       return `https://careers.smartrecruiters.com/${token}`;
     case "workable":
       return `https://apply.workable.com/${token}`;
+    case "workday": {
+      const [host, , site] = token.split("/");
+      return `https://${host}/${site}`;
+    }
+    case "icims":
+      return `https://${token}.icims.com/jobs/search`;
+    case "jsonld":
+      return token;
   }
 }

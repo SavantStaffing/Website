@@ -52,13 +52,27 @@ Scheduled (/api/scout/run) ─┤              │
      fails a list it's on → skipped, live postings closed · on neither list → normal filters
   → Company Web Scan (webscan.ts) → Identify ATS platform (detect.ts), remembered on the config row
   → Config table of companies with ATS endpoints (scout_companies)
-  → Call endpoint → Map into site schema (sources.ts: Greenhouse, Lever, Ashby, SmartRecruiters, Workable)
+  → Call endpoint → Map into site schema (sources.ts: Greenhouse, Lever, Ashby, SmartRecruiters,
+     Workable; workday.ts: Workday; jobposting.ts: iCIMS + any careers site's JobPosting markup)
   → Data-quality check: schema validation, default ≥ 80% of a board's postings (validate.ts)
   → Refine parameters: position, seniority, industry + NAICS, date posted, location, remote, schedule (refine.ts)
   → Ghost Job Detector v2: explainable score, ≥ 50 held for admin review (ghost.ts)
   → Normalization → upsert into jobs; postings gone from a board are closed (pipeline.ts)
   → User feed ranking + recruiter score (rank.ts) → talent feed → autofill (src/lib/autofill)
 ```
+
+### Sources without an ATS API (no LLM)
+
+- **Workday** (`workday.ts`) — any `…myworkdayjobs.com` / `…myworkdaysite.com` site, via the
+  JSON endpoints its own page uses. Lists up to 400 postings; the newest 40 also get a detail
+  fetch (exact date, description, schedule, remote).
+- **iCIMS** (`jobposting.ts`) — `careers-acme.icims.com` portals; reads each job page's JobPosting
+  markup. iCIMS's markup dates are synthetic, so first-seen tracking ages these instead; the
+  location comes from the page header.
+- **Careers site markup** (`jobposting.ts`, stored as `jsonld`) — the fallback when a careers page
+  uses no known ATS: JobPosting markup on the page, job-page links, or the sitemap. Up to 60 job
+  pages per company. Sites that build their listings in the browser with JavaScript (no markup,
+  no sitemap) still come back "No supported ATS" — that's what an LLM extractor would cover.
 
 ### Employer ratings gate
 

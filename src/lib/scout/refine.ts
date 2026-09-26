@@ -42,7 +42,7 @@ export function inferSeniority(title: string): Seniority {
 
 export function isRemote(location: string | null, hint: boolean | null): boolean {
   if (hint !== null) return hint;
-  return /\b(remote|anywhere|distributed|work from home|wfh)\b/i.test(location ?? "");
+  return /\b(remote|virtual|anywhere|distributed|work from home|wfh)\b/i.test(location ?? "");
 }
 
 /** Clean display title: drop requisition numbers and trailing location/tags in brackets. */

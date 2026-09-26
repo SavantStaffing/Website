@@ -1,4 +1,7 @@
 import { scoutJson, type MetricsRecorder } from "./http.ts";
+import { icims, jsonld } from "./jobposting.ts";
+import { htmlToText, iso } from "./text.ts";
+import { workday } from "./workday.ts";
 import type { AtsPlatform, BoardSource, RawJob } from "./types.ts";
 
 /**
@@ -7,46 +10,6 @@ import type { AtsPlatform, BoardSource, RawJob } from "./types.ts";
  * Adapters only reshape data; validation, refinement and ghost detection
  * happen later in the pipeline so every source is judged the same way.
  */
-
-const ENTITIES: Record<string, string> = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-  nbsp: " ",
-  "#39": "'",
-};
-
-function decodeEntities(s: string): string {
-  return s.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (m, e: string) => {
-    if (e[0] === "#") {
-      const code = e[1].toLowerCase() === "x" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : m;
-    }
-    return ENTITIES[e.toLowerCase()] ?? m;
-  });
-}
-
-/** HTML (possibly entity-escaped, as Greenhouse sends it) → readable plain text. */
-export function htmlToText(html: string | null | undefined): string | null {
-  if (!html) return null;
-  const text = decodeEntities(decodeEntities(html)) // Greenhouse double-escapes
-    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, "")
-    .replace(/<\s*(br|\/p|\/div|\/li|\/h\d)\s*\/?>/gi, "\n")
-    .replace(/<li[^>]*>/gi, "• ")
-    .replace(/<[^>]+>/g, "")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n\s*\n\s*\n+/g, "\n\n")
-    .trim();
-  return text || null;
-}
-
-const iso = (v: string | number | null | undefined): string | null => {
-  if (v === null || v === undefined || v === "") return null;
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
-};
 
 // ---------------------------------------------------------------- Greenhouse
 type GreenhouseJob = {
@@ -266,7 +229,7 @@ async function workable(rec: MetricsRecorder, token: string, company: string): P
 export const ATS_ADAPTERS: Record<
   AtsPlatform,
   (rec: MetricsRecorder, token: string, company: string) => Promise<RawJob[]>
-> = { greenhouse, lever, ashby, smartrecruiters, workable };
+> = { greenhouse, lever, ashby, smartrecruiters, workable, workday, icims, jsonld };
 
 // ---------------------------------------------------------------- JobSpy (job boards)
 /**

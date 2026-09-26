@@ -103,6 +103,9 @@ const ATS_LABEL: Record<string, string> = {
   ashby: "Ashby",
   smartrecruiters: "SmartRecruiters",
   workable: "Workable",
+  workday: "Workday",
+  icims: "iCIMS",
+  jsonld: "Careers site (job markup)",
 };
 
 function JobScout() {
