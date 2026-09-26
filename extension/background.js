@@ -1,0 +1,46 @@
+// All network calls go through the service worker: host_permissions let it skip page CORS.
+// Point this at the deployed Savant site (no trailing slash).
+const API = "https://savantstaffing.com";
+
+// The Savant site pushes the signed-in talent's Supabase access token here on
+// sign-in and on every refresh (see src/lib/autofill/extensionBridge.ts).
+chrome.runtime.onMessageExternal.addListener((msg, _sender, send) => {
+  if (msg?.type === "session") {
+    const done = () => send({ ok: true });
+    if (msg.token) chrome.storage.local.set({ token: msg.token }).then(done);
+    else chrome.storage.local.remove("token").then(done);
+    return true;
+  }
+});
+
+function toBase64(buf) {
+  const bytes = new Uint8Array(buf);
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, send) => {
+  (async () => {
+    try {
+      if (msg.type === "file") {
+        const r = await fetch(msg.url);
+        if (!r.ok) return send({ error: `File ${r.status}` });
+        return send({ b64: toBase64(await r.arrayBuffer()), mime: r.headers.get("content-type") });
+      }
+      const { token } = await chrome.storage.local.get("token");
+      if (!token) return send({ error: "Sign in to Savant first" });
+      const path = { plan: "/api/autofill/plan", answers: "/api/autofill/answers" }[msg.type];
+      if (!path) return send({ error: `Unknown message ${msg.type}` });
+      const r = await fetch(API + path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(msg.payload),
+      });
+      send(r.ok ? await r.json() : { error: r.status === 401 ? "Sign in to Savant again" : `API ${r.status}` });
+    } catch (e) {
+      send({ error: String(e) });
+    }
+  })();
+  return true; // keep the channel open for the async reply
+});

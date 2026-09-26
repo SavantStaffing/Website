@@ -15,6 +15,7 @@ type RecruiterRow = {
   username: string | null;
   email: string | null;
   organization_id: string | null;
+  org_permission: string;
 };
 type OrgRow = { id: string; name: string };
 
@@ -41,7 +42,7 @@ function RecruiterManagement() {
       }
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id, username, email, organization_id")
+        .select("id, username, email, organization_id, org_permission")
         .in("id", recruiterIds);
       setRecruiters((profileRows as RecruiterRow[]) ?? []);
       setLoading(false);
@@ -65,12 +66,30 @@ function RecruiterManagement() {
     toast.success("Organization assigned.");
   }
 
+  async function setPermission(userId: string, permission: string) {
+    setSavingId(userId);
+    const { error } = await supabase.rpc("set_org_permission", {
+      _target: userId,
+      _permission: permission,
+    });
+    setSavingId(null);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setRecruiters((prev) =>
+      prev.map((r) => (r.id === userId ? { ...r, org_permission: permission } : r)),
+    );
+    toast.success("Permission updated.");
+  }
+
   return (
     <section>
       <h2 className="text-2xl font-semibold">Recruiters</h2>
       <p className="mt-2 text-sm text-muted-foreground">
         Assign each recruiter to an organization — this is what scopes their job postings and
-        candidate visibility to their own company.
+        candidate visibility to their own company. Make one person per company the owner; they can
+        then manage their own team's access.
       </p>
 
       {loading ? (
@@ -85,19 +104,32 @@ function RecruiterManagement() {
                 <div>{r.username ?? "—"}</div>
                 <div className="text-xs text-muted-foreground">{r.email}</div>
               </div>
-              <select
-                value={r.organization_id ?? ""}
-                disabled={savingId === r.id}
-                onChange={(e) => assignOrg(r.id, e.target.value)}
-                className="rounded-sm border border-[color:var(--color-hairline)] bg-transparent px-3 py-2 text-[12px] uppercase tracking-[0.15em] disabled:opacity-50"
-              >
-                <option value="">No organization</option>
-                {orgs.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex flex-wrap gap-3">
+                <select
+                  value={r.org_permission}
+                  disabled={savingId === r.id || !r.organization_id}
+                  onChange={(e) => setPermission(r.id, e.target.value)}
+                  className="rounded-sm border border-[color:var(--color-hairline)] bg-transparent px-3 py-2 text-[12px] uppercase tracking-[0.15em] disabled:opacity-50"
+                >
+                  <option value="owner">Owner</option>
+                  <option value="manager">Manager</option>
+                  <option value="member">Member</option>
+                  <option value="viewer">Viewer</option>
+                </select>
+                <select
+                  value={r.organization_id ?? ""}
+                  disabled={savingId === r.id}
+                  onChange={(e) => assignOrg(r.id, e.target.value)}
+                  className="rounded-sm border border-[color:var(--color-hairline)] bg-transparent px-3 py-2 text-[12px] uppercase tracking-[0.15em] disabled:opacity-50"
+                >
+                  <option value="">No organization</option>
+                  {orgs.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </li>
           ))}
         </ul>

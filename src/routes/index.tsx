@@ -15,9 +15,24 @@ export const Route = createFileRoute("/")({
 });
 
 const SERVICES = [
-  { slug: "temporary-staffing", name: "Temporary Staffing", tag: "Flexible coverage, fast" },
-  { slug: "direct-hire", name: "Direct Hire", tag: "Full-time placements" },
-  { slug: "executive-search", name: "Executive Search", tag: "Leadership & specialist roles" },
+  {
+    slug: "temporary-staffing",
+    name: "Temporary Staffing",
+    tag: "Flexible coverage, fast",
+    to: "/temporary-staffing",
+  },
+  {
+    slug: "professional-roles",
+    name: "Professional Roles",
+    tag: "Full-time placements",
+    to: "/services",
+  },
+  {
+    slug: "preparation",
+    name: "Preparation",
+    tag: "Career programs & readiness",
+    to: "/preparation",
+  },
 ] as const;
 
 function Home() {
@@ -26,7 +41,6 @@ function Home() {
       <HeroSection />
       <ServicesPreview />
       <ProgramsPreview />
-      <CtaSection />
     </>
   );
 }
@@ -87,7 +101,7 @@ function ServicesPreview() {
           {SERVICES.map((s) => (
             <li key={s.slug}>
               <Link
-                to="/services"
+                to={s.to}
                 className="group flex flex-wrap items-baseline justify-between gap-6 border-b border-[color:var(--color-hairline)] py-10 transition-colors [@media(hover:hover)]:hover:bg-black/[0.02] active:bg-black/[0.03]"
               >
                 <div>
@@ -113,7 +127,7 @@ function ProgramsPreview() {
     <section className="border-t border-[color:var(--color-hairline)]">
       <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10 lg:py-32">
         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-          Workforce Programs
+          Career Programs
         </p>
         <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-tight md:text-5xl">
           Investing beyond the placement.
@@ -124,36 +138,11 @@ function ProgramsPreview() {
         </p>
         <div className="mt-10">
           <Link
-            to="/programs"
+            to="/preparation"
+            hash="career-programs"
             className="border-b border-foreground pb-1 text-[12px] uppercase tracking-[0.2em] [@media(hover:hover)]:hover:text-muted-foreground"
           >
             Explore Programs
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CtaSection() {
-  return (
-    <section className="border-t border-[color:var(--color-hairline)] bg-secondary">
-      <div className="mx-auto max-w-7xl px-6 py-24 text-center lg:px-10 lg:py-32">
-        <h2 className="mx-auto max-w-2xl text-4xl font-semibold leading-tight md:text-5xl">
-          Ready to find your next hire — or your next role?
-        </h2>
-        <div className="mt-10 flex flex-wrap justify-center gap-6 text-[12px] uppercase tracking-[0.2em]">
-          <Link
-            to="/jobs"
-            className="rounded-sm border border-foreground px-6 py-3 font-medium [@media(hover:hover)]:hover:bg-foreground [@media(hover:hover)]:hover:text-background active:bg-foreground active:text-background transition-colors"
-          >
-            For Job Seekers
-          </Link>
-          <Link
-            to="/services"
-            className="rounded-sm border border-[color:var(--color-hairline)] px-6 py-3 font-medium text-muted-foreground [@media(hover:hover)]:hover:text-foreground [@media(hover:hover)]:hover:border-foreground transition-colors"
-          >
-            For Employers
           </Link>
         </div>
       </div>

@@ -13,32 +13,54 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CoachRouteRouteImport } from './routes/coach/route'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as PreparationRouteImport } from './routes/preparation'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as RecruiterRouteRouteImport } from './routes/recruiter/route'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as TalentRouteRouteImport } from './routes/talent/route'
+import { Route as TemporaryStaffingRouteImport } from './routes/temporary-staffing'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminDiagnosticsRouteImport } from './routes/admin/diagnostics'
 import { Route as AdminJobsRouteImport } from './routes/admin/jobs'
+import { Route as AdminMessagesRouteImport } from './routes/admin/messages'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
+import { Route as AdminRatingsRouteImport } from './routes/admin/ratings'
 import { Route as AdminRecruitersRouteImport } from './routes/admin/recruiters'
+import { Route as AdminScoutRouteImport } from './routes/admin/scout'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminTalentRouteImport } from './routes/admin/talent'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as CoachIndexRouteImport } from './routes/coach/index'
+import { Route as CoachRecruitersRouteImport } from './routes/coach/recruiters'
+import { Route as CoachSettingsRouteImport } from './routes/coach/settings'
+import { Route as CoachTalentRouteImport } from './routes/coach/talent'
 import { Route as RecruiterIndexRouteImport } from './routes/recruiter/index'
+import { Route as RecruiterAccountRouteImport } from './routes/recruiter/account'
 import { Route as RecruiterApplicationsRouteImport } from './routes/recruiter/applications'
 import { Route as RecruiterCandidatesRouteImport } from './routes/recruiter/candidates'
 import { Route as RecruiterCompanyRouteImport } from './routes/recruiter/company'
 import { Route as RecruiterJobsRouteImport } from './routes/recruiter/jobs'
+import { Route as RecruiterSavedRouteImport } from './routes/recruiter/saved'
+import { Route as RecruiterTalentRouteImport } from './routes/recruiter/talent'
 import { Route as TalentIndexRouteImport } from './routes/talent/index'
 import { Route as TalentApplicationsRouteImport } from './routes/talent/applications'
 import { Route as TalentJobsRouteImport } from './routes/talent/jobs'
+import { Route as TalentPreferencesRouteImport } from './routes/talent/preferences'
 import { Route as TalentProfileRouteImport } from './routes/talent/profile'
+import { Route as TalentSettingsRouteImport } from './routes/talent/settings'
+import { Route as TalentTemporaryWorkRouteImport } from './routes/talent/temporary-work'
+import { Route as ApiAutofillAnswersRouteImport } from './routes/api.autofill.answers'
+import { Route as ApiAutofillPlanRouteImport } from './routes/api.autofill.plan'
+import { Route as ApiScoutRunRouteImport } from './routes/api.scout.run'
+import { Route as PreparationCareerProgramsProgramRouteImport } from './routes/preparation_.career-programs.$program'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -60,6 +82,16 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoachRouteRoute = CoachRouteRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -73,6 +105,11 @@ const ForbiddenRoute = ForbiddenRouteImport.update({
 const JobsRoute = JobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreparationRoute = PreparationRouteImport.update({
+  id: '/preparation',
+  path: '/preparation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramsRoute = ProgramsRouteImport.update({
@@ -100,6 +137,11 @@ const TalentRouteRoute = TalentRouteRouteImport.update({
   path: '/talent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TemporaryStaffingRoute = TemporaryStaffingRouteImport.update({
+  id: '/temporary-staffing',
+  path: '/temporary-staffing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
@@ -110,9 +152,19 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminDiagnosticsRoute = AdminDiagnosticsRouteImport.update({
+  id: '/diagnostics',
+  path: '/diagnostics',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminJobsRoute = AdminJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminMessagesRoute = AdminMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
@@ -120,9 +172,19 @@ const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
   path: '/organizations',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminRatingsRoute = AdminRatingsRouteImport.update({
+  id: '/ratings',
+  path: '/ratings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminRecruitersRoute = AdminRecruitersRouteImport.update({
   id: '/recruiters',
   path: '/recruiters',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminScoutRoute = AdminScoutRouteImport.update({
+  id: '/scout',
+  path: '/scout',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -145,9 +207,34 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const CoachIndexRoute = CoachIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
+const CoachRecruitersRoute = CoachRecruitersRouteImport.update({
+  id: '/recruiters',
+  path: '/recruiters',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
+const CoachSettingsRoute = CoachSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
+const CoachTalentRoute = CoachTalentRouteImport.update({
+  id: '/talent',
+  path: '/talent',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
 const RecruiterIndexRoute = RecruiterIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
+const RecruiterAccountRoute = RecruiterAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => RecruiterRouteRoute,
 } as any)
 const RecruiterApplicationsRoute = RecruiterApplicationsRouteImport.update({
@@ -170,6 +257,16 @@ const RecruiterJobsRoute = RecruiterJobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => RecruiterRouteRoute,
 } as any)
+const RecruiterSavedRoute = RecruiterSavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
+const RecruiterTalentRoute = RecruiterTalentRouteImport.update({
+  id: '/talent',
+  path: '/talent',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
 const TalentIndexRoute = TalentIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -185,216 +282,390 @@ const TalentJobsRoute = TalentJobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => TalentRouteRoute,
 } as any)
+const TalentPreferencesRoute = TalentPreferencesRouteImport.update({
+  id: '/preferences',
+  path: '/preferences',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
 const TalentProfileRoute = TalentProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => TalentRouteRoute,
 } as any)
+const TalentSettingsRoute = TalentSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
+const TalentTemporaryWorkRoute = TalentTemporaryWorkRouteImport.update({
+  id: '/temporary-work',
+  path: '/temporary-work',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
+const ApiAutofillAnswersRoute = ApiAutofillAnswersRouteImport.update({
+  id: '/api/autofill/answers',
+  path: '/api/autofill/answers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAutofillPlanRoute = ApiAutofillPlanRouteImport.update({
+  id: '/api/autofill/plan',
+  path: '/api/autofill/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiScoutRunRoute = ApiScoutRunRouteImport.update({
+  id: '/api/scout/run',
+  path: '/api/scout/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreparationCareerProgramsProgramRoute =
+  PreparationCareerProgramsProgramRouteImport.update({
+    id: '/preparation_/career-programs/$program',
+    path: '/preparation/career-programs/$program',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/coach': typeof CoachRouteRouteWithChildren
   '/recruiter': typeof RecruiterRouteRouteWithChildren
   '/talent': typeof TalentRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forbidden': typeof ForbiddenRoute
   '/jobs': typeof JobsRoute
+  '/preparation': typeof PreparationRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
+  '/temporary-staffing': typeof TemporaryStaffingRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/jobs': typeof AdminJobsRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/scout': typeof AdminScoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/coach/recruiters': typeof CoachRecruitersRoute
+  '/coach/settings': typeof CoachSettingsRoute
+  '/coach/talent': typeof CoachTalentRoute
+  '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/jobs': typeof RecruiterJobsRoute
+  '/recruiter/saved': typeof RecruiterSavedRoute
+  '/recruiter/talent': typeof RecruiterTalentRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/jobs': typeof TalentJobsRoute
+  '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
+  '/talent/settings': typeof TalentSettingsRoute
+  '/talent/temporary-work': typeof TalentTemporaryWorkRoute
   '/admin/': typeof AdminIndexRoute
+  '/coach/': typeof CoachIndexRoute
   '/recruiter/': typeof RecruiterIndexRoute
   '/talent/': typeof TalentIndexRoute
+  '/api/autofill/answers': typeof ApiAutofillAnswersRoute
+  '/api/autofill/plan': typeof ApiAutofillPlanRoute
+  '/api/scout/run': typeof ApiScoutRunRoute
+  '/preparation/career-programs/$program': typeof PreparationCareerProgramsProgramRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forbidden': typeof ForbiddenRoute
   '/jobs': typeof JobsRoute
+  '/preparation': typeof PreparationRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
+  '/temporary-staffing': typeof TemporaryStaffingRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/jobs': typeof AdminJobsRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/scout': typeof AdminScoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/coach/recruiters': typeof CoachRecruitersRoute
+  '/coach/settings': typeof CoachSettingsRoute
+  '/coach/talent': typeof CoachTalentRoute
+  '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/jobs': typeof RecruiterJobsRoute
+  '/recruiter/saved': typeof RecruiterSavedRoute
+  '/recruiter/talent': typeof RecruiterTalentRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/jobs': typeof TalentJobsRoute
+  '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
+  '/talent/settings': typeof TalentSettingsRoute
+  '/talent/temporary-work': typeof TalentTemporaryWorkRoute
   '/admin': typeof AdminIndexRoute
+  '/coach': typeof CoachIndexRoute
   '/recruiter': typeof RecruiterIndexRoute
   '/talent': typeof TalentIndexRoute
+  '/api/autofill/answers': typeof ApiAutofillAnswersRoute
+  '/api/autofill/plan': typeof ApiAutofillPlanRoute
+  '/api/scout/run': typeof ApiScoutRunRoute
+  '/preparation/career-programs/$program': typeof PreparationCareerProgramsProgramRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/coach': typeof CoachRouteRouteWithChildren
   '/recruiter': typeof RecruiterRouteRouteWithChildren
   '/talent': typeof TalentRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forbidden': typeof ForbiddenRoute
   '/jobs': typeof JobsRoute
+  '/preparation': typeof PreparationRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
+  '/temporary-staffing': typeof TemporaryStaffingRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/jobs': typeof AdminJobsRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
+  '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/scout': typeof AdminScoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/coach/recruiters': typeof CoachRecruitersRoute
+  '/coach/settings': typeof CoachSettingsRoute
+  '/coach/talent': typeof CoachTalentRoute
+  '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/jobs': typeof RecruiterJobsRoute
+  '/recruiter/saved': typeof RecruiterSavedRoute
+  '/recruiter/talent': typeof RecruiterTalentRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/jobs': typeof TalentJobsRoute
+  '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
+  '/talent/settings': typeof TalentSettingsRoute
+  '/talent/temporary-work': typeof TalentTemporaryWorkRoute
   '/admin/': typeof AdminIndexRoute
+  '/coach/': typeof CoachIndexRoute
   '/recruiter/': typeof RecruiterIndexRoute
   '/talent/': typeof TalentIndexRoute
+  '/api/autofill/answers': typeof ApiAutofillAnswersRoute
+  '/api/autofill/plan': typeof ApiAutofillPlanRoute
+  '/api/scout/run': typeof ApiScoutRunRoute
+  '/preparation_/career-programs/$program': typeof PreparationCareerProgramsProgramRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
+    | '/coach'
     | '/recruiter'
     | '/talent'
     | '/about'
     | '/auth'
+    | '/contact'
     | '/dashboard'
     | '/forbidden'
     | '/jobs'
+    | '/preparation'
     | '/programs'
     | '/reset-password'
     | '/services'
+    | '/temporary-staffing'
     | '/verify-email'
+    | '/admin/diagnostics'
     | '/admin/jobs'
+    | '/admin/messages'
     | '/admin/organizations'
+    | '/admin/ratings'
     | '/admin/recruiters'
+    | '/admin/scout'
     | '/admin/settings'
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/coach/recruiters'
+    | '/coach/settings'
+    | '/coach/talent'
+    | '/recruiter/account'
     | '/recruiter/applications'
     | '/recruiter/candidates'
     | '/recruiter/company'
     | '/recruiter/jobs'
+    | '/recruiter/saved'
+    | '/recruiter/talent'
     | '/talent/applications'
     | '/talent/jobs'
+    | '/talent/preferences'
     | '/talent/profile'
+    | '/talent/settings'
+    | '/talent/temporary-work'
     | '/admin/'
+    | '/coach/'
     | '/recruiter/'
     | '/talent/'
+    | '/api/autofill/answers'
+    | '/api/autofill/plan'
+    | '/api/scout/run'
+    | '/preparation/career-programs/$program'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/auth'
+    | '/contact'
     | '/dashboard'
     | '/forbidden'
     | '/jobs'
+    | '/preparation'
     | '/programs'
     | '/reset-password'
     | '/services'
+    | '/temporary-staffing'
     | '/verify-email'
+    | '/admin/diagnostics'
     | '/admin/jobs'
+    | '/admin/messages'
     | '/admin/organizations'
+    | '/admin/ratings'
     | '/admin/recruiters'
+    | '/admin/scout'
     | '/admin/settings'
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/coach/recruiters'
+    | '/coach/settings'
+    | '/coach/talent'
+    | '/recruiter/account'
     | '/recruiter/applications'
     | '/recruiter/candidates'
     | '/recruiter/company'
     | '/recruiter/jobs'
+    | '/recruiter/saved'
+    | '/recruiter/talent'
     | '/talent/applications'
     | '/talent/jobs'
+    | '/talent/preferences'
     | '/talent/profile'
+    | '/talent/settings'
+    | '/talent/temporary-work'
     | '/admin'
+    | '/coach'
     | '/recruiter'
     | '/talent'
+    | '/api/autofill/answers'
+    | '/api/autofill/plan'
+    | '/api/scout/run'
+    | '/preparation/career-programs/$program'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/coach'
     | '/recruiter'
     | '/talent'
     | '/about'
     | '/auth'
+    | '/contact'
     | '/dashboard'
     | '/forbidden'
     | '/jobs'
+    | '/preparation'
     | '/programs'
     | '/reset-password'
     | '/services'
+    | '/temporary-staffing'
     | '/verify-email'
+    | '/admin/diagnostics'
     | '/admin/jobs'
+    | '/admin/messages'
     | '/admin/organizations'
+    | '/admin/ratings'
     | '/admin/recruiters'
+    | '/admin/scout'
     | '/admin/settings'
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/coach/recruiters'
+    | '/coach/settings'
+    | '/coach/talent'
+    | '/recruiter/account'
     | '/recruiter/applications'
     | '/recruiter/candidates'
     | '/recruiter/company'
     | '/recruiter/jobs'
+    | '/recruiter/saved'
+    | '/recruiter/talent'
     | '/talent/applications'
     | '/talent/jobs'
+    | '/talent/preferences'
     | '/talent/profile'
+    | '/talent/settings'
+    | '/talent/temporary-work'
     | '/admin/'
+    | '/coach/'
     | '/recruiter/'
     | '/talent/'
+    | '/api/autofill/answers'
+    | '/api/autofill/plan'
+    | '/api/scout/run'
+    | '/preparation_/career-programs/$program'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  CoachRouteRoute: typeof CoachRouteRouteWithChildren
   RecruiterRouteRoute: typeof RecruiterRouteRouteWithChildren
   TalentRouteRoute: typeof TalentRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
+  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   ForbiddenRoute: typeof ForbiddenRoute
   JobsRoute: typeof JobsRoute
+  PreparationRoute: typeof PreparationRoute
   ProgramsRoute: typeof ProgramsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ServicesRoute: typeof ServicesRoute
+  TemporaryStaffingRoute: typeof TemporaryStaffingRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  ApiAutofillAnswersRoute: typeof ApiAutofillAnswersRoute
+  ApiAutofillPlanRoute: typeof ApiAutofillPlanRoute
+  ApiScoutRunRoute: typeof ApiScoutRunRoute
+  PreparationCareerProgramsProgramRoute: typeof PreparationCareerProgramsProgramRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -427,6 +698,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/coach': {
+      id: '/coach'
+      path: '/coach'
+      fullPath: '/coach'
+      preLoaderRoute: typeof CoachRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -446,6 +731,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs'
       fullPath: '/jobs'
       preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preparation': {
+      id: '/preparation'
+      path: '/preparation'
+      fullPath: '/preparation'
+      preLoaderRoute: typeof PreparationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs': {
@@ -483,6 +775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TalentRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/temporary-staffing': {
+      id: '/temporary-staffing'
+      path: '/temporary-staffing'
+      fullPath: '/temporary-staffing'
+      preLoaderRoute: typeof TemporaryStaffingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify-email': {
       id: '/verify-email'
       path: '/verify-email'
@@ -497,11 +796,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/diagnostics': {
+      id: '/admin/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/admin/diagnostics'
+      preLoaderRoute: typeof AdminDiagnosticsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/jobs': {
       id: '/admin/jobs'
       path: '/jobs'
       fullPath: '/admin/jobs'
       preLoaderRoute: typeof AdminJobsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/messages': {
+      id: '/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AdminMessagesRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/organizations': {
@@ -511,11 +824,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrganizationsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/ratings': {
+      id: '/admin/ratings'
+      path: '/ratings'
+      fullPath: '/admin/ratings'
+      preLoaderRoute: typeof AdminRatingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/recruiters': {
       id: '/admin/recruiters'
       path: '/recruiters'
       fullPath: '/admin/recruiters'
       preLoaderRoute: typeof AdminRecruitersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/scout': {
+      id: '/admin/scout'
+      path: '/scout'
+      fullPath: '/admin/scout'
+      preLoaderRoute: typeof AdminScoutRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/settings': {
@@ -546,11 +873,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/coach/': {
+      id: '/coach/'
+      path: '/'
+      fullPath: '/coach/'
+      preLoaderRoute: typeof CoachIndexRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
+    '/coach/recruiters': {
+      id: '/coach/recruiters'
+      path: '/recruiters'
+      fullPath: '/coach/recruiters'
+      preLoaderRoute: typeof CoachRecruitersRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
+    '/coach/settings': {
+      id: '/coach/settings'
+      path: '/settings'
+      fullPath: '/coach/settings'
+      preLoaderRoute: typeof CoachSettingsRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
+    '/coach/talent': {
+      id: '/coach/talent'
+      path: '/talent'
+      fullPath: '/coach/talent'
+      preLoaderRoute: typeof CoachTalentRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
     '/recruiter/': {
       id: '/recruiter/'
       path: '/'
       fullPath: '/recruiter/'
       preLoaderRoute: typeof RecruiterIndexRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
+    '/recruiter/account': {
+      id: '/recruiter/account'
+      path: '/account'
+      fullPath: '/recruiter/account'
+      preLoaderRoute: typeof RecruiterAccountRouteImport
       parentRoute: typeof RecruiterRouteRoute
     }
     '/recruiter/applications': {
@@ -581,6 +943,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecruiterJobsRouteImport
       parentRoute: typeof RecruiterRouteRoute
     }
+    '/recruiter/saved': {
+      id: '/recruiter/saved'
+      path: '/saved'
+      fullPath: '/recruiter/saved'
+      preLoaderRoute: typeof RecruiterSavedRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
+    '/recruiter/talent': {
+      id: '/recruiter/talent'
+      path: '/talent'
+      fullPath: '/recruiter/talent'
+      preLoaderRoute: typeof RecruiterTalentRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
     '/talent/': {
       id: '/talent/'
       path: '/'
@@ -602,6 +978,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TalentJobsRouteImport
       parentRoute: typeof TalentRouteRoute
     }
+    '/talent/preferences': {
+      id: '/talent/preferences'
+      path: '/preferences'
+      fullPath: '/talent/preferences'
+      preLoaderRoute: typeof TalentPreferencesRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
     '/talent/profile': {
       id: '/talent/profile'
       path: '/profile'
@@ -609,13 +992,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TalentProfileRouteImport
       parentRoute: typeof TalentRouteRoute
     }
+    '/talent/settings': {
+      id: '/talent/settings'
+      path: '/settings'
+      fullPath: '/talent/settings'
+      preLoaderRoute: typeof TalentSettingsRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
+    '/talent/temporary-work': {
+      id: '/talent/temporary-work'
+      path: '/temporary-work'
+      fullPath: '/talent/temporary-work'
+      preLoaderRoute: typeof TalentTemporaryWorkRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
+    '/api/autofill/answers': {
+      id: '/api/autofill/answers'
+      path: '/api/autofill/answers'
+      fullPath: '/api/autofill/answers'
+      preLoaderRoute: typeof ApiAutofillAnswersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/autofill/plan': {
+      id: '/api/autofill/plan'
+      path: '/api/autofill/plan'
+      fullPath: '/api/autofill/plan'
+      preLoaderRoute: typeof ApiAutofillPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scout/run': {
+      id: '/api/scout/run'
+      path: '/api/scout/run'
+      fullPath: '/api/scout/run'
+      preLoaderRoute: typeof ApiScoutRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preparation_/career-programs/$program': {
+      id: '/preparation_/career-programs/$program'
+      path: '/preparation/career-programs/$program'
+      fullPath: '/preparation/career-programs/$program'
+      preLoaderRoute: typeof PreparationCareerProgramsProgramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AdminRouteRouteChildren {
+  AdminDiagnosticsRoute: typeof AdminDiagnosticsRoute
   AdminJobsRoute: typeof AdminJobsRoute
+  AdminMessagesRoute: typeof AdminMessagesRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
+  AdminRatingsRoute: typeof AdminRatingsRoute
   AdminRecruitersRoute: typeof AdminRecruitersRoute
+  AdminScoutRoute: typeof AdminScoutRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTalentRoute: typeof AdminTalentRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -623,9 +1052,13 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminDiagnosticsRoute: AdminDiagnosticsRoute,
   AdminJobsRoute: AdminJobsRoute,
+  AdminMessagesRoute: AdminMessagesRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
+  AdminRatingsRoute: AdminRatingsRoute,
   AdminRecruitersRoute: AdminRecruitersRoute,
+  AdminScoutRoute: AdminScoutRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTalentRoute: AdminTalentRoute,
   AdminUsersRoute: AdminUsersRoute,
@@ -636,19 +1069,43 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface CoachRouteRouteChildren {
+  CoachRecruitersRoute: typeof CoachRecruitersRoute
+  CoachSettingsRoute: typeof CoachSettingsRoute
+  CoachTalentRoute: typeof CoachTalentRoute
+  CoachIndexRoute: typeof CoachIndexRoute
+}
+
+const CoachRouteRouteChildren: CoachRouteRouteChildren = {
+  CoachRecruitersRoute: CoachRecruitersRoute,
+  CoachSettingsRoute: CoachSettingsRoute,
+  CoachTalentRoute: CoachTalentRoute,
+  CoachIndexRoute: CoachIndexRoute,
+}
+
+const CoachRouteRouteWithChildren = CoachRouteRoute._addFileChildren(
+  CoachRouteRouteChildren,
+)
+
 interface RecruiterRouteRouteChildren {
+  RecruiterAccountRoute: typeof RecruiterAccountRoute
   RecruiterApplicationsRoute: typeof RecruiterApplicationsRoute
   RecruiterCandidatesRoute: typeof RecruiterCandidatesRoute
   RecruiterCompanyRoute: typeof RecruiterCompanyRoute
   RecruiterJobsRoute: typeof RecruiterJobsRoute
+  RecruiterSavedRoute: typeof RecruiterSavedRoute
+  RecruiterTalentRoute: typeof RecruiterTalentRoute
   RecruiterIndexRoute: typeof RecruiterIndexRoute
 }
 
 const RecruiterRouteRouteChildren: RecruiterRouteRouteChildren = {
+  RecruiterAccountRoute: RecruiterAccountRoute,
   RecruiterApplicationsRoute: RecruiterApplicationsRoute,
   RecruiterCandidatesRoute: RecruiterCandidatesRoute,
   RecruiterCompanyRoute: RecruiterCompanyRoute,
   RecruiterJobsRoute: RecruiterJobsRoute,
+  RecruiterSavedRoute: RecruiterSavedRoute,
+  RecruiterTalentRoute: RecruiterTalentRoute,
   RecruiterIndexRoute: RecruiterIndexRoute,
 }
 
@@ -659,14 +1116,20 @@ const RecruiterRouteRouteWithChildren = RecruiterRouteRoute._addFileChildren(
 interface TalentRouteRouteChildren {
   TalentApplicationsRoute: typeof TalentApplicationsRoute
   TalentJobsRoute: typeof TalentJobsRoute
+  TalentPreferencesRoute: typeof TalentPreferencesRoute
   TalentProfileRoute: typeof TalentProfileRoute
+  TalentSettingsRoute: typeof TalentSettingsRoute
+  TalentTemporaryWorkRoute: typeof TalentTemporaryWorkRoute
   TalentIndexRoute: typeof TalentIndexRoute
 }
 
 const TalentRouteRouteChildren: TalentRouteRouteChildren = {
   TalentApplicationsRoute: TalentApplicationsRoute,
   TalentJobsRoute: TalentJobsRoute,
+  TalentPreferencesRoute: TalentPreferencesRoute,
   TalentProfileRoute: TalentProfileRoute,
+  TalentSettingsRoute: TalentSettingsRoute,
+  TalentTemporaryWorkRoute: TalentTemporaryWorkRoute,
   TalentIndexRoute: TalentIndexRoute,
 }
 
@@ -687,17 +1150,25 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
+  CoachRouteRoute: CoachRouteRouteWithChildren,
   RecruiterRouteRoute: RecruiterRouteRouteWithChildren,
   TalentRouteRoute: TalentRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
+  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   ForbiddenRoute: ForbiddenRoute,
   JobsRoute: JobsRoute,
+  PreparationRoute: PreparationRoute,
   ProgramsRoute: ProgramsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ServicesRoute: ServicesRoute,
+  TemporaryStaffingRoute: TemporaryStaffingRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  ApiAutofillAnswersRoute: ApiAutofillAnswersRoute,
+  ApiAutofillPlanRoute: ApiAutofillPlanRoute,
+  ApiScoutRunRoute: ApiScoutRunRoute,
+  PreparationCareerProgramsProgramRoute: PreparationCareerProgramsProgramRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

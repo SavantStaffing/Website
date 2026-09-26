@@ -30,9 +30,15 @@ About
 
 Jobs
 
+Preparation
+
 Services
 
-Programs
+Contact
+
+## Job Scout Agent
+
+Jobs are pulled from companies' public ATS boards (Greenhouse, Lever, Ashby, SmartRecruiters, Workable), validated, refined, screened for ghost postings, and ranked into each talent's feed. See [docs/job-scout.md](docs/job-scout.md) for how every box on the architecture diagram maps to code and how to switch it on.
 
 ## Pages
 
@@ -44,19 +50,21 @@ All pages are scaffolded with placeholder ("Content coming soon") copy, ready to
 
 **Jobs** — Open roles listing. Content coming soon.
 
-**Services** — Staffing services offered (temporary staffing, direct hire, executive search, payrolling). Content coming soon.
+**Services** — Staffing services offered (temporary staffing, professional roles, preparation). Content coming soon.
 
 **Programs** — Workforce programs (apprenticeships, training & certification, diversity hiring). Content coming soon.
 
 ## Roles & Authorization
 
-Three roles: **Talent**, **Recruiter**, **Admin**. Sign up picks Talent or Recruiter; Admin is never self-service — an existing admin promotes a user from `/admin/users`, which goes through a server-side check that re-verifies admin status independently of the database policy that also has to allow it.
+Four roles: **Talent**, **Recruiter**, **Career Coach**, **Admin** (plus signed-out guests). Sign up picks Talent or Recruiter; Career Coach and Admin are never self-service — an existing admin promotes a user from `/admin/users`, which goes through a server-side check that re-verifies admin status independently of the database policy that also has to allow it.
 
 The frontend's role checks (route guards, nav visibility, the `can()` permission helper in `src/lib/authz/permissions.ts`) exist for UX only. The actual authorization boundary is Postgres Row Level Security in `supabase/migrations/` — every table read/write is scoped there by role and, for recruiters, by organization membership, so a direct API call can't return more than the RLS policies allow no matter what the client sends.
 
-**Talent** (`/talent`) — Dashboard, Find Jobs, Applications, Profile. Browses and applies to jobs, saves listings, tracks application status. Cannot post jobs or see other users' data.
+**Talent** (`/talent`) — Dashboard, Job Feed, Applications, Account, Preferences, Settings. Ranked job feed with refine filters, bookmarks, applications (autofill via the Savant Apply extension), and recruiter invitations. Cannot post jobs or see other users' data.
 
-**Recruiter** (`/recruiter`) — Dashboard, Jobs, Candidates, Applications, Company. Posts and manages job listings, reviews candidates and applications — all scoped to their own organization via `profiles.organization_id`. A recruiter with no organization assigned sees a message to contact an admin rather than a broken form. Recruiters do not get admin privileges.
+**Recruiter** (`/recruiter`) — Company Dashboard, Talent Feed, Saved Talent, Jobs, Applications, Company, Account (team permissions). Posts and manages job listings, reviews candidates and applications — all scoped to their own organization via `profiles.organization_id`. A recruiter with no organization assigned sees a message to contact an admin rather than a broken form. Recruiters do not get admin privileges.
+
+**Career Coach** (`/coach`) — Service Requests, Talent, Recruiters, Settings. Receives talent sign-ups for the Preparation services (Career Programs, Resume Building, Interview Development), picks them up and moves them through their status; read-only lists of talent and recruiters. No admin privileges. Assigned by an admin from `/admin/users`.
 
 **Admin** (`/admin`) — Dashboard, Users, Talent, Recruiters, Jobs, Organizations, Settings. Manages every user's role, assigns recruiters to organizations, and can moderate any job posting.
 

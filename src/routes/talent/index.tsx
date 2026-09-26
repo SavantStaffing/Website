@@ -1,6 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { MyServiceRequests } from "@/components/preparation/MyServiceRequests";
+import { APPLICATION_STATUS_LABEL } from "@/lib/applications";
+import {
+  Badge,
+  Empty,
+  SectionHeading,
+  Stat,
+  card,
+  linkButton,
+  list,
+  mutedButton,
+  timeAgo,
+} from "@/components/site/ui";
 
 export const Route = createFileRoute("/talent/")({
   head: () => ({
@@ -9,84 +23,213 @@ export const Route = createFileRoute("/talent/")({
   component: TalentDashboard,
 });
 
-type SavedJobRow = {
+type JobLite = {
   id: string;
-  jobs: { id: string; title: string; location: string | null } | null;
+  title: string;
+  company_name: string | null;
+  location: string | null;
+  apply_url: string | null;
+};
+type SavedJobRow = { id: string; job_id: string; jobs: JobLite | null };
+type ApplicationRow = { id: string; status: string; created_at: string; jobs: JobLite | null };
+type RequestRow = {
+  id: string;
+  status: string;
+  message: string | null;
+  created_at: string;
+  jobs: JobLite | null;
 };
 
 function TalentDashboard() {
   const { userId } = Route.useRouteContext();
-  const [applicationCount, setApplicationCount] = useState<number | null>(null);
-  const [saved, setSaved] = useState<SavedJobRow[]>([]);
+  const [applications, setApplications] = useState<ApplicationRow[] | null>(null);
+  const [saved, setSaved] = useState<SavedJobRow[] | null>(null);
+  const [requests, setRequests] = useState<RequestRow[] | null>(null);
+  const [profileDone, setProfileDone] = useState<boolean | null>(null);
 
   useEffect(() => {
     (async () => {
-      const [{ count }, { data: savedRows }] = await Promise.all([
-        supabase
-          .from("job_applications")
-          .select("id", { count: "exact", head: true })
-          .eq("applicant_id", userId),
-        supabase
-          .from("saved_jobs")
-          .select("id, jobs (id, title, location)")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(5),
-      ]);
-      setApplicationCount(count ?? 0);
+      const job = "jobs (id, title, company_name, location, apply_url)";
+      const [{ data: apps }, { data: savedRows }, { data: reqs }, { data: tp }] = await Promise.all(
+        [
+          supabase
+            .from("job_applications")
+            .select(`id, status, created_at, ${job}`)
+            .eq("applicant_id", userId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("saved_jobs")
+            .select(`id, job_id, ${job}`)
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("application_requests")
+            .select(`id, status, message, created_at, ${job}`)
+            .eq("talent_id", userId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("talent_profiles")
+            .select("first_name, resume_text")
+            .eq("user_id", userId)
+            .maybeSingle(),
+        ],
+      );
+      setApplications((apps as unknown as ApplicationRow[]) ?? []);
       setSaved((savedRows as unknown as SavedJobRow[]) ?? []);
+      setRequests((reqs as unknown as RequestRow[]) ?? []);
+      setProfileDone(!!tp?.first_name && !!tp?.resume_text);
     })();
   }, [userId]);
 
+  async function respond(id: string, status: "accepted" | "declined") {
+    const { error } = await supabase.from("application_requests").update({ status }).eq("id", id);
+    if (error) return toast.error(error.message);
+    setRequests((prev) => prev?.map((r) => (r.id === id ? { ...r, status } : r)) ?? null);
+    toast.success(
+      status === "accepted" ? "Accepted — your application has been sent." : "Declined.",
+    );
+  }
+
+  async function unsave(row: SavedJobRow) {
+    const { error } = await supabase.from("saved_jobs").delete().eq("id", row.id);
+    if (error) return toast.error(error.message);
+    setSaved((prev) => prev?.filter((s) => s.id !== row.id) ?? null);
+  }
+
+  const pending = requests?.filter((r) => r.status === "pending") ?? [];
+
   return (
-    <section className="space-y-12">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="rounded-sm border border-[color:var(--color-hairline)] p-6">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            Applications submitted
+    <section className="space-y-14">
+      {profileDone === false && (
+        <div className={`${card} flex flex-wrap items-center justify-between gap-4`}>
+          <div>
+            <div className="text-lg font-medium">Finish your profile</div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Recruiters find you through it, and Savant uses it to autofill applications for you.
+            </p>
           </div>
-          <div className="mt-3 text-4xl font-semibold">{applicationCount ?? "…"}</div>
-          <Link
-            to="/talent/applications"
-            className="mt-4 inline-block text-[11px] uppercase tracking-[0.2em] [@media(hover:hover)]:hover:text-muted-foreground"
-          >
-            View applications →
+          <Link to="/talent/profile" className={linkButton}>
+            Complete profile →
           </Link>
         </div>
-        <div className="rounded-sm border border-[color:var(--color-hairline)] p-6">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            Find your next role
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground">Browse open roles placed by Savant.</p>
-          <Link
-            to="/talent/jobs"
-            className="mt-4 inline-block text-[11px] uppercase tracking-[0.2em] [@media(hover:hover)]:hover:text-muted-foreground"
-          >
-            Find jobs →
+      )}
+
+      <div className="grid gap-6 sm:grid-cols-3">
+        <Stat label="Applications" value={applications?.length}>
+          <Link to="/talent/applications" className={`mt-4 inline-block ${linkButton}`}>
+            View all →
           </Link>
-        </div>
+        </Stat>
+        <Stat label="Bookmarked jobs" value={saved?.length}>
+          <Link to="/talent/jobs" className={`mt-4 inline-block ${linkButton}`}>
+            Job feed →
+          </Link>
+        </Stat>
+        <Stat label="Invitations waiting" value={requests ? pending.length : null} />
       </div>
 
       <div>
-        <h2 className="text-2xl font-semibold">Saved jobs</h2>
-        {saved.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Nothing saved yet.{" "}
-            <Link to="/talent/jobs" className="text-foreground underline underline-offset-4">
-              Browse open roles
-            </Link>
-            .
-          </p>
+        <SectionHeading title="Invitations from recruiters" />
+        {!requests ? null : requests.length === 0 ? (
+          <Empty>No invitations yet. Keeping your profile visible to recruiters helps.</Empty>
         ) : (
-          <ul className="mt-6 divide-y divide-[color:var(--color-hairline)] border-y border-[color:var(--color-hairline)]">
-            {saved.map((s) => (
-              <li key={s.id} className="py-4">
-                <div>{s.jobs?.title ?? "Untitled role"}</div>
-                <div className="text-xs text-muted-foreground">{s.jobs?.location ?? "—"}</div>
+          <ul className={`mt-6 ${list}`}>
+            {requests.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-4 py-5">
+                <div className="min-w-0">
+                  <div className="text-lg font-medium">{r.jobs?.title ?? "A role"}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {r.jobs?.company_name ?? "Savant client"} · {r.jobs?.location ?? "—"} ·{" "}
+                    {timeAgo(r.created_at)}
+                  </div>
+                  {r.message && (
+                    <p className="mt-2 max-w-2xl whitespace-pre-line text-sm">{r.message}</p>
+                  )}
+                </div>
+                {r.status === "pending" ? (
+                  <div className="flex gap-5">
+                    <button onClick={() => respond(r.id, "accepted")} className={linkButton}>
+                      Accept & apply
+                    </button>
+                    <button onClick={() => respond(r.id, "declined")} className={mutedButton}>
+                      Decline
+                    </button>
+                  </div>
+                ) : (
+                  <Badge tone={r.status === "accepted" ? "good" : "muted"}>{r.status}</Badge>
+                )}
               </li>
             ))}
           </ul>
         )}
+      </div>
+
+      <MyServiceRequests userId={userId} />
+
+      <div className="grid gap-14 lg:grid-cols-2">
+        <div>
+          <SectionHeading title="Applications" />
+          {!applications ? null : applications.length === 0 ? (
+            <Empty>
+              Nothing yet.{" "}
+              <Link to="/talent/jobs" className="text-foreground underline underline-offset-4">
+                Browse your feed
+              </Link>
+              .
+            </Empty>
+          ) : (
+            <ul className={`mt-6 ${list}`}>
+              {applications.slice(0, 6).map((a) => (
+                <li key={a.id} className="flex items-baseline justify-between gap-4 py-4">
+                  <div className="min-w-0">
+                    <div className="truncate">{a.jobs?.title ?? "Untitled role"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {a.jobs?.company_name ?? "—"}
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                    {APPLICATION_STATUS_LABEL[a.status] ?? a.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <SectionHeading title="Bookmarked jobs" />
+          {!saved ? null : saved.length === 0 ? (
+            <Empty>Bookmark roles from your feed to come back to them.</Empty>
+          ) : (
+            <ul className={`mt-6 ${list}`}>
+              {saved.map((s) => (
+                <li key={s.id} className="flex items-baseline justify-between gap-4 py-4">
+                  <div className="min-w-0">
+                    <div className="truncate">{s.jobs?.title ?? "Untitled role"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {s.jobs?.company_name ?? "—"} · {s.jobs?.location ?? "—"}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-4">
+                    {s.jobs?.apply_url && (
+                      <a
+                        href={s.jobs.apply_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={linkButton}
+                      >
+                        Open ↗
+                      </a>
+                    )}
+                    <button onClick={() => unsave(s)} className={mutedButton}>
+                      Remove
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </section>
   );

@@ -41,7 +41,9 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
       ? "admin"
       : roles.includes("recruiter")
         ? "recruiter"
-        : "talent";
+        : roles.includes("career_coach")
+          ? "career_coach"
+          : "talent";
 
     return {
       userId: userRes.user.id,
@@ -61,5 +63,6 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
 export function getDashboardPath(role: AppRole): string {
   if (role === "admin") return "/admin";
   if (role === "recruiter") return "/recruiter";
+  if (role === "career_coach") return "/coach";
   return "/talent";
 }

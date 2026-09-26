@@ -29,10 +29,21 @@ export type Permission =
   | "organization:manage_all"
   | "user:manage"
   | "role:manage"
-  | "platform:administer";
+  | "platform:administer"
+  | "service:request"
+  | "service:manage"
+  | "directory:view";
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
-  talent: ["job:view_public", "application:create", "application:view_own", "profile:manage_own"],
+  talent: [
+    "job:view_public",
+    "application:create",
+    "application:view_own",
+    "profile:manage_own",
+    "service:request",
+  ],
+  // Works preparation-service sign-ups; read-only talent + recruiter lists. No admin powers.
+  career_coach: ["job:view_public", "profile:manage_own", "service:manage", "directory:view"],
   recruiter: [
     "job:view_public",
     "job:create",
@@ -57,6 +68,8 @@ const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     "user:manage",
     "role:manage",
     "platform:administer",
+    "service:manage",
+    "directory:view",
   ],
 };
 
