@@ -10,6 +10,10 @@ export const ATS_PLATFORMS = [
   "ashby",
   "smartrecruiters",
   "workable",
+  "workday",
+  "icims",
+  // Not an ATS: a careers site read through its schema.org JobPosting markup.
+  "jsonld",
 ] as const;
 export type AtsPlatform = (typeof ATS_PLATFORMS)[number];
 

@@ -191,35 +191,59 @@ export async function runScout(
 
       // --- Company Web Scan: identify the ATS platform if we don't know it yet
       let { ats, ats_token } = company;
+      let prefetched: RawJob[] | null = null;
+      let foundByScan = false;
       if (!ats || !ats_token) {
         const direct = company.careers_url ? detectAts(company.careers_url) : null;
         const hit =
           direct ??
           (company.careers_url ? (await scanCompanySite(rec, company.careers_url)).hit : null);
-        if (!hit) {
+        // No known ATS: fall back to reading the careers site's own JobPosting
+        // markup. Only remembered if it actually finds jobs.
+        const fallback =
+          !hit && company.careers_url
+            ? await ATS_ADAPTERS.jsonld(rec, company.careers_url, company.name)
+            : [];
+        if (!hit && fallback.length === 0) {
           if (!opts.dryRun)
             await store.updateCompany(company.id, {
               last_status: "no_ats",
-              last_error: "No supported ATS found on the careers page",
+              last_error: "No supported ATS or job markup found on the careers page",
               last_scanned_at: runStartedAt,
             });
           return { ...base, status: "no_ats" };
         }
-        ats = hit.ats;
-        ats_token = hit.token;
+        ats = hit ? hit.ats : "jsonld";
+        ats_token = hit ? hit.token : company.careers_url!;
+        if (!hit) prefetched = fallback;
+        foundByScan = !!hit && !direct;
         // "Memory": remember the identification so the next run skips the scan.
         if (!opts.dryRun) await store.updateCompany(company.id, { ats, ats_token });
       }
 
       // --- Call endpoint → map into site schema
-      const raw = await ATS_ADAPTERS[ats](rec, ats_token, company.name);
+      let raw = prefetched ?? (await ATS_ADAPTERS[ats](rec, ats_token, company.name));
+
+      // A board spotted by scanning a careers page can be a stale or internal
+      // link with no public jobs. Try the careers page's own markup instead.
+      if (raw.length === 0 && foundByScan && company.careers_url) {
+        const markup = await ATS_ADAPTERS.jsonld(rec, company.careers_url, company.name);
+        if (markup.length) {
+          ats = "jsonld";
+          ats_token = company.careers_url;
+          raw = markup;
+          if (!opts.dryRun) await store.updateCompany(company.id, { ats, ats_token });
+        }
+      }
       const result = await ingest(store, raw, {
         company,
         settings,
         now,
         runStartedAt,
         dryRun: !!opts.dryRun,
-        descriptionAvailable: ats !== "smartrecruiters",
+        // These sources only include descriptions for some postings; don't
+        // count a missing one as a ghost signal.
+        descriptionAvailable: ats !== "smartrecruiters" && ats !== "workday",
         tally: tally(ats),
         badgesFor: () => badges,
       });
