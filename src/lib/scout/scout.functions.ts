@@ -44,11 +44,15 @@ export const detectCompanyAts = createServerFn({ method: "POST" })
     const { scanCompanySite } = await import("./webscan");
     const { MetricsRecorder } = await import("./http");
     const { boardUrl } = await import("./detect");
-    const { hit, all, checked } = await scanCompanySite(new MetricsRecorder(), data.url);
+    const { hit, all, checked, unsupported } = await scanCompanySite(
+      new MetricsRecorder(),
+      data.url,
+    );
     return {
       hit: hit ? { ...hit, board: boardUrl(hit.ats, hit.token) } : null,
       alternatives: all.slice(1).map((h) => ({ ...h, board: boardUrl(h.ats, h.token) })),
       checked,
+      unsupported,
     };
   });
 

@@ -74,6 +74,21 @@ Scheduled (/api/scout/run) ─┤              │
   pages per company. Sites that build their listings in the browser with JavaScript (no markup,
   no sitemap) still come back "No supported ATS" — that's what an LLM extractor would cover.
 
+### Temp partner listings (Bluecrew, WorkWhile, Instawork)
+
+The partner apps have no public feed, so their open listings come from a
+sheet gathered by hand, transcribed into `src/data/temp-listings.ts`. That
+file drives both the Temp & hourly job feed and the partner overviews on
+`/temporary-staffing`. To refresh it:
+
+1. Replace `LISTINGS` with the new sheet's rows and update `LISTINGS_AS_OF`.
+2. `node scripts/temp-listings-sql.ts > supabase/migrations/<timestamp>_temp_listings.sql`
+3. Apply the migration. It upserts the listings, closes ones that dropped
+   off, and closes any whose employer misses the equity filter.
+
+Listings drop out of the feed `LISTINGS_VALID_DAYS` (14) days after
+`LISTINGS_AS_OF` unless refreshed.
+
 ### Employer ratings gate
 
 Managed on **`/admin/ratings`**: cutoffs, whether a company on both lists must

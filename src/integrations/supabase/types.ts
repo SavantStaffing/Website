@@ -129,6 +129,13 @@ export type Database = {
           title: string;
           type: string | null;
           updated_at: string;
+          track: string;
+          track_reasons: string[];
+          track_override: string | null;
+          pay_min: number | null;
+          pay_max: number | null;
+          pay_unit: string | null;
+          valid_through: string | null;
         };
         Insert: {
           apply_url?: string | null;
@@ -160,6 +167,13 @@ export type Database = {
           title: string;
           type?: string | null;
           updated_at?: string;
+          track?: string;
+          track_reasons?: string[];
+          track_override?: string | null;
+          pay_min?: number | null;
+          pay_max?: number | null;
+          pay_unit?: string | null;
+          valid_through?: string | null;
         };
         Update: {
           apply_url?: string | null;
@@ -191,6 +205,13 @@ export type Database = {
           title?: string;
           type?: string | null;
           updated_at?: string;
+          track?: string;
+          track_reasons?: string[];
+          track_override?: string | null;
+          pay_min?: number | null;
+          pay_max?: number | null;
+          pay_unit?: string | null;
+          valid_through?: string | null;
         };
         Relationships: [];
       };
@@ -259,6 +280,7 @@ export type Database = {
           rating_name: string | null;
           rating_override: string | null;
           updated_at: string;
+          company_type: string;
         };
         Insert: {
           added_by?: string | null;
@@ -279,6 +301,7 @@ export type Database = {
           rating_name?: string | null;
           rating_override?: string | null;
           updated_at?: string;
+          company_type?: string;
         };
         Update: {
           added_by?: string | null;
@@ -299,6 +322,7 @@ export type Database = {
           rating_name?: string | null;
           rating_override?: string | null;
           updated_at?: string;
+          company_type?: string;
         };
         Relationships: [];
       };
@@ -595,6 +619,9 @@ export type Database = {
           remote_ok: boolean;
           updated_at: string;
           user_id: string;
+          job_track: string;
+          min_hourly_pay: number | null;
+          temp_apps: string[];
         };
         Insert: {
           employment_types?: string[];
@@ -606,6 +633,9 @@ export type Database = {
           remote_ok?: boolean;
           updated_at?: string;
           user_id: string;
+          job_track?: string;
+          min_hourly_pay?: number | null;
+          temp_apps?: string[];
         };
         Update: {
           employment_types?: string[];
@@ -617,6 +647,9 @@ export type Database = {
           remote_ok?: boolean;
           updated_at?: string;
           user_id?: string;
+          job_track?: string;
+          min_hourly_pay?: number | null;
+          temp_apps?: string[];
         };
         Relationships: [];
       };
@@ -767,6 +800,93 @@ export type Database = {
         };
         Relationships: [];
       };
+      unique_scanner_sites: {
+        Row: {
+          created_at: string;
+          first_detected_at: string;
+          id: string;
+          jobs_url: string | null;
+          last_checked_at: string;
+          name: string;
+          notes: string | null;
+          platform: string | null;
+          reason: string;
+          scout_company_id: string | null;
+          site_url: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          first_detected_at?: string;
+          id?: string;
+          jobs_url?: string | null;
+          last_checked_at?: string;
+          name: string;
+          notes?: string | null;
+          platform?: string | null;
+          reason: string;
+          scout_company_id?: string | null;
+          site_url: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          first_detected_at?: string;
+          id?: string;
+          jobs_url?: string | null;
+          last_checked_at?: string;
+          name?: string;
+          notes?: string | null;
+          platform?: string | null;
+          reason?: string;
+          scout_company_id?: string | null;
+          site_url?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      coach_invites: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          expires_at: string;
+          id: string;
+          label: string | null;
+          max_uses: number;
+          redeemed_by: string[];
+          revoked: boolean;
+          uses: number;
+        };
+        Insert: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          expires_at?: string;
+          id?: string;
+          label?: string | null;
+          max_uses?: number;
+          redeemed_by?: string[];
+          revoked?: boolean;
+          uses?: number;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          expires_at?: string;
+          id?: string;
+          label?: string | null;
+          max_uses?: number;
+          redeemed_by?: string[];
+          revoked?: boolean;
+          uses?: number;
+        };
+        Relationships: [];
+      };
       contact_messages: {
         Row: {
           company: string | null;
@@ -815,6 +935,12 @@ export type Database = {
       own_organization_id: {
         Args: {
           _user_id: string;
+        };
+        Returns: string;
+      };
+      coach_invite_status: {
+        Args: {
+          _code: string;
         };
         Returns: string;
       };

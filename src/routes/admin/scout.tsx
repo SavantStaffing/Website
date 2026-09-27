@@ -16,6 +16,7 @@ import {
   primaryButton,
   selectCls,
   timeAgo,
+  Toggle,
 } from "@/components/site/ui";
 import { boardUrl } from "@/lib/scout/detect";
 import {
@@ -53,6 +54,7 @@ type Company = {
   rating_name: string | null;
   rating_override: string | null;
   last_rating: string | null;
+  company_type: string;
 };
 
 type Run = {
@@ -155,7 +157,7 @@ function JobScout() {
 
   async function patchCompany(
     c: Company,
-    patch: Partial<Pick<Company, "rating_name" | "rating_override">>,
+    patch: Partial<Pick<Company, "rating_name" | "rating_override" | "company_type">>,
   ) {
     const { error } = await supabase.from("scout_companies").update(patch).eq("id", c.id);
     if (error) return toast.error(error.message);
@@ -301,6 +303,20 @@ function JobScout() {
                           .filter(Boolean)
                           .join(" · ") || "—"}
                       </div>
+                      <button
+                        onClick={() =>
+                          patchCompany(c, {
+                            company_type:
+                              c.company_type === "staffing_agency" ? "employer" : "staffing_agency",
+                          })
+                        }
+                        className="mt-2 text-[11px] uppercase tracking-[0.15em] text-muted-foreground underline-offset-4 [@media(hover:hover)]:hover:underline"
+                        title="Staffing agencies post both temp & hourly and professional roles; postings with no clear signal follow their schedule."
+                      >
+                        {c.company_type === "staffing_agency"
+                          ? "Staffing agency ✓"
+                          : "Direct employer"}
+                      </button>
                     </td>
                     <td className="py-4 pr-4">
                       {c.ats && c.ats_token ? (
@@ -340,6 +356,14 @@ function JobScout() {
                       </div>
                       {c.last_error && (
                         <div className="mt-1 max-w-xs text-xs text-red-700">{c.last_error}</div>
+                      )}
+                      {c.last_status === "no_ats" && (
+                        <Link
+                          to="/admin/scanners"
+                          className="mt-1 inline-block text-xs underline underline-offset-4"
+                        >
+                          In the unique-scanner queue →
+                        </Link>
                       )}
                     </td>
                     <td className="py-4 pr-4 text-right tabular-nums">
@@ -554,6 +578,7 @@ function AddCompany({ onAdded }: { onAdded: () => void }) {
   const [token, setToken] = useState("");
   const [naics, setNaics] = useState("");
   const [industry, setIndustry] = useState("");
+  const [agency, setAgency] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [detected, setDetected] = useState<Awaited<ReturnType<typeof detectCompanyAts>> | null>(
     null,
@@ -596,6 +621,7 @@ function AddCompany({ onAdded }: { onAdded: () => void }) {
       ats_token: ats ? token.trim() || null : null,
       industry: industry.trim() || null,
       naics_code: naics || null,
+      company_type: agency ? "staffing_agency" : "employer",
       added_by: userId,
     });
     setSaving(false);
@@ -610,6 +636,7 @@ function AddCompany({ onAdded }: { onAdded: () => void }) {
     setToken("");
     setNaics("");
     setIndustry("");
+    setAgency(false);
     setDetected(null);
     onAdded();
   }
@@ -649,7 +676,12 @@ function AddCompany({ onAdded }: { onAdded: () => void }) {
                   ` (also saw: ${detected.alternatives.map((a) => `${a.ats}/${a.token}`).join(", ")})`}
               </>
             ) : (
-              <>Checked {detected.checked.length} page(s); no supported ATS found.</>
+              <>
+                Checked {detected.checked.length} page(s); no supported ATS found.
+                {detected.unsupported
+                  ? ` It uses ${detected.unsupported}, which has no scanner yet. The scan will still try the site's job markup and sitemap, and queue it for a unique scanner if those come up empty.`
+                  : " The scan will try the site's job markup and sitemap, and queue it for a unique scanner if those come up empty."}
+              </>
             )}
           </p>
         )}
@@ -694,6 +726,12 @@ function AddCompany({ onAdded }: { onAdded: () => void }) {
           </label>
           <Field label="Industry label" value={industry} onChange={setIndustry} />
         </div>
+        <Toggle
+          checked={agency}
+          onChange={setAgency}
+          label="Staffing agency"
+          description="Posts roles for its clients, both temp & hourly and professional. Postings with no clear signal are sorted by their schedule."
+        />
         <button type="submit" disabled={saving} className={primaryButton}>
           {saving ? "…" : "Add company"}
         </button>

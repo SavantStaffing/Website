@@ -9,7 +9,7 @@ export const Route = createFileRoute("/preparation")({
       {
         name: "description",
         content:
-          "Career programs, resume building, and interview development with Savant Staffing's career coaches.",
+          "Career programs, resume building, interview development, and job fairs with Savant Staffing's career coaches.",
       },
     ],
   }),

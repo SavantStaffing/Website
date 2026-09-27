@@ -1,3 +1,5 @@
+import type { CompanyType, JobTrack, PayRange } from "./track.ts";
+
 /**
  * Shared shapes for the Job Scout pipeline. Everything in src/lib/scout uses
  * relative imports and no framework code, so the pipeline can be exercised
@@ -62,6 +64,8 @@ export type ScoutCompany = {
   rating_name?: string | null;
   /** Admin override of the ratings gate. */
   rating_override?: "pass" | "fail" | null;
+  /** Staffing agencies post both hourly and professional roles for their clients. */
+  company_type?: CompanyType | null;
 };
 
 /** What an ATS adapter returns, before validation. Loosely typed on purpose. */
@@ -78,6 +82,8 @@ export type RawJob = {
   remote_hint: boolean | null;
   posted_at: string | null;
   industry_raw?: string | null;
+  /** Posted pay, when the source publishes it. */
+  pay?: PayRange | null;
 };
 
 /** A job after validation + refinement, ready to upsert into public.jobs. */
@@ -99,6 +105,12 @@ export type NormalizedJob = {
   remote: boolean;
   posted_at: string | null;
   employer_badges: string[];
+  /** Which feed it lands in: temp & hourly or professional (track.ts). */
+  track: JobTrack;
+  track_reasons: string[];
+  pay_min: number | null;
+  pay_max: number | null;
+  pay_unit: PayRange["unit"] | null;
   fingerprint: string;
   ghost_score: number;
   ghost_reasons: string[];

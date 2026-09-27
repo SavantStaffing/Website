@@ -4,17 +4,24 @@
  *
  *   node scripts/scout-smoke.ts                     # default sample companies
  *   node scripts/scout-smoke.ts https://jobs.lever.co/acme  "Acme"
+ *   node scripts/scout-smoke.ts https://www.randstadusa.com/jobs/ "Randstad" agency
  *
  * Needs Node 22.6+ (native TypeScript type stripping).
  */
 import { runScout, type ExistingJob, type ScoutStore } from "../src/lib/scout/pipeline.ts";
 import type { NormalizedJob, ScoutCompany } from "../src/lib/scout/types.ts";
 
-const [, , argUrl, argName] = process.argv;
+const [, , argUrl, argName, argType] = process.argv;
 
 const companies: ScoutCompany[] = (
   argUrl
-    ? [{ name: argName ?? "Custom", careers_url: argUrl }]
+    ? [
+        {
+          name: argName ?? "Custom",
+          careers_url: argUrl,
+          company_type: argType === "agency" ? ("staffing_agency" as const) : ("employer" as const),
+        },
+      ]
     : [
         { name: "Stripe", careers_url: "https://job-boards.greenhouse.io/stripe" },
         { name: "Palantir", careers_url: "https://jobs.lever.co/palantir" },
@@ -76,6 +83,12 @@ const store: ScoutStore = {
   async closeUnseen() {
     return 0;
   },
+  async registerUniqueScanner(site) {
+    console.log(
+      `→ unique-scanner registry: ${site.name} (${site.platform ?? "unknown platform"}) — ${site.reason}`,
+    );
+  },
+  async resolveUniqueScanner() {},
 };
 
 const summary = await runScout(store);
@@ -123,8 +136,24 @@ console.table(
     remote: j.remote,
     posted: j.posted_at?.slice(0, 10),
     ghost: j.ghost_score,
+    track: j.track,
   })),
 );
+const byTrack = (t: string) => all.filter((j) => j.track === t);
+console.log(
+  `== Feed tracks: ${byTrack("hourly").length} temp & hourly, ${byTrack("professional").length} professional`,
+);
+for (const t of ["hourly", "professional"])
+  console.table(
+    byTrack(t)
+      .slice(0, 6)
+      .map((j) => ({
+        track: t,
+        title: j.title.slice(0, 44),
+        pay: (j.pay_max ?? j.pay_min) ? `${j.pay_min ?? ""}-${j.pay_max ?? ""}/${j.pay_unit}` : "",
+        why: j.track_reasons.join("; ").slice(0, 60),
+      })),
+  );
 const flagged = all.filter((j) => j.status === "flagged");
 console.log(`== Ghost detector flagged ${flagged.length} of ${all.length}`);
 console.table(

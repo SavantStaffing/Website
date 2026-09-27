@@ -6,8 +6,10 @@ import {
   TEMP_DATA_AS_OF,
   TEMP_PARTNERS,
   type ActivityLevel,
+  type PartnerSnapshot,
   type TempPartner,
 } from "@/data/temp-partners";
+import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
 
 const ACTIVITY_TONE: Record<ActivityLevel, "good" | "warn" | "muted"> = {
   high: "good",
@@ -19,8 +21,14 @@ const usd = (n: number) =>
   n.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
+    minimumFractionDigits: n % 1 ? 2 : 0,
     maximumFractionDigits: n % 1 ? 2 : 0,
   });
+
+const range = (lo: number, hi: number) => (lo === hi ? usd(lo) : `${usd(lo)}–${usd(hi)}`);
+
+const sectorLabel = (code: string) =>
+  NAICS_SECTOR_OPTIONS.find((o) => o.code === code)?.label ?? code;
 
 /**
  * Temporary staffing through partner platforms. Shared by the informative
@@ -49,9 +57,17 @@ export function TempStaffingOverview({ withSignup = false }: { withSignup?: bool
             <PartnerMark partner={p} />
             <p className="text-sm text-muted-foreground">{p.tagline}</p>
             <div className="mt-auto text-xs text-muted-foreground">
-              {p.positions.length
-                ? `${p.positions.length} position type${p.positions.length === 1 ? "" : "s"}`
-                : "Positions coming soon"}
+              {p.snapshot.listings ? (
+                <>
+                  {p.snapshot.listings} open listing{p.snapshot.listings === 1 ? "" : "s"} ·{" "}
+                  {p.snapshot.companies.length} compan
+                  {p.snapshot.companies.length === 1 ? "y" : "ies"}
+                  {p.snapshot.hourlyMin !== null &&
+                    ` · ${range(p.snapshot.hourlyMin, p.snapshot.hourlyMax!)}/hr`}
+                </>
+              ) : (
+                "Positions coming soon"
+              )}
             </div>
           </a>
         ))}
@@ -85,6 +101,8 @@ export function TempStaffingOverview({ withSignup = false }: { withSignup?: bool
           </div>
           <p className="mt-4 max-w-2xl text-base leading-relaxed">{p.tagline}</p>
 
+          {p.snapshot.listings > 0 && <Snapshot snapshot={p.snapshot} />}
+
           {p.howItWorks.length > 0 && (
             <div className="mt-8">
               <div className={label}>How it works</div>
@@ -114,6 +132,7 @@ export function TempStaffingOverview({ withSignup = false }: { withSignup?: bool
                     <tr className="border-b border-[color:var(--color-hairline)] text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                       <th className="py-3 font-normal">Position type</th>
                       <th className="py-3 font-normal">Active companies</th>
+                      <th className="py-3 font-normal">Requirements</th>
                       <th className="py-3 font-normal">Activity</th>
                       <th className="py-3 text-right font-normal">Pay range</th>
                     </tr>
@@ -128,18 +147,26 @@ export function TempStaffingOverview({ withSignup = false }: { withSignup?: bool
                         <td className="py-4 text-muted-foreground">
                           {pos.companies.join(", ") || "—"}
                         </td>
+                        <td className="py-4 text-muted-foreground">
+                          {pos.requirements.join(", ") || "None listed"}
+                        </td>
                         <td className="py-4">
                           <Badge tone={ACTIVITY_TONE[pos.activity]}>
                             {ACTIVITY_LABEL[pos.activity]}
                           </Badge>
                         </td>
                         <td className="py-4 text-right tabular-nums">
-                          {usd(pos.payMin)}–{usd(pos.payMax)}/hr
+                          {range(pos.payMin, pos.payMax)}
+                          {pos.payUnit === "hour" ? "/hr" : " flat per shift"}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Activity reflects how many shifts were open for each position when the data was
+                  gathered.
+                </p>
               </div>
             )}
           </div>
@@ -148,8 +175,17 @@ export function TempStaffingOverview({ withSignup = false }: { withSignup?: bool
 
       {withSignup ? (
         <p className="mt-16 max-w-2xl text-xs text-muted-foreground">
-          Each sign-up opens that platform's own site, where you create your worker account and
-          complete their onboarding. Shifts are booked and paid through the platform.
+          Individual listings from all three platforms are in your{" "}
+          <Link
+            to="/talent/jobs"
+            search={{ track: "hourly" }}
+            className="text-foreground underline underline-offset-4"
+          >
+            Temp & hourly job feed
+          </Link>
+          , filterable by position, industry, location and pay. Each sign-up opens that platform's
+          own site, where you create your worker account and complete their onboarding. Shifts are
+          booked and paid through the platform.
         </p>
       ) : auth?.role === "talent" ? (
         <div className="mt-16">
@@ -174,6 +210,62 @@ export function TempStaffingOverview({ withSignup = false }: { withSignup?: bool
           </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Broad overview of a platform: listings, companies, pay, where and what it asks for. */
+function Snapshot({ snapshot: s }: { snapshot: PartnerSnapshot }) {
+  const facts: { k: string; v: string }[] = [
+    { k: "Open listings", v: String(s.listings) },
+    { k: "Companies hiring", v: String(s.companies.length) },
+    {
+      k: "Pay",
+      v: [
+        s.hourlyMin !== null ? `${range(s.hourlyMin, s.hourlyMax!)}/hr` : null,
+        s.flatMin !== null ? `${range(s.flatMin, s.flatMax!)} flat per shift` : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    },
+  ];
+  return (
+    <div className="mt-8 rounded-sm border border-[color:var(--color-hairline)] p-6">
+      <div className={label}>At a glance</div>
+      <dl className="mt-4 grid gap-6 sm:grid-cols-3">
+        {facts.map((f) => (
+          <div key={f.k}>
+            <dt className="text-xs text-muted-foreground">{f.k}</dt>
+            <dd className="mt-1 text-xl font-medium tabular-nums">{f.v}</dd>
+          </div>
+        ))}
+      </dl>
+      <dl className="mt-6 space-y-3 text-sm">
+        <div>
+          <dt className="inline text-muted-foreground">Companies: </dt>
+          <dd className="inline">{s.companies.join(", ")}</dd>
+        </div>
+        <div>
+          <dt className="inline text-muted-foreground">Where: </dt>
+          <dd className="inline">{s.cities.join(" · ")}</dd>
+        </div>
+        <div>
+          <dt className="inline text-muted-foreground">Industries: </dt>
+          <dd className="inline">{s.naics.map(sectorLabel).join(" · ")}</dd>
+        </div>
+        {s.requirements.length > 0 && (
+          <div>
+            <dt className="inline text-muted-foreground">Often asks for: </dt>
+            <dd className="inline">{s.requirements.join(", ")}</dd>
+          </div>
+        )}
+        {s.tags.length > 0 && (
+          <div>
+            <dt className="inline text-muted-foreground">Listing labels: </dt>
+            <dd className="inline">{s.tags.join(", ")}</dd>
+          </div>
+        )}
+      </dl>
     </div>
   );
 }

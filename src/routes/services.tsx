@@ -12,10 +12,16 @@ export const Route = createFileRoute("/services")({
 
 const SERVICES = [
   { name: "Temporary Staffing", tag: "Flexible coverage, fast", to: "/temporary-staffing" },
-  { name: "Professional Roles", tag: "Full-time placements" },
+  {
+    name: "Professional Roles",
+    tag: "Full-time placements",
+    to: "/jobs",
+    // Opens the job feed on its Professional tab.
+    search: { track: "professional" },
+  },
   {
     name: "Preparation",
-    tag: "Career programs, resume building & interview development",
+    tag: "Career programs, resume building, interview development & job fairs",
     to: "/preparation",
   },
 ] as const;
@@ -97,6 +103,7 @@ function Services() {
               {"to" in s ? (
                 <Link
                   to={s.to}
+                  search={("search" in s ? s.search : undefined) as never}
                   className="group flex flex-wrap items-baseline justify-between gap-6 py-10 transition-colors [@media(hover:hover)]:hover:bg-black/[0.02] active:bg-black/[0.03]"
                 >
                   {body}

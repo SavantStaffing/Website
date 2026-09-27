@@ -4,7 +4,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ChipGroup, TagInput, Toggle, label, primaryButton, selectCls } from "@/components/site/ui";
 import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
+import type { TrackFilter } from "@/lib/scout/rank";
+import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS } from "@/lib/scout/track";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES, type EmploymentType } from "@/lib/scout/types";
+import { PARTNER_IDS, PARTNER_NAMES, type PartnerId } from "@/data/temp-listings";
 
 export const Route = createFileRoute("/talent/preferences")({
   head: () => ({
@@ -12,6 +15,18 @@ export const Route = createFileRoute("/talent/preferences")({
   }),
   component: Preferences,
 });
+
+const FEEDS: { value: TrackFilter; label: string; blurb: string }[] = [
+  { value: "all", label: "Both feeds", blurb: "See every role together." },
+  { value: "hourly", label: JOB_TRACK_LABELS.hourly, blurb: JOB_TRACK_BLURBS.hourly },
+  {
+    value: "professional",
+    label: JOB_TRACK_LABELS.professional,
+    blurb: JOB_TRACK_BLURBS.professional,
+  },
+];
+
+const PAY_FLOORS = [15, 18, 20, 22, 25, 30, 40, 50];
 
 const WINDOWS = [
   { value: 1, label: "Past 24 hours" },
@@ -34,6 +49,9 @@ function Preferences() {
   const [types, setTypes] = useState<EmploymentType[]>([]);
   const [remoteOk, setRemoteOk] = useState(true);
   const [within, setWithin] = useState(30);
+  const [feed, setFeed] = useState<TrackFilter>("all");
+  const [minPay, setMinPay] = useState<number | null>(null);
+  const [tempApps, setTempApps] = useState<PartnerId[]>([]);
 
   useEffect(() => {
     supabase
@@ -50,6 +68,9 @@ function Preferences() {
           setTypes(data.employment_types as EmploymentType[]);
           setRemoteOk(data.remote_ok);
           setWithin(data.posted_within_days);
+          setFeed(data.job_track as TrackFilter);
+          setMinPay(data.min_hourly_pay === null ? null : Number(data.min_hourly_pay));
+          setTempApps(data.temp_apps as PartnerId[]);
         }
         setLoading(false);
       });
@@ -67,6 +88,9 @@ function Preferences() {
       employment_types: types,
       remote_ok: remoteOk,
       posted_within_days: within,
+      job_track: feed,
+      min_hourly_pay: minPay,
+      temp_apps: tempApps,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -88,6 +112,35 @@ function Preferences() {
       </p>
 
       <form onSubmit={save} className="mt-10 max-w-2xl space-y-8">
+        <fieldset>
+          <legend className={label}>Which roles are you looking for?</legend>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {FEEDS.map((f) => (
+              <label
+                key={f.value}
+                className={`cursor-pointer border p-4 text-sm transition-colors ${
+                  feed === f.value
+                    ? "border-foreground"
+                    : "border-[color:var(--color-hairline)] text-muted-foreground"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="feed"
+                  value={f.value}
+                  checked={feed === f.value}
+                  onChange={() => setFeed(f.value)}
+                  className="sr-only"
+                />
+                <span className="block font-medium text-foreground">{f.label}</span>
+                <span className="mt-1 block text-xs">{f.blurb}</span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Your feed opens on this one. You can switch feeds any time from the tabs at the top.
+          </p>
+        </fieldset>
         <TagInput
           label="Positions"
           value={positions}
@@ -128,6 +181,43 @@ function Preferences() {
               onChange={setTypes}
             />
           </div>
+        </div>
+        <label className="block">
+          <span className={label}>Minimum pay</span>
+          <select
+            value={minPay === null ? "" : String(minPay)}
+            onChange={(e) => setMinPay(e.target.value ? Number(e.target.value) : null)}
+            className={`mt-2 block ${selectCls}`}
+          >
+            <option value="">No minimum</option>
+            {PAY_FLOORS.map((n) => (
+              <option key={n} value={n}>
+                ${n}/hr or more
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Roles that pay this or more rank higher. Salaries are compared as an hourly rate.
+          </span>
+        </label>
+        <div>
+          <span className={label}>Temp apps you use</span>
+          <div className="mt-3">
+            <ChipGroup
+              options={PARTNER_IDS.map((id) => ({ value: id, label: PARTNER_NAMES[id] }))}
+              value={tempApps}
+              onChange={setTempApps}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Shifts on these apps rank higher in your Temp & hourly feed.{" "}
+            <Link
+              to="/talent/temporary-work"
+              className="text-foreground underline underline-offset-4"
+            >
+              Compare the apps
+            </Link>
+          </p>
         </div>
         <label className="block">
           <span className={label}>Show roles posted within</span>

@@ -1,5 +1,6 @@
 import { mapLimit, scoutFetch, type MetricsRecorder } from "./http.ts";
 import { decodeEntities, htmlToText, iso } from "./text.ts";
+import type { PayRange } from "./track.ts";
 import type { JobSource, RawJob } from "./types.ts";
 
 /**
@@ -15,7 +16,7 @@ import type { JobSource, RawJob } from "./types.ts";
  * Page fetches are capped per company so a large site can't stall a run.
  */
 
-const MAX_JOB_PAGES = 60;
+const MAX_JOB_PAGES = 100;
 const ICIMS_MAX_LIST_PAGES = 8;
 
 // ---------------------------------------------------------------- JobPosting markup
@@ -76,6 +77,42 @@ function location(p: Json): { text: string | null; remote: boolean | null } {
   return { text: remote ? "Remote" : null, remote };
 }
 
+const PAY_UNITS: Record<string, PayRange["unit"]> = {
+  HOUR: "hour",
+  HOURLY: "hour",
+  DAY: "day",
+  DAILY: "day",
+  WEEK: "week",
+  WEEKLY: "week",
+  MONTH: "month",
+  MONTHLY: "month",
+  YEAR: "year",
+  YEARLY: "year",
+  ANNUAL: "year",
+  ANNUALLY: "year",
+};
+
+const num = (v: unknown): number | null => {
+  const n =
+    typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(/[,$]/g, "")) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
+
+/** schema.org baseSalary (MonetaryAmount → QuantitativeValue) → a pay range. */
+export function payFromPosting(p: Json): PayRange | null {
+  const salary = asArray(p.baseSalary as Json | Json[])[0];
+  if (!salary || typeof salary !== "object") return null;
+  const value = salary.value;
+  const q = (value && typeof value === "object" ? value : salary) as Json;
+  const single = num(typeof value === "object" ? q.value : value);
+  const min = num(q.minValue) ?? single;
+  const max = num(q.maxValue) ?? single;
+  if (min === null && max === null) return null;
+  const unit = PAY_UNITS[String(q.unitText ?? salary.unitText ?? "").toUpperCase()];
+  // No unit: small numbers are hourly rates, big ones salaries.
+  return { min, max, unit: unit ?? ((max ?? min)! < 500 ? "hour" : "year") };
+}
+
 /** One JobPosting object → the scout's raw job shape. Null if expired or unusable. */
 export function jobFromPosting(
   p: Json,
@@ -107,6 +144,69 @@ export function jobFromPosting(
     remote_hint: loc.remote,
     posted_at: iso(p.datePosted as string),
     industry_raw: str(p.industry),
+    pay: payFromPosting(p),
+  };
+}
+
+// ---------------------------------------------------------------- Phenom job pages
+
+/** The JSON object literal that starts at `from` (brace-matched, strings respected). */
+function balancedJson(text: string, from: number): unknown {
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = from; i < text.length; i++) {
+    const c = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+    } else if (c === '"') inStr = true;
+    else if (c === "{") depth++;
+    else if (c === "}" && --depth === 0) {
+      try {
+        return JSON.parse(text.slice(from, i + 1));
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Phenom-hosted careers sites (e.g. jobs.aerotek.com) publish JobPosting
+ * markup only on some pages, but every job page embeds its full record in
+ * `phApp.ddo.jobDetail.data.job` for the page's own script.
+ */
+export function phenomJob(html: string, ctx: { pageUrl: string; company: string }): RawJob | null {
+  const at = html.indexOf("phApp.ddo = ");
+  if (at < 0) return null;
+  const ddo = balancedJson(html, html.indexOf("{", at)) as Json | null;
+  const detail = (ddo?.jobDetail as Json | undefined)?.data as Json | undefined;
+  const job = detail?.job as Json | undefined;
+  const title = job && str(job.title);
+  if (!job || !title) return null;
+  const open = str(job.deltaPostingStatus);
+  if (open && open.toLowerCase() !== "open") return null;
+  const remote = str(job.remoteOnsite);
+  const unit = PAY_UNITS[String(job.salaryPer ?? "").toUpperCase()] ?? null;
+  const min = num(job.salaryFrom);
+  const max = num(job.salaryTo);
+  return {
+    source: "jsonld",
+    external_id: str(job.jobId) ?? str(job.reqId) ?? ctx.pageUrl,
+    title,
+    company_name: ctx.company || str(job.companyName) || "Unknown company",
+    location: str(job.location) ?? str(job.cityStateCountry),
+    description: htmlToText(typeof job.description === "string" ? job.description : null),
+    apply_url: str(job.jobDescriptionpageUrl) ?? ctx.pageUrl,
+    department: str(job.category),
+    employment_type_raw: str(job.type),
+    remote_hint: remote ? /remote/i.test(remote) : null,
+    posted_at: iso(job.postedDate as string),
+    industry_raw: str(job.industry),
+    pay: (min ?? max) !== null && unit ? { min, max, unit } : null,
   };
 }
 
@@ -137,7 +237,7 @@ async function postingsFromPages(
   const pages = await mapLimit(urls.slice(0, MAX_JOB_PAGES), 4, async (url) => {
     const html = await fetchHtml(rec, source, url);
     if (!html) return [];
-    return extractJobPostings(html)
+    const jobs = extractJobPostings(html)
       .map((p) =>
         jobFromPosting(opts.ignoreValidThrough ? { ...p, validThrough: undefined } : p, {
           source,
@@ -145,8 +245,12 @@ async function postingsFromPages(
           company,
         }),
       )
-      .filter((j): j is RawJob => j !== null)
-      .map((j) => (enrich ? enrich(j, html) : j));
+      .filter((j): j is RawJob => j !== null);
+    if (jobs.length === 0 && source === "jsonld") {
+      const ph = phenomJob(html, { pageUrl: url, company });
+      if (ph) jobs.push(ph);
+    }
+    return jobs.map((j) => (enrich ? enrich(j, html) : j));
   });
   const byId = new Map<string, RawJob>();
   for (const j of pages.flat()) if (!byId.has(j.external_id)) byId.set(j.external_id, j);
@@ -176,21 +280,77 @@ export function jobLinks(html: string, pageUrl: string): string[] {
   return [...found];
 }
 
-/** Job-page URLs from the site's sitemap (one level of sitemap index followed). */
-async function sitemapJobUrls(rec: MetricsRecorder, pageUrl: string): Promise<string[]> {
-  const origin = new URL(pageUrl).origin;
-  const locs = (xml: string) =>
-    [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)].map((m) => decodeEntities(m[1]));
-  const index = await fetchHtml(rec, "jsonld", `${origin}/sitemap.xml`);
-  if (!index) return [];
-  let urls = locs(index);
-  if (/<sitemapindex/i.test(index)) {
-    const children = urls.filter((u) => /job|career|position|opening/i.test(u)).slice(0, 3);
-    urls = (await Promise.all(children.map((c) => fetchHtml(rec, "jsonld", c)))).flatMap((x) =>
-      x ? locs(x) : [],
-    );
+type SitemapEntry = { url: string; lastmod: number };
+
+function sitemapEntries(xml: string): SitemapEntry[] {
+  return [...xml.matchAll(/<(?:url|sitemap)>([\s\S]*?)<\/(?:url|sitemap)>/gi)].flatMap((m) => {
+    const loc = /<loc>\s*([^<\s]+)\s*<\/loc>/i.exec(m[1]);
+    if (!loc) return [];
+    const mod = /<lastmod>\s*([^<\s]+)\s*<\/lastmod>/i.exec(m[1]);
+    return [{ url: decodeEntities(loc[1]), lastmod: mod ? Date.parse(mod[1]) || 0 : 0 }];
+  });
+}
+
+// A job page's path has an id in it: /jobs/312/pr-1545626…, /job/JP-006290649/…
+const JOB_ID_SEGMENT = /\/[^/]*\d{4,}[^/]*(?:\/|$)/;
+
+/**
+ * Job-page URLs from the site's sitemaps, newest first. Sitemaps are found
+ * through robots.txt as well as /sitemap.xml, and sitemap indexes are
+ * followed two levels deep (preferring children named for jobs), since
+ * large careers sites (Randstad, Phenom-hosted sites like Aerotek) nest them.
+ */
+export async function sitemapJobUrls(rec: MetricsRecorder, pageUrl: string): Promise<string[]> {
+  const { origin, pathname } = new URL(pageUrl);
+  // Multi-region sites (jobs.aerotek.com/us/en vs /ca/fr) keep one sitemap per
+  // region; stay in the careers page's own.
+  const section = /^\/[a-z]{2}(?:[-_/][a-z]{2})?(?=\/|$)/i.exec(pathname)?.[0] ?? null;
+  const inSection = (u: string) =>
+    !!section && new URL(u, origin).pathname.startsWith(`${section}/`);
+  const robots = await fetchHtml(rec, "jsonld", `${origin}/robots.txt`);
+  const declared = [...(robots ?? "").matchAll(/^\s*sitemap:\s*(\S+)/gim)]
+    .map((m) => m[1])
+    .filter((u) => u.startsWith(origin));
+  const roots = [
+    ...new Set([
+      ...declared.filter(inSection),
+      ...(section
+        ? [`${origin}${section}/sitemap_index.xml`, `${origin}${section}/sitemap.xml`]
+        : []),
+      ...declared.filter((u) => !inSection(u)),
+      `${origin}/sitemap.xml`,
+    ]),
+  ].slice(0, 4);
+
+  const pages: SitemapEntry[] = [];
+  const visit = async (url: string, depth: number) => {
+    const xml = await fetchHtml(rec, "jsonld", url);
+    if (!xml) return;
+    const entries = sitemapEntries(xml);
+    if (!/<sitemapindex/i.test(xml)) return void pages.push(...entries);
+    if (depth >= 2) return;
+    const jobby = (u: string) =>
+      /jobs?(?:[-_.]|\.xml)|job-?posting|position|opening|vacanc/i.test(u);
+    // Skip job *search* sitemaps (categories, locations): they list listing pages, not jobs.
+    const listing = (u: string) => /categor|geo|location|query|search|city|state/i.test(u);
+    const named = entries.filter((e) => jobby(e.url) && !listing(e.url));
+    const children = (named.length ? named : entries.filter((e) => !listing(e.url))).slice(0, 5);
+    for (const c of children) await visit(c.url, depth + 1);
+  };
+  for (const r of roots) {
+    await visit(r, 0);
+    if (pages.length) break;
   }
-  return urls.filter((u) => JOB_PATH.test(new URL(u, origin).pathname));
+
+  let jobPages = pages.filter((e) => JOB_PATH.test(new URL(e.url, origin).pathname));
+  if (jobPages.some((e) => inSection(e.url))) jobPages = jobPages.filter((e) => inSection(e.url));
+  // Prefer URLs that carry a job id; a sitemap also lists search/category pages.
+  const withId = jobPages.filter((e) => JOB_ID_SEGMENT.test(new URL(e.url, origin).pathname));
+  return [
+    ...new Set(
+      (withId.length ? withId : jobPages).sort((a, b) => b.lastmod - a.lastmod).map((e) => e.url),
+    ),
+  ];
 }
 
 // ---------------------------------------------------------------- adapters
@@ -211,8 +371,15 @@ export async function jsonld(
     .filter((j): j is RawJob => j !== null);
   if (onPage.length > 1) return onPage;
 
-  let links = jobLinks(html, token);
-  if (links.length < 3) links = [...new Set([...links, ...(await sitemapJobUrls(rec, token))])];
+  // Links carrying a job id are real postings; a careers hub mostly links to
+  // category and search pages ("/jobs/t-temporary/"), which have no markup.
+  const pageLinks = jobLinks(html, token);
+  const idLinks = pageLinks.filter((u) => JOB_ID_SEGMENT.test(new URL(u).pathname));
+  let links = idLinks.length >= 3 ? idLinks : pageLinks;
+  if (idLinks.length < 3) {
+    const fromSitemap = await sitemapJobUrls(rec, token);
+    if (fromSitemap.length) links = [...new Set([...idLinks, ...fromSitemap])];
+  }
   const crawled = await postingsFromPages(rec, "jsonld", links, company);
   return crawled.length ? crawled : onPage;
 }

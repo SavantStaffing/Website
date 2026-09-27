@@ -11,10 +11,12 @@ export const Route = createFileRoute("/admin")({
 const NAV = [
   { to: "/admin", label: "Dashboard" },
   { to: "/admin/users", label: "Users" },
+  { to: "/admin/coach-invites", label: "Coach invites" },
   { to: "/admin/scout", label: "Job Scout" },
   { to: "/admin/ratings", label: "Ratings" },
   { to: "/admin/diagnostics", label: "Diagnostics" },
   { to: "/admin/jobs", label: "Jobs" },
+  { to: "/admin/scanners", label: "Unique scanners" },
   { to: "/admin/organizations", label: "Organizations" },
   { to: "/admin/messages", label: "Messages" },
   { to: "/temporary-staffing", label: "Temp Partners" },
