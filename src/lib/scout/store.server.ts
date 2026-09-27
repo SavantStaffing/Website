@@ -87,7 +87,12 @@ function createSupabaseScoutStore(): ScoutStore {
     async upsertJobs(rows) {
       let inserted = 0;
       for (const r of rows) if (!known.has(`${r.source}:${r.external_id}`)) inserted++;
-      for (const batch of chunk(rows, 100)) {
+      // A scan is the source of truth for what's live, so it clears any expiry
+      // left on a posting by a one-off load.
+      for (const batch of chunk(
+        rows.map((r) => ({ ...r, valid_through: null })),
+        100,
+      )) {
         const { error } = await supabaseAdmin
           .from("jobs")
           .upsert(batch, { onConflict: "source,external_id" });

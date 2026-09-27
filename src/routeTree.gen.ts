@@ -17,6 +17,7 @@ import { Route as CoachRouteRouteImport } from './routes/coach/route'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ForbiddenRouteImport } from './routes/forbidden'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as PreparationRouteImport } from './routes/preparation'
 import { Route as ProgramsRouteImport } from './routes/programs'
@@ -103,6 +104,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const ForbiddenRoute = ForbiddenRouteImport.update({
   id: '/forbidden',
   path: '/forbidden',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsRoute = JobsRouteImport.update({
@@ -353,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forbidden': typeof ForbiddenRoute
+  '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
   '/preparation': typeof PreparationRoute
   '/programs': typeof ProgramsRoute
@@ -406,6 +413,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forbidden': typeof ForbiddenRoute
+  '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
   '/preparation': typeof PreparationRoute
   '/programs': typeof ProgramsRoute
@@ -464,6 +472,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forbidden': typeof ForbiddenRoute
+  '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
   '/preparation': typeof PreparationRoute
   '/programs': typeof ProgramsRoute
@@ -523,6 +532,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/forbidden'
+    | '/insights'
     | '/jobs'
     | '/preparation'
     | '/programs'
@@ -576,6 +586,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/forbidden'
+    | '/insights'
     | '/jobs'
     | '/preparation'
     | '/programs'
@@ -633,6 +644,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/forbidden'
+    | '/insights'
     | '/jobs'
     | '/preparation'
     | '/programs'
@@ -691,6 +703,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   ForbiddenRoute: typeof ForbiddenRoute
+  InsightsRoute: typeof InsightsRoute
   JobsRoute: typeof JobsRoute
   PreparationRoute: typeof PreparationRoute
   ProgramsRoute: typeof ProgramsRoute
@@ -761,6 +774,13 @@ declare module '@tanstack/react-router' {
       path: '/forbidden'
       fullPath: '/forbidden'
       preLoaderRoute: typeof ForbiddenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs': {
@@ -1220,6 +1240,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   ForbiddenRoute: ForbiddenRoute,
+  InsightsRoute: InsightsRoute,
   JobsRoute: JobsRoute,
   PreparationRoute: PreparationRoute,
   ProgramsRoute: ProgramsRoute,

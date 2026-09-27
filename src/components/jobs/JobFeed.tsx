@@ -68,6 +68,22 @@ const DATE_OPTIONS = [
 const PAGE = 25;
 const GUEST_PREVIEW = 6;
 
+/**
+ * The public preview: best-ranked roles, but one per employer before any
+ * employer repeats, so a handful of listings shows the range of the feed.
+ */
+function previewMix<J extends FeedJob>(ranked: J[], n: number): J[] {
+  const seen = new Set<string>();
+  const first: J[] = [];
+  const rest: J[] = [];
+  for (const j of ranked) {
+    const c = companyOf(j).toLowerCase();
+    (seen.has(c) ? rest : first).push(j);
+    seen.add(c);
+  }
+  return [...first, ...rest].slice(0, n);
+}
+
 async function loadActiveJobs(limit: number): Promise<FeedJob[]> {
   const { data, error } = await supabase
     .from("jobs")
@@ -231,7 +247,7 @@ export function JobFeed({
 
   if (!ranked) return <p className="mt-10 text-sm text-muted-foreground">Loading roles…</p>;
 
-  const visible = mode === "guest" ? ranked.slice(0, GUEST_PREVIEW) : ranked.slice(0, shown);
+  const visible = mode === "guest" ? previewMix(ranked, GUEST_PREVIEW) : ranked.slice(0, shown);
 
   const trackCounts = {
     all: jobs?.length ?? 0,
