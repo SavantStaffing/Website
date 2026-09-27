@@ -135,6 +135,7 @@ export type Database = {
           pay_min: number | null;
           pay_max: number | null;
           pay_unit: string | null;
+          valid_through: string | null;
         };
         Insert: {
           apply_url?: string | null;
@@ -172,6 +173,7 @@ export type Database = {
           pay_min?: number | null;
           pay_max?: number | null;
           pay_unit?: string | null;
+          valid_through?: string | null;
         };
         Update: {
           apply_url?: string | null;
@@ -209,6 +211,7 @@ export type Database = {
           pay_min?: number | null;
           pay_max?: number | null;
           pay_unit?: string | null;
+          valid_through?: string | null;
         };
         Relationships: [];
       };
@@ -617,6 +620,8 @@ export type Database = {
           updated_at: string;
           user_id: string;
           job_track: string;
+          min_hourly_pay: number | null;
+          temp_apps: string[];
         };
         Insert: {
           employment_types?: string[];
@@ -629,6 +634,8 @@ export type Database = {
           updated_at?: string;
           user_id: string;
           job_track?: string;
+          min_hourly_pay?: number | null;
+          temp_apps?: string[];
         };
         Update: {
           employment_types?: string[];
@@ -641,6 +648,8 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
           job_track?: string;
+          min_hourly_pay?: number | null;
+          temp_apps?: string[];
         };
         Relationships: [];
       };

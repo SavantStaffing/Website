@@ -12,6 +12,7 @@ export const Route = createFileRoute("/talent/jobs")({
 
 function TalentJobFeed() {
   const { userId } = Route.useRouteContext();
+  const { track } = Route.useSearch();
   return (
     <section>
       <h2 className="text-2xl font-semibold">Your job feed</h2>
@@ -20,7 +21,7 @@ function TalentJobFeed() {
         Postings that look stale or never-filled are screened out automatically.
       </p>
       <div className="mt-8">
-        <JobFeed mode="talent" userId={userId} />
+        <JobFeed mode="talent" userId={userId} initialTrack={track} />
       </div>
     </section>
   );

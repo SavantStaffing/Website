@@ -77,6 +77,14 @@ export const SERVICES = [
     intro: "Practice interviews and feedback from a Savant career coach. Content coming soon.",
     items: [] as CareerProgram[],
   },
+  {
+    id: "job_fairs",
+    anchor: "job-fairs",
+    title: "Job Fairs",
+    intro:
+      "Meet employers face to face at job fairs and hiring events with Savant. Content coming soon.",
+    items: [] as CareerProgram[],
+  },
 ] as const;
 
 export type ServiceId = (typeof SERVICES)[number]["id"];

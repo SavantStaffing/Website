@@ -7,6 +7,7 @@ import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
 import type { TrackFilter } from "@/lib/scout/rank";
 import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS } from "@/lib/scout/track";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES, type EmploymentType } from "@/lib/scout/types";
+import { PARTNER_IDS, PARTNER_NAMES, type PartnerId } from "@/data/temp-listings";
 
 export const Route = createFileRoute("/talent/preferences")({
   head: () => ({
@@ -24,6 +25,8 @@ const FEEDS: { value: TrackFilter; label: string; blurb: string }[] = [
     blurb: JOB_TRACK_BLURBS.professional,
   },
 ];
+
+const PAY_FLOORS = [15, 18, 20, 22, 25, 30, 40, 50];
 
 const WINDOWS = [
   { value: 1, label: "Past 24 hours" },
@@ -47,6 +50,8 @@ function Preferences() {
   const [remoteOk, setRemoteOk] = useState(true);
   const [within, setWithin] = useState(30);
   const [feed, setFeed] = useState<TrackFilter>("all");
+  const [minPay, setMinPay] = useState<number | null>(null);
+  const [tempApps, setTempApps] = useState<PartnerId[]>([]);
 
   useEffect(() => {
     supabase
@@ -64,6 +69,8 @@ function Preferences() {
           setRemoteOk(data.remote_ok);
           setWithin(data.posted_within_days);
           setFeed(data.job_track as TrackFilter);
+          setMinPay(data.min_hourly_pay === null ? null : Number(data.min_hourly_pay));
+          setTempApps(data.temp_apps as PartnerId[]);
         }
         setLoading(false);
       });
@@ -82,6 +89,8 @@ function Preferences() {
       remote_ok: remoteOk,
       posted_within_days: within,
       job_track: feed,
+      min_hourly_pay: minPay,
+      temp_apps: tempApps,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -172,6 +181,43 @@ function Preferences() {
               onChange={setTypes}
             />
           </div>
+        </div>
+        <label className="block">
+          <span className={label}>Minimum pay</span>
+          <select
+            value={minPay === null ? "" : String(minPay)}
+            onChange={(e) => setMinPay(e.target.value ? Number(e.target.value) : null)}
+            className={`mt-2 block ${selectCls}`}
+          >
+            <option value="">No minimum</option>
+            {PAY_FLOORS.map((n) => (
+              <option key={n} value={n}>
+                ${n}/hr or more
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Roles that pay this or more rank higher. Salaries are compared as an hourly rate.
+          </span>
+        </label>
+        <div>
+          <span className={label}>Temp apps you use</span>
+          <div className="mt-3">
+            <ChipGroup
+              options={PARTNER_IDS.map((id) => ({ value: id, label: PARTNER_NAMES[id] }))}
+              value={tempApps}
+              onChange={setTempApps}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Shifts on these apps rank higher in your Temp & hourly feed.{" "}
+            <Link
+              to="/talent/temporary-work"
+              className="text-foreground underline underline-offset-4"
+            >
+              Compare the apps
+            </Link>
+          </p>
         </div>
         <label className="block">
           <span className={label}>Show roles posted within</span>

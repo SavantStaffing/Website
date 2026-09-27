@@ -18,6 +18,10 @@ export type RankablePreferences = {
   employment_types: string[];
   remote_ok: boolean;
   posted_within_days: number;
+  /** Lowest hourly pay the talent wants; roles that meet it rank higher. */
+  min_hourly_pay?: number | null;
+  /** Temp partner apps (bluecrew | workwhile | instawork) the talent uses. */
+  temp_apps?: string[];
 };
 
 export type RankableJob = {
@@ -37,7 +41,22 @@ export type RankableJob = {
   /** Feed track from the scout's classifier, and a manual override of it. */
   track?: string | null;
   track_override?: string | null;
+  pay_min?: number | null;
+  pay_max?: number | null;
+  pay_unit?: string | null;
 };
+
+const PER_HOUR: Record<string, number> = { hour: 1, day: 8, week: 40, month: 173, year: 2080 };
+
+/**
+ * Top of the posted pay range as an hourly rate. Null when there's no pay,
+ * or it's a flat per-shift rate (shift length isn't known).
+ */
+export function hourlyPay(j: Pick<RankableJob, "pay_min" | "pay_max" | "pay_unit">): number | null {
+  const v = j.pay_max ?? j.pay_min;
+  const per = PER_HOUR[j.pay_unit ?? ""];
+  return v === null || v === undefined || !per ? null : Number(v) / per;
+}
 
 /** The feed a posting shows in: the override when someone set one, else the classifier's. */
 export function effectiveTrack(j: Pick<RankableJob, "track" | "track_override">): JobTrack {
@@ -131,6 +150,17 @@ export function rankJobs<J extends RankableJob>(
         reasons.push("Remote");
       }
 
+      const rate = hourlyPay(job);
+      if (prefs.min_hourly_pay && rate !== null && rate >= prefs.min_hourly_pay) {
+        score += 10;
+        reasons.push("Meets your pay");
+      }
+
+      if (prefs.temp_apps?.includes(job.source)) {
+        score += 8;
+        reasons.push("On an app you use");
+      }
+
       if (job.employment_type && prefs.employment_types.includes(job.employment_type)) {
         score += 15;
         reasons.push("Your preferred schedule");
@@ -164,6 +194,10 @@ export type FeedFilters = {
   naics: string;
   postedWithinDays: number | null;
   remoteOnly: boolean;
+  /** Hourly pay floor; roles without an hourly-comparable rate are hidden while set. */
+  minPay: number | null;
+  /** Temp partner apps to show (by job source); empty = all. */
+  tempApps: string[];
 };
 
 export const EMPTY_FILTERS: FeedFilters = {
@@ -174,6 +208,8 @@ export const EMPTY_FILTERS: FeedFilters = {
   naics: "",
   postedWithinDays: null,
   remoteOnly: false,
+  minPay: null,
+  tempApps: [],
 };
 
 export function applyFilters<J extends RankableJob & { company_name?: string | null }>(
@@ -193,6 +229,13 @@ export function applyFilters<J extends RankableJob & { company_name?: string | n
     if (f.naics && !(j.naics_code ?? "").startsWith(f.naics)) return false;
     if (f.postedWithinDays !== null && jobAgeDays(j, now) > f.postedWithinDays) return false;
     if (f.remoteOnly && !j.remote) return false;
+    if (f.minPay !== null) {
+      const rate = hourlyPay(j);
+      if (rate === null || rate < f.minPay) return false;
+    }
+    // App filter narrows the temp side only; it never empties the professional feed.
+    if (f.tempApps.length && f.track !== "professional" && !f.tempApps.includes(j.source))
+      return false;
     return true;
   });
 }

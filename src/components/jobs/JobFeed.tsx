@@ -16,6 +16,7 @@ import {
 } from "@/lib/scout/rank";
 import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
 import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS, JOB_TRACKS } from "@/lib/scout/track";
+import { PARTNER_IDS, PARTNER_NAMES, type PartnerId } from "@/data/temp-listings";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES } from "@/lib/scout/types";
 import {
   Badge,
@@ -72,6 +73,8 @@ async function loadActiveJobs(limit: number): Promise<FeedJob[]> {
     .from("jobs")
     .select(JOB_COLUMNS)
     .eq("status", "active")
+    // Partner-app listings are snapshots; hide them once they lapse.
+    .or(`valid_through.is.null,valid_through.gt.${new Date().toISOString()}`)
     .order("posted_at", { ascending: false, nullsFirst: false })
     .limit(limit);
   if (error) throw error;
@@ -80,10 +83,19 @@ async function loadActiveJobs(limit: number): Promise<FeedJob[]> {
 
 const companyOf = (j: FeedJob) => j.company_name ?? j.organizations?.name ?? "Savant client";
 
+/** The temp partner app a listing is booked through, if any. */
+const partnerOf = (j: Pick<FeedJob, "source">): string | null =>
+  (PARTNER_IDS as readonly string[]).includes(j.source)
+    ? PARTNER_NAMES[j.source as PartnerId]
+    : null;
+
+const PAY_FLOORS = [15, 18, 20, 22, 25, 30, 40, 50];
+
 const PAY_UNIT_SHORT: Record<string, string> = {
   hour: "/hr",
   day: "/day",
   week: "/wk",
+  shift: " flat/shift",
   month: "/mo",
   year: "/yr",
 };
@@ -94,7 +106,7 @@ export function formatPay(j: Pick<FeedJob, "pay_min" | "pay_max" | "pay_unit">):
   const hi = j.pay_max === null ? null : Number(j.pay_max);
   if (lo === null && hi === null) return null;
   const money = (n: number) =>
-    n >= 10_000 ? `${Math.round(n / 1000)}K` : `${Number.isInteger(n) ? n : n.toFixed(2)}`;
+    n >= 10_000 ? `$${Math.round(n / 1000)}K` : `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
   const range =
     lo !== null && hi !== null && lo !== hi ? `${money(lo)}–${money(hi)}` : money((hi ?? lo)!);
   return `${range}${PAY_UNIT_SHORT[j.pay_unit ?? ""] ?? ""}`;
@@ -151,6 +163,8 @@ export function JobFeed({
           ...f,
           postedWithinDays: p.posted_within_days || null,
           track: initialTrack ?? (p.job_track as TrackFilter),
+          minPay: p.min_hourly_pay === null ? null : Number(p.min_hourly_pay),
+          tempApps: p.temp_apps ?? [],
         }));
       }
       setApplied(new Map((apps ?? []).map((a) => [a.job_id, a.status])));
@@ -205,10 +219,13 @@ export function JobFeed({
       .insert({ job_id: job.id, applicant_id: userId, status });
     if (error && error.code !== "23505") return toast.error(error.message);
     setApplied((prev) => new Map(prev).set(job.id, status));
+    const partner = partnerOf(job);
     toast.success(
-      external
-        ? "Opened the company's application. We've added it to your dashboard."
-        : "Application submitted.",
+      partner
+        ? `Opened ${partner}. Sign up or log in there to book the shift; we've added it to your dashboard.`
+        : external
+          ? "Opened the company's application. We've added it to your dashboard."
+          : "Application submitted.",
     );
   }
 
@@ -433,7 +450,36 @@ function Filters({
           />
           Remote only
         </label>
+        <label className="block">
+          <span className={label}>Pay at least</span>
+          <select
+            value={filters.minPay === null ? "" : String(filters.minPay)}
+            onChange={(e) => set("minPay", e.target.value ? Number(e.target.value) : null)}
+            className={`mt-2 block ${selectCls}`}
+          >
+            <option value="">Any pay</option>
+            {[...new Set([...PAY_FLOORS, ...(filters.minPay ? [filters.minPay] : [])])]
+              .sort((a, b) => a - b)
+              .map((n) => (
+                <option key={n} value={n}>
+                  ${n}/hr
+                </option>
+              ))}
+          </select>
+        </label>
       </div>
+      {filters.track !== "professional" && (
+        <div>
+          <span className={label}>Temp app</span>
+          <div className="mt-2">
+            <ChipGroup
+              options={PARTNER_IDS.map((id) => ({ value: id, label: PARTNER_NAMES[id] }))}
+              value={filters.tempApps as PartnerId[]}
+              onChange={(v) => set("tempApps", v)}
+            />
+          </div>
+        </div>
+      )}
       <div>
         <span className={label}>Schedule</span>
         <div className="mt-2">
@@ -520,6 +566,7 @@ function JobRow({
               </Badge>
             ))}
             <Badge>{JOB_TRACK_LABELS[effectiveTrack(job)]}</Badge>
+            {partnerOf(job) && <Badge>via {partnerOf(job)}</Badge>}
           </div>
           <div className="mt-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             {meta.join(" · ")}
@@ -558,7 +605,11 @@ function JobRow({
             </span>
           ) : (
             <button onClick={onApply} className={linkButton}>
-              {external ? "Apply on company site ↗" : "Apply →"}
+              {partnerOf(job)
+                ? `Book on ${partnerOf(job)} ↗`
+                : external
+                  ? "Apply on company site ↗"
+                  : "Apply →"}
             </button>
           )}
         </div>
