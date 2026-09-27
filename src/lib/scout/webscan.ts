@@ -1,4 +1,4 @@
-import { detectAllAts, detectAts, type AtsHit } from "./detect.ts";
+import { detectAllAts, detectAts, detectUnsupportedPlatform, type AtsHit } from "./detect.ts";
 import { scoutFetch, type MetricsRecorder } from "./http.ts";
 
 /**
@@ -12,9 +12,16 @@ import { scoutFetch, type MetricsRecorder } from "./http.ts";
 export async function scanCompanySite(
   rec: MetricsRecorder,
   inputUrl: string,
-): Promise<{ hit: AtsHit | null; all: AtsHit[]; checked: string[] }> {
+): Promise<{
+  hit: AtsHit | null;
+  all: AtsHit[];
+  checked: string[];
+  /** A job-board platform the scout can't read yet (Paycom, Avionte…), if one was seen. */
+  unsupported: string | null;
+}> {
   const direct = detectAts(inputUrl);
-  if (direct) return { hit: direct, all: [direct], checked: [inputUrl] };
+  if (direct) return { hit: direct, all: [direct], checked: [inputUrl], unsupported: null };
+  let unsupported = detectUnsupportedPlatform(inputUrl);
 
   const url = new URL(/^https?:\/\//i.test(inputUrl) ? inputUrl : `https://${inputUrl}`);
   const candidates = [url.toString()];
@@ -45,7 +52,8 @@ export async function scanCompanySite(
       if (h) byKey.set(`${h.ats}:${h.token.toLowerCase()}`, h);
     }
     const all = [...byKey.values()];
-    if (all.length) return { hit: all[0], all, checked };
+    if (all.length) return { hit: all[0], all, checked, unsupported: null };
+    unsupported ??= detectUnsupportedPlatform(`${finalUrl}\n${html}`);
   }
-  return { hit: null, all: [], checked };
+  return { hit: null, all: [], checked, unsupported };
 }

@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge, ChipGroup, list, mutedButton, timeAgo } from "@/components/site/ui";
+import { effectiveTrack } from "@/lib/scout/rank";
+import { JOB_TRACK_LABELS, JOB_TRACKS, type JobTrack } from "@/lib/scout/track";
 
 export const Route = createFileRoute("/admin/jobs")({
   head: () => ({
@@ -22,6 +24,9 @@ type JobRow = {
   apply_url: string | null;
   posted_at: string | null;
   created_at: string;
+  track: string;
+  track_override: string | null;
+  track_reasons: string[];
 };
 
 type Status = "active" | "flagged" | "closed";
@@ -36,10 +41,13 @@ const ORIGIN_OPTIONS: { value: Origin; label: string }[] = [
   { value: "scouted", label: "Scouted" },
 ];
 
+const TRACK_OPTIONS = JOB_TRACKS.map((t) => ({ value: t, label: JOB_TRACK_LABELS[t] }));
+
 function AdminJobs() {
   const [jobs, setJobs] = useState<JobRow[] | null>(null);
   const [status, setStatus] = useState<Status[]>(["active"]);
   const [origin, setOrigin] = useState<Origin[]>([]);
+  const [tracks, setTracks] = useState<JobTrack[]>([]);
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -47,17 +55,32 @@ function AdminJobs() {
     let query = supabase
       .from("jobs")
       .select(
-        "id, title, location, company_name, source, status, ghost_score, apply_url, posted_at, created_at",
+        "id, title, location, company_name, source, status, ghost_score, apply_url, posted_at, created_at, track, track_override, track_reasons",
       )
       .order("posted_at", { ascending: false, nullsFirst: false })
       .limit(300);
     if (status.length) query = query.in("status", status);
     if (origin.length === 1)
       query = origin[0] === "manual" ? query.eq("source", "manual") : query.neq("source", "manual");
+    // Feed filter: the override wins over the classifier's track.
+    if (tracks.length === 1)
+      query = query.or(
+        `track_override.eq.${tracks[0]},and(track_override.is.null,track.eq.${tracks[0]})`,
+      );
     if (q.trim()) query = query.ilike("title", `%${q.trim().replace(/[%_]/g, "")}%`);
     const t = setTimeout(() => query.then(({ data }) => setJobs((data as JobRow[]) ?? [])), 250);
     return () => clearTimeout(t);
-  }, [status, origin, q]);
+  }, [status, origin, tracks, q]);
+
+  /** Move a posting to the other feed; moving it back to the classifier's choice clears the override. */
+  async function moveTrack(j: JobRow) {
+    const next: JobTrack = effectiveTrack(j) === "hourly" ? "professional" : "hourly";
+    const track_override = next === j.track ? null : next;
+    const { error } = await supabase.from("jobs").update({ track_override }).eq("id", j.id);
+    if (error) return toast.error(error.message);
+    setJobs((prev) => prev?.map((x) => (x.id === j.id ? { ...x, track_override } : x)) ?? null);
+    toast.success(`Moved to the ${JOB_TRACK_LABELS[next]} feed.`);
+  }
 
   async function setJobStatus(id: string, next: Status) {
     const patch = next === "active" ? { status: next, ghost_override: true } : { status: next };
@@ -80,6 +103,7 @@ function AdminJobs() {
       <div className="mt-6 flex flex-wrap items-center gap-6">
         <ChipGroup options={STATUS_OPTIONS} value={status} onChange={setStatus} />
         <ChipGroup options={ORIGIN_OPTIONS} value={origin} onChange={setOrigin} />
+        <ChipGroup options={TRACK_OPTIONS} value={tracks} onChange={setTracks} />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -116,6 +140,18 @@ function AdminJobs() {
                     {timeAgo(j.posted_at ?? j.created_at)}
                   </span>
                   <Badge>{j.source}</Badge>
+                  <span
+                    title={
+                      j.track_override
+                        ? "Moved by hand"
+                        : j.track_reasons.join(" · ") || "Classified by the scout"
+                    }
+                  >
+                    <Badge>
+                      {JOB_TRACK_LABELS[effectiveTrack(j)]}
+                      {j.track_override ? " (set by hand)" : ""}
+                    </Badge>
+                  </span>
                   <Badge
                     tone={
                       j.status === "active" ? "good" : j.status === "flagged" ? "warn" : "muted"
@@ -131,6 +167,9 @@ function AdminJobs() {
                 </div>
               </div>
               <div className="flex gap-4">
+                <button onClick={() => moveTrack(j)} className={mutedButton}>
+                  Move to {effectiveTrack(j) === "hourly" ? "Professional" : "Temp & hourly"}
+                </button>
                 {j.status !== "active" && (
                   <button onClick={() => setJobStatus(j.id, "active")} className={mutedButton}>
                     Publish

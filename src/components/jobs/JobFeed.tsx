@@ -7,12 +7,15 @@ import { getAutofillReadiness } from "@/lib/autofill/autofill.functions";
 import { detectJob } from "@/lib/autofill/mapper";
 import {
   applyFilters,
+  effectiveTrack,
   EMPTY_FILTERS,
   rankJobs,
   type FeedFilters,
   type RankablePreferences,
+  type TrackFilter,
 } from "@/lib/scout/rank";
 import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
+import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS, JOB_TRACKS } from "@/lib/scout/track";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES } from "@/lib/scout/types";
 import {
   Badge,
@@ -42,11 +45,16 @@ export type FeedJob = {
   created_at: string;
   ghost_score: number;
   employer_badges: string[];
+  track: string;
+  track_override: string | null;
+  pay_min: number | null;
+  pay_max: number | null;
+  pay_unit: string | null;
   organizations: { name: string } | null;
 };
 
 const JOB_COLUMNS =
-  "id, title, company_name, location, type, employment_type, description, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, organizations (name)";
+  "id, title, company_name, location, type, employment_type, description, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, track, track_override, pay_min, pay_max, pay_unit, organizations (name)";
 
 const DATE_OPTIONS = [
   { value: "", label: "Any time" },
@@ -72,24 +80,56 @@ async function loadActiveJobs(limit: number): Promise<FeedJob[]> {
 
 const companyOf = (j: FeedJob) => j.company_name ?? j.organizations?.name ?? "Savant client";
 
+const PAY_UNIT_SHORT: Record<string, string> = {
+  hour: "/hr",
+  day: "/day",
+  week: "/wk",
+  month: "/mo",
+  year: "/yr",
+};
+
+/** "$18–$22/hr", "$60K–$80K/yr" */
+export function formatPay(j: Pick<FeedJob, "pay_min" | "pay_max" | "pay_unit">): string | null {
+  const lo = j.pay_min === null ? null : Number(j.pay_min);
+  const hi = j.pay_max === null ? null : Number(j.pay_max);
+  if (lo === null && hi === null) return null;
+  const money = (n: number) =>
+    n >= 10_000 ? `${Math.round(n / 1000)}K` : `${Number.isInteger(n) ? n : n.toFixed(2)}`;
+  const range =
+    lo !== null && hi !== null && lo !== hi ? `${money(lo)}–${money(hi)}` : money((hi ?? lo)!);
+  return `${range}${PAY_UNIT_SHORT[j.pay_unit ?? ""] ?? ""}`;
+}
+
 /**
  * The job feed. `talent` mode is the full ranked feed with refine filters,
  * bookmarks and apply; `guest` mode is the public preview on /jobs.
  */
-export function JobFeed({ mode, userId }: { mode: "talent" | "guest"; userId?: string }) {
+export function JobFeed({
+  mode,
+  userId,
+  initialTrack,
+}: {
+  mode: "talent" | "guest";
+  userId?: string;
+  /** Opens on this feed (from ?track=); otherwise the talent's saved choice. */
+  initialTrack?: TrackFilter;
+}) {
   const { auth } = useAuth();
   // Signed-in recruiters/admins browsing the public preview aren't prompted to sign up.
   const signedIn = !!auth;
   const [jobs, setJobs] = useState<FeedJob[] | null>(null);
   const [prefs, setPrefs] = useState<RankablePreferences | null>(null);
-  const [filters, setFilters] = useState<FeedFilters>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<FeedFilters>({
+    ...EMPTY_FILTERS,
+    track: initialTrack ?? "all",
+  });
   const [applied, setApplied] = useState<Map<string, string>>(new Map());
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [shown, setShown] = useState(PAGE);
   const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadActiveJobs(mode === "talent" ? 1000 : 60)
+    loadActiveJobs(mode === "talent" ? 1000 : 200)
       .then(setJobs)
       .catch((e) => {
         console.error(e);
@@ -107,16 +147,25 @@ export function JobFeed({ mode, userId }: { mode: "talent" | "guest"; userId?: s
       ]);
       if (p) {
         setPrefs(p);
-        setFilters((f) => ({ ...f, postedWithinDays: p.posted_within_days || null }));
+        setFilters((f) => ({
+          ...f,
+          postedWithinDays: p.posted_within_days || null,
+          track: initialTrack ?? (p.job_track as TrackFilter),
+        }));
       }
       setApplied(new Map((apps ?? []).map((a) => [a.job_id, a.status])));
       setSaved(new Set((savedRows ?? []).map((r) => r.job_id)));
     })();
+    // initialTrack only seeds the first render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, userId]);
 
   const ranked = useMemo(() => {
     if (!jobs) return null;
-    const filtered = mode === "talent" ? applyFilters(jobs, filters) : jobs;
+    const filtered =
+      mode === "talent"
+        ? applyFilters(jobs, filters)
+        : applyFilters(jobs, { ...EMPTY_FILTERS, track: filters.track });
     return rankJobs(filtered, prefs);
   }, [jobs, filters, prefs, mode]);
 
@@ -167,8 +216,19 @@ export function JobFeed({ mode, userId }: { mode: "talent" | "guest"; userId?: s
 
   const visible = mode === "guest" ? ranked.slice(0, GUEST_PREVIEW) : ranked.slice(0, shown);
 
+  const trackCounts = {
+    all: jobs?.length ?? 0,
+    hourly: jobs?.filter((j) => effectiveTrack(j) === "hourly").length ?? 0,
+    professional: jobs?.filter((j) => effectiveTrack(j) === "professional").length ?? 0,
+  };
+
   return (
     <div>
+      <TrackTabs
+        value={filters.track}
+        counts={trackCounts}
+        onChange={(track) => (setFilters((f) => ({ ...f, track })), setShown(PAGE))}
+      />
       {mode === "talent" && (
         <Filters
           filters={filters}
@@ -233,6 +293,58 @@ export function JobFeed({ mode, userId }: { mode: "talent" | "guest"; userId?: s
           </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+/** The two feeds: temp & hourly (low barrier to entry) and professional. */
+function TrackTabs({
+  value,
+  counts,
+  onChange,
+}: {
+  value: TrackFilter;
+  counts: Record<TrackFilter, number>;
+  onChange: (t: TrackFilter) => void;
+}) {
+  const tabs: { value: TrackFilter; label: string; blurb: string }[] = [
+    { value: "all", label: "All roles", blurb: "Every open role, both feeds together." },
+    ...JOB_TRACKS.map((t) => ({
+      value: t,
+      label: JOB_TRACK_LABELS[t],
+      blurb: JOB_TRACK_BLURBS[t],
+    })),
+  ];
+  return (
+    <div className="mb-8">
+      <div
+        role="tablist"
+        aria-label="Job feed"
+        className="grid grid-cols-3 border border-[color:var(--color-hairline)]"
+      >
+        {tabs.map((t) => {
+          const on = value === t.value;
+          return (
+            <button
+              key={t.value}
+              role="tab"
+              aria-selected={on}
+              onClick={() => onChange(t.value)}
+              className={`px-3 py-4 text-left transition-colors sm:px-5 ${
+                on
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+              }`}
+            >
+              <div className="text-[11px] font-medium uppercase tracking-[0.18em]">{t.label}</div>
+              <div className={`mt-1 text-xs ${on ? "opacity-80" : ""}`}>{counts[t.value]} open</div>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        {tabs.find((t) => t.value === value)?.blurb}
+      </p>
     </div>
   );
 }
@@ -350,7 +462,10 @@ function Filters({
             </>
           )}
         </span>
-        <button onClick={() => onChange({ ...EMPTY_FILTERS })} className={mutedButton}>
+        <button
+          onClick={() => onChange({ ...EMPTY_FILTERS, track: filters.track })}
+          className={mutedButton}
+        >
           Clear filters
         </button>
       </div>
@@ -384,6 +499,7 @@ function JobRow({
     job.location ?? (job.remote ? null : "Location not listed"),
     job.remote ? "Remote" : null,
     job.type,
+    formatPay(job),
     `Posted ${timeAgo(job.posted_at ?? job.created_at)}`,
   ].filter(Boolean);
 
@@ -403,6 +519,7 @@ function JobRow({
                 {b}
               </Badge>
             ))}
+            <Badge>{JOB_TRACK_LABELS[effectiveTrack(job)]}</Badge>
           </div>
           <div className="mt-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             {meta.join(" · ")}

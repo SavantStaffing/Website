@@ -13,6 +13,7 @@ import {
   type RatingsConfig,
   type RatingSource,
 } from "./ratings";
+import type { CompanyType } from "./track";
 import type { AtsPlatform, BoardSource, ScoutCompany } from "./types";
 
 /**
@@ -40,6 +41,7 @@ function createSupabaseScoutStore(): ScoutStore {
         ...c,
         ats: c.ats as AtsPlatform | null,
         rating_override: c.rating_override as "pass" | "fail" | null,
+        company_type: c.company_type as CompanyType,
       })) satisfies ScoutCompany[];
     },
 
@@ -106,6 +108,45 @@ function createSupabaseScoutStore(): ScoutStore {
       const { data, error } = await q.select("id");
       if (error) throw new Error(error.message);
       return data?.length ?? 0;
+    },
+
+    async registerUniqueScanner(site) {
+      const now = new Date().toISOString();
+      const { data: existing } = await supabaseAdmin
+        .from("unique_scanner_sites")
+        .select("id, status")
+        .eq("scout_company_id", site.scout_company_id)
+        .maybeSingle();
+      if (existing) {
+        // Keep the admin's triage (in progress / won't build); a "supported"
+        // site that stopped working goes back in the queue.
+        const { error } = await supabaseAdmin
+          .from("unique_scanner_sites")
+          .update({
+            name: site.name,
+            site_url: site.site_url,
+            reason: site.reason,
+            last_checked_at: now,
+            ...(site.platform ? { platform: site.platform } : {}),
+            ...(existing.status === "supported" ? { status: "needs_scanner" } : {}),
+          })
+          .eq("id", existing.id);
+        if (error) throw new Error(error.message);
+        return;
+      }
+      const { error } = await supabaseAdmin
+        .from("unique_scanner_sites")
+        .insert({ ...site, last_checked_at: now });
+      if (error) throw new Error(error.message);
+    },
+
+    async resolveUniqueScanner(companyId) {
+      const { error } = await supabaseAdmin
+        .from("unique_scanner_sites")
+        .update({ status: "supported", last_checked_at: new Date().toISOString() })
+        .eq("scout_company_id", companyId)
+        .in("status", ["needs_scanner", "in_progress"]);
+      if (error) throw new Error(error.message);
     },
   };
 }

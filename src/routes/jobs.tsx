@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { JobFeed } from "@/components/jobs/JobFeed";
+import { parseTrackSearch } from "@/lib/scout/track";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 export const Route = createFileRoute("/jobs")({
+  validateSearch: parseTrackSearch,
   head: () => ({
     meta: [
       { title: "Jobs — Savant Staffing" },

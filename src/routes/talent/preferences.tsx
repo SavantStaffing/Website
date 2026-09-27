@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ChipGroup, TagInput, Toggle, label, primaryButton, selectCls } from "@/components/site/ui";
 import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
+import type { TrackFilter } from "@/lib/scout/rank";
+import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS } from "@/lib/scout/track";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES, type EmploymentType } from "@/lib/scout/types";
 
 export const Route = createFileRoute("/talent/preferences")({
@@ -12,6 +14,16 @@ export const Route = createFileRoute("/talent/preferences")({
   }),
   component: Preferences,
 });
+
+const FEEDS: { value: TrackFilter; label: string; blurb: string }[] = [
+  { value: "all", label: "Both feeds", blurb: "See every role together." },
+  { value: "hourly", label: JOB_TRACK_LABELS.hourly, blurb: JOB_TRACK_BLURBS.hourly },
+  {
+    value: "professional",
+    label: JOB_TRACK_LABELS.professional,
+    blurb: JOB_TRACK_BLURBS.professional,
+  },
+];
 
 const WINDOWS = [
   { value: 1, label: "Past 24 hours" },
@@ -34,6 +46,7 @@ function Preferences() {
   const [types, setTypes] = useState<EmploymentType[]>([]);
   const [remoteOk, setRemoteOk] = useState(true);
   const [within, setWithin] = useState(30);
+  const [feed, setFeed] = useState<TrackFilter>("all");
 
   useEffect(() => {
     supabase
@@ -50,6 +63,7 @@ function Preferences() {
           setTypes(data.employment_types as EmploymentType[]);
           setRemoteOk(data.remote_ok);
           setWithin(data.posted_within_days);
+          setFeed(data.job_track as TrackFilter);
         }
         setLoading(false);
       });
@@ -67,6 +81,7 @@ function Preferences() {
       employment_types: types,
       remote_ok: remoteOk,
       posted_within_days: within,
+      job_track: feed,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -88,6 +103,35 @@ function Preferences() {
       </p>
 
       <form onSubmit={save} className="mt-10 max-w-2xl space-y-8">
+        <fieldset>
+          <legend className={label}>Which roles are you looking for?</legend>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {FEEDS.map((f) => (
+              <label
+                key={f.value}
+                className={`cursor-pointer border p-4 text-sm transition-colors ${
+                  feed === f.value
+                    ? "border-foreground"
+                    : "border-[color:var(--color-hairline)] text-muted-foreground"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="feed"
+                  value={f.value}
+                  checked={feed === f.value}
+                  onChange={() => setFeed(f.value)}
+                  className="sr-only"
+                />
+                <span className="block font-medium text-foreground">{f.label}</span>
+                <span className="mt-1 block text-xs">{f.blurb}</span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Your feed opens on this one. You can switch feeds any time from the tabs at the top.
+          </p>
+        </fieldset>
         <TagInput
           label="Positions"
           value={positions}

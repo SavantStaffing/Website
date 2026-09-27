@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { JobFeed } from "@/components/jobs/JobFeed";
+import { parseTrackSearch } from "@/lib/scout/track";
 
 export const Route = createFileRoute("/talent/jobs")({
+  validateSearch: parseTrackSearch,
   head: () => ({
     meta: [{ title: "Job Feed" }, { name: "robots", content: "noindex" }],
   }),

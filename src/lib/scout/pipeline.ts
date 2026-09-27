@@ -18,6 +18,7 @@ import {
   type RatingsConfig,
 } from "./ratings.ts";
 import { ATS_ADAPTERS, jobspy } from "./sources.ts";
+import { classifyTrack } from "./track.ts";
 import type { BoardSource, NormalizedJob, RawJob, ScoutCompany, SourceMetrics } from "./types.ts";
 import { audit, AUDIT_PASS_THRESHOLD, fillRates } from "./validate.ts";
 import { scanCompanySite } from "./webscan.ts";
@@ -31,9 +32,14 @@ import { scanCompanySite } from "./webscan.ts";
  *     → Call endpoint → Map into site schema               (sources.ts)
  *     → Data-quality check (schema validation)             (validate.ts)
  *     → Refine parameters: position, industry/NAICS, date, location, type (refine.ts)
+ *     → Feed track: temp & hourly vs professional          (track.ts)
  *     → Ghost Job Detector v2                              (ghost.ts)
  *     → Normalization + upsert, close postings that disappeared
  *     → per-source diagnostics
+ *
+ * A careers site nothing can read (no ATS we support, no JobPosting markup,
+ * no job sitemap) is recorded in the unique-scanner registry, with the
+ * platform it uses when we recognize it, so it can get a custom scanner.
  *
  * Storage is behind `ScoutStore` so the same pipeline runs against Supabase
  * in the app and against an in-memory store in scripts/scout-smoke.ts.
@@ -70,6 +76,15 @@ export type CompanyPatch = Partial<
   }
 >;
 
+/** A careers site the scout can't read — a row in unique_scanner_sites. */
+export type UniqueScannerSite = {
+  scout_company_id: string;
+  name: string;
+  site_url: string;
+  platform: string | null;
+  reason: string;
+};
+
 export interface ScoutStore {
   listCompanies(ids?: string[]): Promise<ScoutCompany[]>;
   updateCompany(id: string, patch: CompanyPatch): Promise<void>;
@@ -84,6 +99,10 @@ export interface ScoutStore {
     filter: { scout_company_id?: string; sources?: string[] },
     seenSince: string,
   ): Promise<number>;
+  /** Add (or refresh) a site in the unique-scanner registry. */
+  registerUniqueScanner(site: UniqueScannerSite): Promise<void>;
+  /** A registered company's jobs can be read now: mark its registry row supported. */
+  resolveUniqueScanner(companyId: string): Promise<void>;
 }
 
 export type CompanyOutcome = {
@@ -195,9 +214,9 @@ export async function runScout(
       let foundByScan = false;
       if (!ats || !ats_token) {
         const direct = company.careers_url ? detectAts(company.careers_url) : null;
-        const hit =
-          direct ??
-          (company.careers_url ? (await scanCompanySite(rec, company.careers_url)).hit : null);
+        const scan =
+          !direct && company.careers_url ? await scanCompanySite(rec, company.careers_url) : null;
+        const hit = direct ?? scan?.hit ?? null;
         // No known ATS: fall back to reading the careers site's own JobPosting
         // markup. Only remembered if it actually finds jobs.
         const fallback =
@@ -205,13 +224,26 @@ export async function runScout(
             ? await ATS_ADAPTERS.jsonld(rec, company.careers_url, company.name)
             : [];
         if (!hit && fallback.length === 0) {
-          if (!opts.dryRun)
+          const platform = scan?.unsupported ?? null;
+          const reason = platform
+            ? `Uses ${platform}, which the scout has no scanner for (its job list is loaded in the browser, not published as a feed)`
+            : "No supported ATS, JobPosting markup or job sitemap found on the careers site";
+          if (!opts.dryRun) {
             await store.updateCompany(company.id, {
               last_status: "no_ats",
-              last_error: "No supported ATS or job markup found on the careers page",
+              last_error: reason,
               last_scanned_at: runStartedAt,
             });
-          return { ...base, status: "no_ats" };
+            if (company.careers_url)
+              await store.registerUniqueScanner({
+                scout_company_id: company.id,
+                name: company.name,
+                site_url: company.careers_url,
+                platform,
+                reason,
+              });
+          }
+          return { ...base, status: "no_ats", error: reason };
         }
         ats = hit ? hit.ats : "jsonld";
         ats_token = hit ? hit.token : company.careers_url!;
@@ -249,6 +281,7 @@ export async function runScout(
       });
 
       if (!opts.dryRun) {
+        if (raw.length) await store.resolveUniqueScanner(company.id);
         await store.updateCompany(company.id, {
           last_status: result.passed ? "ok" : "failed_audit",
           last_error: result.passed
@@ -430,6 +463,15 @@ async function ingest(
       ? { code: ctx.company.naics_code, label: ctx.company.industry ?? null }
       : naicsFromIndustry(j.industry_raw ?? ctx.company?.industry);
     const employment_type = normalizeEmploymentType(j.employment_type_raw, j.title);
+    const seniority = employment_type === "internship" ? "intern" : inferSeniority(title);
+    const track = classifyTrack({
+      title,
+      description: j.description,
+      employment_type,
+      seniority,
+      pay: j.pay,
+      companyType: ctx.company?.company_type,
+    });
     return {
       raw: j,
       row: {
@@ -446,10 +488,15 @@ async function ingest(
         naics_code: naics?.code ?? null,
         employment_type,
         type: employmentTypeLabel(employment_type),
-        seniority: employment_type === "internship" ? "intern" : inferSeniority(title),
+        seniority,
         remote: isRemote(j.location, j.remote_hint),
         posted_at: j.posted_at,
         employer_badges: ctx.badgesFor(j.company_name),
+        track: track.track,
+        track_reasons: track.reasons,
+        pay_min: j.pay?.min ?? null,
+        pay_max: j.pay?.max ?? null,
+        pay_unit: j.pay?.unit ?? null,
         fingerprint: fingerprint(j.company_name, title, j.location),
         ghost_score: 0,
         ghost_reasons: [] as string[],

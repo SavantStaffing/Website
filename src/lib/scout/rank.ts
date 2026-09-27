@@ -1,3 +1,5 @@
+import type { JobTrack } from "./track.ts";
+
 /**
  * "User Feed Ranking" — orders jobs for one talent from their saved
  * preferences (position, industry / NAICS, location, employment type,
@@ -32,7 +34,17 @@ export type RankableJob = {
   ghost_score: number;
   /** Ratings the employer passed (JUST Capital / As You Sow), set by the scout. */
   employer_badges?: string[];
+  /** Feed track from the scout's classifier, and a manual override of it. */
+  track?: string | null;
+  track_override?: string | null;
 };
+
+/** The feed a posting shows in: the override when someone set one, else the classifier's. */
+export function effectiveTrack(j: Pick<RankableJob, "track" | "track_override">): JobTrack {
+  return (j.track_override ?? j.track) === "hourly" ? "hourly" : "professional";
+}
+
+export type TrackFilter = JobTrack | "all";
 
 export type RankedJob<J extends RankableJob> = J & { match: number; matchReasons: string[] };
 
@@ -144,6 +156,8 @@ export function rankJobs<J extends RankableJob>(
 
 /** The hard filters behind "Refine parameters" on the feed. */
 export type FeedFilters = {
+  /** Temp & hourly feed, professional feed, or both. */
+  track: TrackFilter;
   q: string;
   location: string;
   employmentTypes: string[];
@@ -153,6 +167,7 @@ export type FeedFilters = {
 };
 
 export const EMPTY_FILTERS: FeedFilters = {
+  track: "all",
   q: "",
   location: "",
   employmentTypes: [],
@@ -169,6 +184,7 @@ export function applyFilters<J extends RankableJob & { company_name?: string | n
   const q = f.q.trim().toLowerCase();
   const loc = f.location.trim().toLowerCase();
   return jobs.filter((j) => {
+    if (f.track !== "all" && effectiveTrack(j) !== f.track) return false;
     if (q && !`${j.title} ${j.company_name ?? ""}`.toLowerCase().includes(q)) return false;
     if (loc && !(j.location ?? "").toLowerCase().includes(loc) && !(loc === "remote" && j.remote))
       return false;
