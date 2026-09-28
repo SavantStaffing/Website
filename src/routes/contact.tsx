@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Field, TextArea, label, primaryButton, selectCls } from "@/components/site/ui";
+import {
+  CONTACT_TOPICS as TOPICS,
+  contactSchema as schema,
+  notifyContactMessage,
+} from "@/lib/contact.functions";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -16,16 +20,6 @@ export const Route = createFileRoute("/contact")({
     ],
   }),
   component: Contact,
-});
-
-const TOPICS = ["Hiring talent", "Looking for work", "Career programs", "Something else"] as const;
-
-const schema = z.object({
-  name: z.string().trim().min(1, "Tell us your name").max(120),
-  email: z.string().trim().email("Enter a valid email").max(254),
-  company: z.string().trim().max(160),
-  topic: z.enum(TOPICS),
-  message: z.string().trim().min(1, "Add a message").max(4000),
 });
 
 function Contact() {
@@ -51,6 +45,8 @@ function Contact() {
     setSending(false);
     if (error) return toast.error("We couldn't send that. Email info@savantalent.com instead.");
     setSent(true);
+    // The message is already saved; the email alert is best-effort.
+    notifyContactMessage({ data: parsed.data }).catch(() => {});
   }
 
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));

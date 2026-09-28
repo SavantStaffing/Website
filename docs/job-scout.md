@@ -148,6 +148,9 @@ in-memory store — no database needed. Pass a careers URL to try one company:
 |---|---|
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | everything (set by Lovable Cloud) |
 | `SCOUT_CRON_SECRET` | scheduled scans via `/api/scout/run` |
+| `RESEND_API_KEY` | email alert to the team for each contact-page message |
+| `CONTACT_NOTIFY_TO` | optional; who gets contact alerts (default info@savantalent.com) |
+| `RESEND_FROM` | optional; sender, e.g. `Savant Staffing <noreply@savantalent.com>` once the domain is verified in Resend |
 | `ANTHROPIC_API_KEY` (optional `DRAFT_MODEL`, default `claude-sonnet-5`) | autofill drafting answers to open-ended questions from the resume |
 | `JOBSPY_URL`, `JOBSPY_TOKEN` | job-board scraping — read `services/jobspy/README.md` first |
 | `VITE_SAVANT_APPLY_EXTENSION_ID` | lets the site hand the talent's session to the extension |
