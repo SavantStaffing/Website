@@ -1,3 +1,4 @@
+// Generated from src/lib/scout/sources.ts by scripts/build-scout-function.mjs. Do not edit.
 import { scoutJson, type MetricsRecorder } from "./http.ts";
 import { icims, jsonld } from "./jobposting.ts";
 import { avionte, partners, smpl } from "./staffing-boards.ts";

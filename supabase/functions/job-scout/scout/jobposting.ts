@@ -1,3 +1,4 @@
+// Generated from src/lib/scout/jobposting.ts by scripts/build-scout-function.mjs. Do not edit.
 import { mapLimit, scoutFetch, type MetricsRecorder } from "./http.ts";
 import { decodeEntities, htmlToText, iso } from "./text.ts";
 import type { PayRange } from "./track.ts";

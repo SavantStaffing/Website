@@ -1,3 +1,4 @@
+// Generated from src/lib/scout/detect.ts by scripts/build-scout-function.mjs. Do not edit.
 import type { AtsPlatform } from "./types.ts";
 
 /**

@@ -1,3 +1,4 @@
+// Generated from src/lib/scout/types.ts by scripts/build-scout-function.mjs. Do not edit.
 import type { CompanyType, JobTrack, PayRange } from "./track.ts";
 
 /**

@@ -118,21 +118,29 @@ in-memory store — no database needed. Pass a careers URL to try one company:
    one person to *Owner*. They manage their own team from then on.
 3. **Add companies** on `/admin/scout` (paste a careers page; "Identify ATS"
    finds the board) and press *Scan all*.
-4. **Schedule it.** Set `SCOUT_CRON_SECRET` on the server, then in the
-   Supabase SQL editor (enable the `pg_cron` and `pg_net` extensions first):
+4. **Scheduled scans run in Supabase** (already set up on Savant Talent):
+   pg_cron calls the `job-scout` Edge Function every 15 minutes
+   (migration `20260927000006_schedule_job_scout.sql`). Each call scans the
+   enabled company scanned longest ago, so companies are refreshed in turn —
+   with 11 companies, about every 3 hours. One company per call keeps each
+   run inside the Edge Function limits (2s CPU); careers-site crawls are
+   capped at 35 job pages there. Runs show up on `/admin/diagnostics` as
+   "scheduled".
 
-   ```sql
-   select cron.schedule('savant-job-scout', '0 */6 * * *', $$
-     select net.http_post(
-       url     := 'https://savantstaffing.com/api/scout/run',
-       headers := jsonb_build_object('Authorization', 'Bearer <SCOUT_CRON_SECRET>'),
-       timeout_milliseconds := 300000
-     );
-   $$);
+   The function runs the same `src/lib/scout` code as the app. After changing
+   it, rebuild the copy and redeploy:
+
+   ```bash
+   node scripts/build-scout-function.mjs
+   supabase functions deploy job-scout --no-verify-jwt
    ```
 
-   A big config table can outlast a single serverless request; if runs start
-   timing out, split companies across several schedules.
+   Auth is a random token in `scout_settings.cron_token` that only the
+   database and the function see. Pause the schedule with
+   `select cron.unschedule('savant-job-scout');`.
+
+   (`/api/scout/run` with `SCOUT_CRON_SECRET` remains as an alternative that
+   runs scans on the website's own server.)
 
 ## Server environment variables
 

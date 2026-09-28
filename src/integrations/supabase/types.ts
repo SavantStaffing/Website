@@ -136,6 +136,10 @@ export type Database = {
           pay_max: number | null;
           pay_unit: string | null;
           valid_through: string | null;
+          fair_pay_score: number | null;
+          cultures_score: number | null;
+          honest_score: number | null;
+          ethics_summary: Json | null;
         };
         Insert: {
           apply_url?: string | null;
@@ -174,6 +178,10 @@ export type Database = {
           pay_max?: number | null;
           pay_unit?: string | null;
           valid_through?: string | null;
+          fair_pay_score?: number | null;
+          cultures_score?: number | null;
+          honest_score?: number | null;
+          ethics_summary?: Json | null;
         };
         Update: {
           apply_url?: string | null;
@@ -212,6 +220,10 @@ export type Database = {
           pay_max?: number | null;
           pay_unit?: string | null;
           valid_through?: string | null;
+          fair_pay_score?: number | null;
+          cultures_score?: number | null;
+          honest_score?: number | null;
+          ethics_summary?: Json | null;
         };
         Relationships: [];
       };
@@ -338,6 +350,10 @@ export type Database = {
           ratings_enabled: boolean;
           ratings_mode: string;
           updated_at: string;
+          ethics_enabled: boolean;
+          ethics_min_fair_pay: number | null;
+          ethics_min_cultures: number | null;
+          ethics_min_honest: number | null;
         };
         Insert: {
           as_you_sow_min_score?: number;
@@ -350,6 +366,10 @@ export type Database = {
           ratings_enabled?: boolean;
           ratings_mode?: string;
           updated_at?: string;
+          ethics_enabled?: boolean;
+          ethics_min_fair_pay?: number | null;
+          ethics_min_cultures?: number | null;
+          ethics_min_honest?: number | null;
         };
         Update: {
           as_you_sow_min_score?: number;
@@ -362,6 +382,10 @@ export type Database = {
           ratings_enabled?: boolean;
           ratings_mode?: string;
           updated_at?: string;
+          ethics_enabled?: boolean;
+          ethics_min_fair_pay?: number | null;
+          ethics_min_cultures?: number | null;
+          ethics_min_honest?: number | null;
         };
         Relationships: [];
       };
@@ -884,6 +908,87 @@ export type Database = {
           redeemed_by?: string[];
           revoked?: boolean;
           uses?: number;
+        };
+        Relationships: [];
+      };
+      employer_ethics: {
+        Row: {
+          company_key: string;
+          company_name: string;
+          wikirate_company: string | null;
+          wba_year: number | null;
+          fair_pay_score: number | null;
+          cultures_score: number | null;
+          honest_score: number | null;
+          dol_checked: boolean;
+          dol_wage_cases: number;
+          dol_back_wages: number;
+          dol_employees_owed: number;
+          dol_repeat_violator: boolean;
+          osha_inspections: number;
+          osha_serious_violations: number;
+          osha_penalties: number;
+          sources: string[];
+          fetched_at: string;
+        };
+        Insert: {
+          company_key: string;
+          company_name: string;
+          wikirate_company?: string | null;
+          wba_year?: number | null;
+          fair_pay_score?: number | null;
+          cultures_score?: number | null;
+          honest_score?: number | null;
+          dol_checked?: boolean;
+          dol_wage_cases?: number;
+          dol_back_wages?: number;
+          dol_employees_owed?: number;
+          dol_repeat_violator?: boolean;
+          osha_inspections?: number;
+          osha_serious_violations?: number;
+          osha_penalties?: number;
+          sources?: string[];
+          fetched_at?: string;
+        };
+        Update: {
+          company_key?: string;
+          company_name?: string;
+          wikirate_company?: string | null;
+          wba_year?: number | null;
+          fair_pay_score?: number | null;
+          cultures_score?: number | null;
+          honest_score?: number | null;
+          dol_checked?: boolean;
+          dol_wage_cases?: number;
+          dol_back_wages?: number;
+          dol_employees_owed?: number;
+          dol_repeat_violator?: boolean;
+          osha_inspections?: number;
+          osha_serious_violations?: number;
+          osha_penalties?: number;
+          sources?: string[];
+          fetched_at?: string;
+        };
+        Relationships: [];
+      };
+      scout_secrets: {
+        Row: {
+          id: number;
+          dol_api_key: string | null;
+          wikirate_api_key: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          dol_api_key?: string | null;
+          wikirate_api_key?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          dol_api_key?: string | null;
+          wikirate_api_key?: string | null;
+          updated_at?: string;
         };
         Relationships: [];
       };

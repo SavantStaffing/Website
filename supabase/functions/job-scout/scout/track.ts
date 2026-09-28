@@ -1,3 +1,4 @@
+// Generated from src/lib/scout/track.ts by scripts/build-scout-function.mjs. Do not edit.
 import type { EmploymentType, Seniority } from "./types.ts";
 
 /**

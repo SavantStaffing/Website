@@ -91,6 +91,7 @@ const STATUS_TONE: Record<string, "good" | "warn" | "bad" | "muted"> = {
   no_ats: "warn",
   failed_audit: "warn",
   failed_rating: "warn",
+  failed_ethics: "warn",
   http_error: "bad",
   error: "bad",
   succeeded: "good",
@@ -108,6 +109,9 @@ const ATS_LABEL: Record<string, string> = {
   workday: "Workday",
   icims: "iCIMS",
   jsonld: "Careers site (job markup)",
+  avionte: "Avionte",
+  smpl: "Smpl job board",
+  partners: "Partners Personnel board",
 };
 
 function JobScout() {

@@ -1,3 +1,4 @@
+// Generated from src/lib/scout/pipeline.ts by scripts/build-scout-function.mjs. Do not edit.
 import { detectAts } from "./detect.ts";
 import {
   ethicsIsFresh,
