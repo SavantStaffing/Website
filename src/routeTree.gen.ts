@@ -30,19 +30,23 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminCoachInvitesRouteImport } from './routes/admin/coach-invites'
 import { Route as AdminDiagnosticsRouteImport } from './routes/admin/diagnostics'
+import { Route as AdminInboxRouteImport } from './routes/admin/inbox'
 import { Route as AdminJobsRouteImport } from './routes/admin/jobs'
 import { Route as AdminMessagesRouteImport } from './routes/admin/messages'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
 import { Route as AdminRatingsRouteImport } from './routes/admin/ratings'
 import { Route as AdminRecruitersRouteImport } from './routes/admin/recruiters'
 import { Route as AdminScannersRouteImport } from './routes/admin/scanners'
+import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
 import { Route as AdminScoutRouteImport } from './routes/admin/scout'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminTalentRouteImport } from './routes/admin/talent'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as CoachIndexRouteImport } from './routes/coach/index'
+import { Route as CoachInboxRouteImport } from './routes/coach/inbox'
 import { Route as CoachRecruitersRouteImport } from './routes/coach/recruiters'
+import { Route as CoachScheduleRouteImport } from './routes/coach/schedule'
 import { Route as CoachSettingsRouteImport } from './routes/coach/settings'
 import { Route as CoachTalentRouteImport } from './routes/coach/talent'
 import { Route as JoinCoachRouteImport } from './routes/join.coach'
@@ -51,11 +55,14 @@ import { Route as RecruiterAccountRouteImport } from './routes/recruiter/account
 import { Route as RecruiterApplicationsRouteImport } from './routes/recruiter/applications'
 import { Route as RecruiterCandidatesRouteImport } from './routes/recruiter/candidates'
 import { Route as RecruiterCompanyRouteImport } from './routes/recruiter/company'
+import { Route as RecruiterInboxRouteImport } from './routes/recruiter/inbox'
 import { Route as RecruiterJobsRouteImport } from './routes/recruiter/jobs'
 import { Route as RecruiterSavedRouteImport } from './routes/recruiter/saved'
+import { Route as RecruiterScheduleRouteImport } from './routes/recruiter/schedule'
 import { Route as RecruiterTalentRouteImport } from './routes/recruiter/talent'
 import { Route as TalentIndexRouteImport } from './routes/talent/index'
 import { Route as TalentApplicationsRouteImport } from './routes/talent/applications'
+import { Route as TalentInboxRouteImport } from './routes/talent/inbox'
 import { Route as TalentJobsRouteImport } from './routes/talent/jobs'
 import { Route as TalentPreferencesRouteImport } from './routes/talent/preferences'
 import { Route as TalentProfileRouteImport } from './routes/talent/profile'
@@ -171,6 +178,11 @@ const AdminDiagnosticsRoute = AdminDiagnosticsRouteImport.update({
   path: '/diagnostics',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminInboxRoute = AdminInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminJobsRoute = AdminJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -199,6 +211,11 @@ const AdminRecruitersRoute = AdminRecruitersRouteImport.update({
 const AdminScannersRoute = AdminScannersRouteImport.update({
   id: '/scanners',
   path: '/scanners',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminScheduleRoute = AdminScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminScoutRoute = AdminScoutRouteImport.update({
@@ -231,9 +248,19 @@ const CoachIndexRoute = CoachIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CoachRouteRoute,
 } as any)
+const CoachInboxRoute = CoachInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
 const CoachRecruitersRoute = CoachRecruitersRouteImport.update({
   id: '/recruiters',
   path: '/recruiters',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
+const CoachScheduleRoute = CoachScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => CoachRouteRoute,
 } as any)
 const CoachSettingsRoute = CoachSettingsRouteImport.update({
@@ -276,6 +303,11 @@ const RecruiterCompanyRoute = RecruiterCompanyRouteImport.update({
   path: '/company',
   getParentRoute: () => RecruiterRouteRoute,
 } as any)
+const RecruiterInboxRoute = RecruiterInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
 const RecruiterJobsRoute = RecruiterJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -284,6 +316,11 @@ const RecruiterJobsRoute = RecruiterJobsRouteImport.update({
 const RecruiterSavedRoute = RecruiterSavedRouteImport.update({
   id: '/saved',
   path: '/saved',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
+const RecruiterScheduleRoute = RecruiterScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => RecruiterRouteRoute,
 } as any)
 const RecruiterTalentRoute = RecruiterTalentRouteImport.update({
@@ -299,6 +336,11 @@ const TalentIndexRoute = TalentIndexRouteImport.update({
 const TalentApplicationsRoute = TalentApplicationsRouteImport.update({
   id: '/applications',
   path: '/applications',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
+const TalentInboxRoute = TalentInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => TalentRouteRoute,
 } as any)
 const TalentJobsRoute = TalentJobsRouteImport.update({
@@ -369,18 +411,22 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
+  '/admin/inbox': typeof AdminInboxRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
   '/admin/scanners': typeof AdminScannersRoute
+  '/admin/schedule': typeof AdminScheduleRoute
   '/admin/scout': typeof AdminScoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
+  '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
   '/join/coach': typeof JoinCoachRoute
@@ -388,10 +434,13 @@ export interface FileRoutesByFullPath {
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
+  '/recruiter/inbox': typeof RecruiterInboxRoute
   '/recruiter/jobs': typeof RecruiterJobsRoute
   '/recruiter/saved': typeof RecruiterSavedRoute
+  '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
   '/talent/applications': typeof TalentApplicationsRoute
+  '/talent/inbox': typeof TalentInboxRoute
   '/talent/jobs': typeof TalentJobsRoute
   '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
@@ -423,18 +472,22 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
+  '/admin/inbox': typeof AdminInboxRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
   '/admin/scanners': typeof AdminScannersRoute
+  '/admin/schedule': typeof AdminScheduleRoute
   '/admin/scout': typeof AdminScoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
+  '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
   '/join/coach': typeof JoinCoachRoute
@@ -442,10 +495,13 @@ export interface FileRoutesByTo {
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
+  '/recruiter/inbox': typeof RecruiterInboxRoute
   '/recruiter/jobs': typeof RecruiterJobsRoute
   '/recruiter/saved': typeof RecruiterSavedRoute
+  '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
   '/talent/applications': typeof TalentApplicationsRoute
+  '/talent/inbox': typeof TalentInboxRoute
   '/talent/jobs': typeof TalentJobsRoute
   '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
@@ -482,18 +538,22 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
+  '/admin/inbox': typeof AdminInboxRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
   '/admin/scanners': typeof AdminScannersRoute
+  '/admin/schedule': typeof AdminScheduleRoute
   '/admin/scout': typeof AdminScoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
+  '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
   '/join/coach': typeof JoinCoachRoute
@@ -501,10 +561,13 @@ export interface FileRoutesById {
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
+  '/recruiter/inbox': typeof RecruiterInboxRoute
   '/recruiter/jobs': typeof RecruiterJobsRoute
   '/recruiter/saved': typeof RecruiterSavedRoute
+  '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
   '/talent/applications': typeof TalentApplicationsRoute
+  '/talent/inbox': typeof TalentInboxRoute
   '/talent/jobs': typeof TalentJobsRoute
   '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
@@ -542,18 +605,22 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
+    | '/admin/inbox'
     | '/admin/jobs'
     | '/admin/messages'
     | '/admin/organizations'
     | '/admin/ratings'
     | '/admin/recruiters'
     | '/admin/scanners'
+    | '/admin/schedule'
     | '/admin/scout'
     | '/admin/settings'
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/coach/inbox'
     | '/coach/recruiters'
+    | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
     | '/join/coach'
@@ -561,10 +628,13 @@ export interface FileRouteTypes {
     | '/recruiter/applications'
     | '/recruiter/candidates'
     | '/recruiter/company'
+    | '/recruiter/inbox'
     | '/recruiter/jobs'
     | '/recruiter/saved'
+    | '/recruiter/schedule'
     | '/recruiter/talent'
     | '/talent/applications'
+    | '/talent/inbox'
     | '/talent/jobs'
     | '/talent/preferences'
     | '/talent/profile'
@@ -596,18 +666,22 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
+    | '/admin/inbox'
     | '/admin/jobs'
     | '/admin/messages'
     | '/admin/organizations'
     | '/admin/ratings'
     | '/admin/recruiters'
     | '/admin/scanners'
+    | '/admin/schedule'
     | '/admin/scout'
     | '/admin/settings'
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/coach/inbox'
     | '/coach/recruiters'
+    | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
     | '/join/coach'
@@ -615,10 +689,13 @@ export interface FileRouteTypes {
     | '/recruiter/applications'
     | '/recruiter/candidates'
     | '/recruiter/company'
+    | '/recruiter/inbox'
     | '/recruiter/jobs'
     | '/recruiter/saved'
+    | '/recruiter/schedule'
     | '/recruiter/talent'
     | '/talent/applications'
+    | '/talent/inbox'
     | '/talent/jobs'
     | '/talent/preferences'
     | '/talent/profile'
@@ -654,18 +731,22 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
+    | '/admin/inbox'
     | '/admin/jobs'
     | '/admin/messages'
     | '/admin/organizations'
     | '/admin/ratings'
     | '/admin/recruiters'
     | '/admin/scanners'
+    | '/admin/schedule'
     | '/admin/scout'
     | '/admin/settings'
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/coach/inbox'
     | '/coach/recruiters'
+    | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
     | '/join/coach'
@@ -673,10 +754,13 @@ export interface FileRouteTypes {
     | '/recruiter/applications'
     | '/recruiter/candidates'
     | '/recruiter/company'
+    | '/recruiter/inbox'
     | '/recruiter/jobs'
     | '/recruiter/saved'
+    | '/recruiter/schedule'
     | '/recruiter/talent'
     | '/talent/applications'
+    | '/talent/inbox'
     | '/talent/jobs'
     | '/talent/preferences'
     | '/talent/profile'
@@ -867,6 +951,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDiagnosticsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/inbox': {
+      id: '/admin/inbox'
+      path: '/inbox'
+      fullPath: '/admin/inbox'
+      preLoaderRoute: typeof AdminInboxRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/jobs': {
       id: '/admin/jobs'
       path: '/jobs'
@@ -907,6 +998,13 @@ declare module '@tanstack/react-router' {
       path: '/scanners'
       fullPath: '/admin/scanners'
       preLoaderRoute: typeof AdminScannersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/schedule': {
+      id: '/admin/schedule'
+      path: '/schedule'
+      fullPath: '/admin/schedule'
+      preLoaderRoute: typeof AdminScheduleRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/scout': {
@@ -951,11 +1049,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachIndexRouteImport
       parentRoute: typeof CoachRouteRoute
     }
+    '/coach/inbox': {
+      id: '/coach/inbox'
+      path: '/inbox'
+      fullPath: '/coach/inbox'
+      preLoaderRoute: typeof CoachInboxRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
     '/coach/recruiters': {
       id: '/coach/recruiters'
       path: '/recruiters'
       fullPath: '/coach/recruiters'
       preLoaderRoute: typeof CoachRecruitersRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
+    '/coach/schedule': {
+      id: '/coach/schedule'
+      path: '/schedule'
+      fullPath: '/coach/schedule'
+      preLoaderRoute: typeof CoachScheduleRouteImport
       parentRoute: typeof CoachRouteRoute
     }
     '/coach/settings': {
@@ -1014,6 +1126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecruiterCompanyRouteImport
       parentRoute: typeof RecruiterRouteRoute
     }
+    '/recruiter/inbox': {
+      id: '/recruiter/inbox'
+      path: '/inbox'
+      fullPath: '/recruiter/inbox'
+      preLoaderRoute: typeof RecruiterInboxRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
     '/recruiter/jobs': {
       id: '/recruiter/jobs'
       path: '/jobs'
@@ -1026,6 +1145,13 @@ declare module '@tanstack/react-router' {
       path: '/saved'
       fullPath: '/recruiter/saved'
       preLoaderRoute: typeof RecruiterSavedRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
+    '/recruiter/schedule': {
+      id: '/recruiter/schedule'
+      path: '/schedule'
+      fullPath: '/recruiter/schedule'
+      preLoaderRoute: typeof RecruiterScheduleRouteImport
       parentRoute: typeof RecruiterRouteRoute
     }
     '/recruiter/talent': {
@@ -1047,6 +1173,13 @@ declare module '@tanstack/react-router' {
       path: '/applications'
       fullPath: '/talent/applications'
       preLoaderRoute: typeof TalentApplicationsRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
+    '/talent/inbox': {
+      id: '/talent/inbox'
+      path: '/inbox'
+      fullPath: '/talent/inbox'
+      preLoaderRoute: typeof TalentInboxRouteImport
       parentRoute: typeof TalentRouteRoute
     }
     '/talent/jobs': {
@@ -1118,12 +1251,14 @@ declare module '@tanstack/react-router' {
 interface AdminRouteRouteChildren {
   AdminCoachInvitesRoute: typeof AdminCoachInvitesRoute
   AdminDiagnosticsRoute: typeof AdminDiagnosticsRoute
+  AdminInboxRoute: typeof AdminInboxRoute
   AdminJobsRoute: typeof AdminJobsRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminRatingsRoute: typeof AdminRatingsRoute
   AdminRecruitersRoute: typeof AdminRecruitersRoute
   AdminScannersRoute: typeof AdminScannersRoute
+  AdminScheduleRoute: typeof AdminScheduleRoute
   AdminScoutRoute: typeof AdminScoutRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTalentRoute: typeof AdminTalentRoute
@@ -1134,12 +1269,14 @@ interface AdminRouteRouteChildren {
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminCoachInvitesRoute: AdminCoachInvitesRoute,
   AdminDiagnosticsRoute: AdminDiagnosticsRoute,
+  AdminInboxRoute: AdminInboxRoute,
   AdminJobsRoute: AdminJobsRoute,
   AdminMessagesRoute: AdminMessagesRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminRatingsRoute: AdminRatingsRoute,
   AdminRecruitersRoute: AdminRecruitersRoute,
   AdminScannersRoute: AdminScannersRoute,
+  AdminScheduleRoute: AdminScheduleRoute,
   AdminScoutRoute: AdminScoutRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTalentRoute: AdminTalentRoute,
@@ -1152,14 +1289,18 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface CoachRouteRouteChildren {
+  CoachInboxRoute: typeof CoachInboxRoute
   CoachRecruitersRoute: typeof CoachRecruitersRoute
+  CoachScheduleRoute: typeof CoachScheduleRoute
   CoachSettingsRoute: typeof CoachSettingsRoute
   CoachTalentRoute: typeof CoachTalentRoute
   CoachIndexRoute: typeof CoachIndexRoute
 }
 
 const CoachRouteRouteChildren: CoachRouteRouteChildren = {
+  CoachInboxRoute: CoachInboxRoute,
   CoachRecruitersRoute: CoachRecruitersRoute,
+  CoachScheduleRoute: CoachScheduleRoute,
   CoachSettingsRoute: CoachSettingsRoute,
   CoachTalentRoute: CoachTalentRoute,
   CoachIndexRoute: CoachIndexRoute,
@@ -1174,8 +1315,10 @@ interface RecruiterRouteRouteChildren {
   RecruiterApplicationsRoute: typeof RecruiterApplicationsRoute
   RecruiterCandidatesRoute: typeof RecruiterCandidatesRoute
   RecruiterCompanyRoute: typeof RecruiterCompanyRoute
+  RecruiterInboxRoute: typeof RecruiterInboxRoute
   RecruiterJobsRoute: typeof RecruiterJobsRoute
   RecruiterSavedRoute: typeof RecruiterSavedRoute
+  RecruiterScheduleRoute: typeof RecruiterScheduleRoute
   RecruiterTalentRoute: typeof RecruiterTalentRoute
   RecruiterIndexRoute: typeof RecruiterIndexRoute
 }
@@ -1185,8 +1328,10 @@ const RecruiterRouteRouteChildren: RecruiterRouteRouteChildren = {
   RecruiterApplicationsRoute: RecruiterApplicationsRoute,
   RecruiterCandidatesRoute: RecruiterCandidatesRoute,
   RecruiterCompanyRoute: RecruiterCompanyRoute,
+  RecruiterInboxRoute: RecruiterInboxRoute,
   RecruiterJobsRoute: RecruiterJobsRoute,
   RecruiterSavedRoute: RecruiterSavedRoute,
+  RecruiterScheduleRoute: RecruiterScheduleRoute,
   RecruiterTalentRoute: RecruiterTalentRoute,
   RecruiterIndexRoute: RecruiterIndexRoute,
 }
@@ -1197,6 +1342,7 @@ const RecruiterRouteRouteWithChildren = RecruiterRouteRoute._addFileChildren(
 
 interface TalentRouteRouteChildren {
   TalentApplicationsRoute: typeof TalentApplicationsRoute
+  TalentInboxRoute: typeof TalentInboxRoute
   TalentJobsRoute: typeof TalentJobsRoute
   TalentPreferencesRoute: typeof TalentPreferencesRoute
   TalentProfileRoute: typeof TalentProfileRoute
@@ -1207,6 +1353,7 @@ interface TalentRouteRouteChildren {
 
 const TalentRouteRouteChildren: TalentRouteRouteChildren = {
   TalentApplicationsRoute: TalentApplicationsRoute,
+  TalentInboxRoute: TalentInboxRoute,
   TalentJobsRoute: TalentJobsRoute,
   TalentPreferencesRoute: TalentPreferencesRoute,
   TalentProfileRoute: TalentProfileRoute,

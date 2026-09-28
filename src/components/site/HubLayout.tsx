@@ -42,7 +42,7 @@ export function HubLayout({
           <h1 className="mt-3 truncate text-3xl font-semibold md:text-4xl">{email}</h1>
         </div>
         <div className="flex items-center gap-6">
-          <Notifications userId={userId} />
+          <Notifications userId={userId} inboxTo={`${root}/inbox`} />
           <button
             onClick={signOut}
             disabled={signingOut}
@@ -83,7 +83,7 @@ type NotificationRow = {
   created_at: string;
 };
 
-function Notifications({ userId }: { userId: string }) {
+function Notifications({ userId, inboxTo }: { userId: string; inboxTo: string }) {
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -155,6 +155,13 @@ function Notifications({ userId }: { userId: string }) {
               ))}
             </ul>
           )}
+          <Link
+            to={inboxTo as LinkProps["to"]}
+            onClick={() => setOpen(false)}
+            className="block border-t border-[color:var(--color-hairline)] p-3 text-[11px] uppercase tracking-[0.2em] [@media(hover:hover)]:hover:text-muted-foreground"
+          >
+            Open inbox →
+          </Link>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { UserList } from "@/components/admin/UserList";
 import { ChipGroup } from "@/components/site/ui";
 import type { AppRole } from "@/lib/auth/session";
@@ -21,6 +22,18 @@ const CATEGORIES: { value: AppRole; label: string }[] = [
 /** Registered users log, categorized by role, with complete role permissions. */
 function Users() {
   const [category, setCategory] = useState<AppRole[]>([]);
+  const [counts, setCounts] = useState<Partial<Record<AppRole, number>>>({});
+
+  useEffect(() => {
+    supabase
+      .from("user_roles")
+      .select("role")
+      .then(({ data }) => {
+        const next: Partial<Record<AppRole, number>> = {};
+        for (const r of data ?? []) next[r.role as AppRole] = (next[r.role as AppRole] ?? 0) + 1;
+        setCounts(next);
+      });
+  }, []);
   return (
     <section>
       <h2 className="text-2xl font-semibold">Registered users</h2>
@@ -31,7 +44,10 @@ function Users() {
       </p>
       <div className="mt-6">
         <ChipGroup
-          options={CATEGORIES}
+          options={CATEGORIES.map((c) => ({
+            ...c,
+            label: counts[c.value] === undefined ? c.label : `${c.label} (${counts[c.value]})`,
+          }))}
           value={category}
           onChange={(v) => setCategory(v.slice(-1))}
         />

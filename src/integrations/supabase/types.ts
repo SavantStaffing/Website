@@ -229,6 +229,8 @@ export type Database = {
       };
       job_applications: {
         Row: {
+          interview_at: string | null;
+          interview_note: string | null;
           applicant_id: string;
           created_at: string;
           id: string;
@@ -236,6 +238,8 @@ export type Database = {
           status: string;
         };
         Insert: {
+          interview_at?: string | null;
+          interview_note?: string | null;
           applicant_id: string;
           created_at?: string;
           id?: string;
@@ -243,6 +247,8 @@ export type Database = {
           status?: string;
         };
         Update: {
+          interview_at?: string | null;
+          interview_note?: string | null;
           applicant_id?: string;
           created_at?: string;
           id?: string;
@@ -391,6 +397,8 @@ export type Database = {
       };
       service_requests: {
         Row: {
+          schedule_note: string | null;
+          scheduled_at: string | null;
           assigned_coach_id: string | null;
           availability: string | null;
           contact_method: string;
@@ -405,6 +413,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          schedule_note?: string | null;
+          scheduled_at?: string | null;
           assigned_coach_id?: string | null;
           availability?: string | null;
           contact_method?: string;
@@ -419,6 +429,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          schedule_note?: string | null;
+          scheduled_at?: string | null;
           assigned_coach_id?: string | null;
           availability?: string | null;
           contact_method?: string;
