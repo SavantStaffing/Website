@@ -16,8 +16,16 @@ import type { JobSource, RawJob } from "./types.ts";
  * Page fetches are capped per company so a large site can't stall a run.
  */
 
-const MAX_JOB_PAGES = 100;
+let MAX_JOB_PAGES = 100;
 const ICIMS_MAX_LIST_PAGES = 8;
+
+/**
+ * Lower the per-company page cap. The scheduled Edge Function runs with a
+ * 2s CPU budget per call, and parsing job pages is the costly part.
+ */
+export function setJobPageLimit(n: number) {
+  MAX_JOB_PAGES = Math.max(10, Math.floor(n));
+}
 
 // ---------------------------------------------------------------- JobPosting markup
 

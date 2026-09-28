@@ -44,6 +44,10 @@ export type RankableJob = {
   pay_min?: number | null;
   pay_max?: number | null;
   pay_unit?: string | null;
+  /** Employer ethics scores, 0–100 (ethics.ts); null = not benchmarked. */
+  fair_pay_score?: number | null;
+  cultures_score?: number | null;
+  honest_score?: number | null;
 };
 
 const PER_HOUR: Record<string, number> = { hour: 1, day: 8, week: 40, month: 173, year: 2080 };
@@ -128,6 +132,12 @@ export function rankJobs<J extends RankableJob>(
       reasons.push("Highly rated employer");
     }
 
+    // Employer ethics: a small nudge either way around the midpoint (±5).
+    if (job.fair_pay_score !== null && job.fair_pay_score !== undefined) {
+      score += (Number(job.fair_pay_score) - 50) / 10;
+      if (Number(job.fair_pay_score) >= 60) reasons.push("Strong fair-pay record");
+    }
+
     if (job.source === "manual") {
       score += 8;
       reasons.push("Posted by a Savant recruiter");
@@ -198,6 +208,8 @@ export type FeedFilters = {
   minPay: number | null;
   /** Temp partner apps to show (by job source); empty = all. */
   tempApps: string[];
+  /** Minimum employer Fair Pay & Worker Respect score (0–100); unscored employers hidden while set. */
+  minFairPay: number | null;
 };
 
 export const EMPTY_FILTERS: FeedFilters = {
@@ -210,6 +222,7 @@ export const EMPTY_FILTERS: FeedFilters = {
   remoteOnly: false,
   minPay: null,
   tempApps: [],
+  minFairPay: null,
 };
 
 export function applyFilters<J extends RankableJob & { company_name?: string | null }>(
@@ -229,6 +242,13 @@ export function applyFilters<J extends RankableJob & { company_name?: string | n
     if (f.naics && !(j.naics_code ?? "").startsWith(f.naics)) return false;
     if (f.postedWithinDays !== null && jobAgeDays(j, now) > f.postedWithinDays) return false;
     if (f.remoteOnly && !j.remote) return false;
+    if (
+      f.minFairPay !== null &&
+      (j.fair_pay_score === null ||
+        j.fair_pay_score === undefined ||
+        Number(j.fair_pay_score) < f.minFairPay)
+    )
+      return false;
     if (f.minPay !== null) {
       const rate = hourlyPay(j);
       if (rate === null || rate < f.minPay) return false;

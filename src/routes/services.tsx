@@ -28,7 +28,8 @@ const SERVICES = [
 
 /**
  * Public explanation of the matching pipeline. Keep in step with the code:
- * equity → src/lib/scout/ratings.ts (cutoffs are editable on /admin/ratings),
+ * equity → src/lib/scout/ratings.ts (cutoffs are editable on /admin/ratings) and
+ * src/lib/scout/ethics.ts (WBA via Wikirate, Department of Labor),
  * ghost → src/lib/scout/ghost.ts, preferences → src/lib/scout/rank.ts.
  */
 const LAYERS = [
@@ -40,7 +41,9 @@ const LAYERS = [
       "Each company is checked against JUST Capital's rankings of America's most just companies, which weigh worker pay, benefits, advancement, and treatment of communities. Companies must rank in the top 50 to pass.",
       "Each company is also checked against As You Sow's workplace diversity, equity and inclusion scores. Companies must score at least 40% to pass.",
       "A company on both lists has to pass both. A company that falls short on a list it appears on doesn't reach our job feed, and any of its roles already listed are taken down.",
-      "Employers that pass carry a badge on every role, so you can see why they're there.",
+      "We also look up each employer in the World Benchmarking Alliance's Social Benchmark (published openly through Wikirate), which scores the world's largest companies on providing decent work, respecting human rights and acting ethically. We show these as Fair Pay & Worker Respect, Respect for Cultures & Communities, and Honest & Fair Business scores, and you can filter the job feed by them.",
+      "And we check U.S. Department of Labor records for each employer's Bay Area workplaces over the last five years: wage-and-hour cases, back wages owed, and OSHA safety inspections and violations.",
+      "These checks run every time we refresh an employer's roles, so the scores and records you see stay current. Employers that pass carry a badge on every role, and every role shows the record behind it.",
     ],
     why: "A job is more than a title and a salary — it's the place you'll spend most of your week. Independent ratings of how an employer pays, promotes, and includes its people are the best early signal of what working there is actually like. We'd rather send you to fewer employers who have earned it than to every employer who happens to be hiring.",
   },
@@ -192,6 +195,29 @@ function Services() {
             Set your preferences
           </Link>
         </div>
+        <p className="mt-12 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+          Sources: JUST Capital rankings; As You Sow workplace DEI scores; World Benchmarking
+          Alliance Social Benchmark data via{" "}
+          <a
+            href="https://wikirate.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4"
+          >
+            Wikirate.org
+          </a>
+          , licensed under{" "}
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4"
+          >
+            CC BY 4.0
+          </a>{" "}
+          (scores rescaled to 0–100); U.S. Department of Labor wage-and-hour and OSHA enforcement
+          data.
+        </p>
       </section>
     </div>
   );

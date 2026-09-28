@@ -1,4 +1,11 @@
 import { detectAts } from "./detect.ts";
+import {
+  ethicsIsFresh,
+  ethicsKey,
+  fetchEthics,
+  setWikirateKey,
+  type EthicsRecord,
+} from "./ethics.ts";
 import { scoreGhost, GHOST_FLAG_THRESHOLD } from "./ghost.ts";
 import { HttpError, MetricsRecorder, mapLimit } from "./http.ts";
 import {
@@ -28,6 +35,8 @@ import { scanCompanySite } from "./webscan.ts";
  *
  *   Admin input / schedule
  *     → Passing Score from Auditor: JUST Capital / As You Sow gate (ratings.ts)
+ *     → Employer ethics, fetched live and cached 30 days (ethics.ts): WBA
+ *       Social Benchmark via Wikirate + Department of Labor / OSHA records
  *     → Company Web Scan (identify the ATS when the config row doesn't know it yet)
  *     → Call endpoint → Map into site schema               (sources.ts)
  *     → Data-quality check (schema validation)             (validate.ts)
@@ -85,6 +94,17 @@ export type UniqueScannerSite = {
   reason: string;
 };
 
+/** Live employer-ethics lookup settings (scout_settings + scout_secrets). */
+export type EthicsOptions = {
+  enabled: boolean;
+  dolApiKey?: string | null;
+  wikirateKey?: string | null;
+  /** Gate out employers scoring below these (0–100); null = no cutoff. */
+  minFairPay?: number | null;
+  minCultures?: number | null;
+  minHonest?: number | null;
+};
+
 export interface ScoutStore {
   listCompanies(ids?: string[]): Promise<ScoutCompany[]>;
   updateCompany(id: string, patch: CompanyPatch): Promise<void>;
@@ -103,11 +123,15 @@ export interface ScoutStore {
   registerUniqueScanner(site: UniqueScannerSite): Promise<void>;
   /** A registered company's jobs can be read now: mark its registry row supported. */
   resolveUniqueScanner(companyId: string): Promise<void>;
+  /** Cached ethics lookup for a company key, if any. */
+  getEthics(companyKey: string): Promise<EthicsRecord | null>;
+  saveEthics(record: EthicsRecord): Promise<void>;
 }
 
 export type CompanyOutcome = {
   company: string;
-  status: "ok" | "no_ats" | "http_error" | "failed_audit" | "failed_rating" | "error";
+  status:
+    "ok" | "no_ats" | "http_error" | "failed_audit" | "failed_rating" | "failed_ethics" | "error";
   ats: string | null;
   found: number;
   passRate: number;
@@ -147,6 +171,8 @@ export async function runScout(
     jobspyToken?: string | null;
     /** JUST Capital / As You Sow lists + cutoffs. Omit to skip the gate. */
     ratings?: { config: RatingsConfig; list: CompanyRating[] };
+    /** Live employer-ethics lookups. Omit to skip them. */
+    ethics?: EthicsOptions;
     /** Validate + score but don't write jobs (used by the admin "preview" button). */
     dryRun?: boolean;
     now?: Date;
@@ -156,6 +182,7 @@ export async function runScout(
   const now = opts.now ?? new Date();
   const runStartedAt = now.toISOString();
   const rec = new MetricsRecorder();
+  if (opts.ethics?.enabled) setWikirateKey(opts.ethics.wikirateKey);
   const tallies = new Map<string, SourceTally>();
   const tally = (source: string) => {
     const t = tallies.get(source) ?? { ingested: [], schemaFailures: 0 };
@@ -205,6 +232,25 @@ export async function runScout(
             last_scanned_at: runStartedAt,
           });
         return { ...base, status: "failed_rating", closed, rating: verdict.summary };
+      }
+
+      // --- Employer ethics: live lookup (cached 30 days), optional cutoffs.
+      const ethics = opts.ethics?.enabled
+        ? await currentEthics(store, rec, company, opts.ethics, now, !!opts.dryRun)
+        : null;
+      const ethicsMiss = ethics && opts.ethics ? ethicsShortfall(ethics, opts.ethics) : null;
+      if (ethicsMiss) {
+        const closed = opts.dryRun
+          ? 0
+          : await store.closeUnseen({ scout_company_id: company.id }, runStartedAt);
+        if (!opts.dryRun)
+          await store.updateCompany(company.id, {
+            last_status: "failed_ethics",
+            last_error: ethicsMiss,
+            last_rating: verdict?.summary ?? null,
+            last_scanned_at: runStartedAt,
+          });
+        return { ...base, status: "failed_ethics", closed, rating: ethicsMiss };
       }
       const badges = verdict?.badges ?? [];
 
@@ -278,6 +324,7 @@ export async function runScout(
         descriptionAvailable: ats !== "smartrecruiters" && ats !== "workday",
         tally: tally(ats),
         badgesFor: () => badges,
+        ethics,
       });
 
       if (!opts.dryRun) {
@@ -398,7 +445,10 @@ export async function runScout(
 
   const sum = (k: keyof CompanyOutcome) => outcomes.reduce((a, o) => a + (Number(o[k]) || 0), 0);
   // Being gated out by the ratings is the gate working, not a failed scan.
-  const failed = outcomes.filter((o) => o.status !== "ok" && o.status !== "failed_rating").length;
+  // Gated out by the ratings or ethics cutoffs is the gate working, not a failed scan.
+  const failed = outcomes.filter(
+    (o) => o.status !== "ok" && o.status !== "failed_rating" && o.status !== "failed_ethics",
+  ).length;
   return {
     outcomes,
     metrics,
@@ -432,6 +482,8 @@ async function ingest(
     descriptionAvailable: boolean;
     tally: SourceTally;
     badgesFor: (companyName: string) => string[];
+    /** The employer's ethics lookup, copied onto every posting. */
+    ethics?: EthicsRecord | null;
   },
 ) {
   // --- Data-quality check: schema validation across the batch
@@ -497,6 +549,10 @@ async function ingest(
         pay_min: j.pay?.min ?? null,
         pay_max: j.pay?.max ?? null,
         pay_unit: j.pay?.unit ?? null,
+        fair_pay_score: ctx.ethics?.fair_pay_score ?? null,
+        cultures_score: ctx.ethics?.cultures_score ?? null,
+        honest_score: ctx.ethics?.honest_score ?? null,
+        ethics_summary: ethicsSummary(ctx.ethics),
         fingerprint: fingerprint(j.company_name, title, j.location),
         ghost_score: 0,
         ghost_reasons: [] as string[],
@@ -565,5 +621,65 @@ async function ingest(
     updated,
     flagged,
     closed,
+  };
+}
+
+// ---------------------------------------------------------------- employer ethics
+
+/**
+ * The company's ethics record: the cached one while it's fresh, otherwise a
+ * live lookup. A lookup where every source failed keeps the old cache
+ * rather than overwriting it with blanks.
+ */
+async function currentEthics(
+  store: ScoutStore,
+  rec: MetricsRecorder,
+  company: ScoutCompany,
+  opts: EthicsOptions,
+  now: Date,
+  dryRun: boolean,
+): Promise<EthicsRecord | null> {
+  const key = ethicsKey(company.name);
+  if (!key) return null;
+  const cached = await store.getEthics(key);
+  if (cached && ethicsIsFresh(cached, now)) return cached;
+  const fresh = await fetchEthics(rec, company.name, {
+    lookupName: company.rating_name,
+    dolApiKey: opts.dolApiKey,
+    now,
+  });
+  const nothing = !fresh.wba_year && !fresh.dol_checked;
+  if (nothing && cached) return cached;
+  if (!dryRun) await store.saveEthics(fresh);
+  return fresh;
+}
+
+/** Why an employer misses an ethics cutoff, or null. Unbenchmarked scores never gate. */
+function ethicsShortfall(e: EthicsRecord, opts: EthicsOptions): string | null {
+  const checks: [string, number | null, number | null | undefined][] = [
+    ["Fair pay & worker respect", e.fair_pay_score, opts.minFairPay],
+    ["Respect for cultures & communities", e.cultures_score, opts.minCultures],
+    ["Honest & fair business", e.honest_score, opts.minHonest],
+  ];
+  const misses = checks
+    .filter(([, score, min]) => score !== null && min !== null && min !== undefined && score < min)
+    .map(([label, score, min]) => `${label} ${score}/100 (cutoff ${min})`);
+  return misses.length ? `Below ethics cutoff: ${misses.join(", ")}` : null;
+}
+
+function ethicsSummary(e: EthicsRecord | null | undefined): Record<string, unknown> | null {
+  if (!e) return null;
+  return {
+    wikirate_company: e.wikirate_company,
+    wba_year: e.wba_year,
+    dol_checked: e.dol_checked,
+    dol_wage_cases: e.dol_wage_cases,
+    dol_back_wages: e.dol_back_wages,
+    dol_employees_owed: e.dol_employees_owed,
+    dol_repeat_violator: e.dol_repeat_violator,
+    osha_inspections: e.osha_inspections,
+    osha_serious_violations: e.osha_serious_violations,
+    osha_penalties: e.osha_penalties,
+    fetched_at: e.fetched_at,
   };
 }

@@ -1,5 +1,6 @@
 import { scoutJson, type MetricsRecorder } from "./http.ts";
 import { icims, jsonld } from "./jobposting.ts";
+import { avionte, partners, smpl } from "./staffing-boards.ts";
 import { htmlToText, iso } from "./text.ts";
 import { workday } from "./workday.ts";
 import type { AtsPlatform, BoardSource, RawJob } from "./types.ts";
@@ -229,7 +230,19 @@ async function workable(rec: MetricsRecorder, token: string, company: string): P
 export const ATS_ADAPTERS: Record<
   AtsPlatform,
   (rec: MetricsRecorder, token: string, company: string) => Promise<RawJob[]>
-> = { greenhouse, lever, ashby, smartrecruiters, workable, workday, icims, jsonld };
+> = {
+  greenhouse,
+  lever,
+  ashby,
+  smartrecruiters,
+  workable,
+  workday,
+  icims,
+  jsonld,
+  avionte,
+  smpl,
+  partners,
+};
 
 // ---------------------------------------------------------------- JobSpy (job boards)
 /**

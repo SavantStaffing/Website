@@ -89,6 +89,10 @@ const store: ScoutStore = {
     );
   },
   async resolveUniqueScanner() {},
+  async getEthics() {
+    return null;
+  },
+  async saveEthics() {},
 };
 
 const summary = await runScout(store);

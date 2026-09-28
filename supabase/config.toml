@@ -1,1 +1,6 @@
 # project_id is set automatically once Supabase is connected via Lovable Cloud.
+
+# Scheduled Job Scout: pg_cron calls it with its own token (x-scout-token),
+# not a user JWT. See supabase/functions/job-scout/index.ts.
+[functions.job-scout]
+verify_jwt = false

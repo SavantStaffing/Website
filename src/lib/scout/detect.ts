@@ -19,6 +19,14 @@ const PATTERNS: { ats: AtsPlatform; rx: RegExp; token?: (m: RegExpMatchArray) =>
     rx: /(wd\d+)\.myworkdaysite\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?recruiting\/([\w-]+)\/([\w-]+)/i,
     token: (m) => `${m[1]}.myworkdaysite.com/${m[2]}/${m[3]}`,
   },
+  // Staffing-agency boards (staffing-boards.ts). Avionte token = "{buildIdEnc}/{jobBoardIdEnc}".
+  {
+    ats: "avionte",
+    rx: /hire\.myavionte\.com\/app\/careers\/#\/jobs\/([\w-]+)\/([\w-]+)/i,
+    token: (m) => `${m[1]}/${m[2]}`,
+  },
+  { ats: "smpl", rx: /(https?:\/\/[\w.-]+)\/(?:json\/)?index\.smpl\?arg=(?:jb_|list_posts)/i },
+  { ats: "partners", rx: /(https?:\/\/jobs\.partnerspersonnel\.com)/i },
   // iCIMS: token = portal subdomain
   { ats: "icims", rx: /\b((?!www\b)[\w-]+)\.icims\.com/i },
   { ats: "greenhouse", rx: /boards-api\.greenhouse\.io\/v1\/boards\/([\w-]+)/i },
@@ -139,6 +147,14 @@ export function boardUrl(ats: AtsPlatform, token: string): string {
     case "icims":
       return `https://${token}.icims.com/jobs/search`;
     case "jsonld":
+      return token;
+    case "avionte": {
+      const [b, jb] = token.split("/");
+      return `https://hire.myavionte.com/app/careers/#/jobs/${b}/${jb}//`;
+    }
+    case "smpl":
+      return `${token}/index.smpl?arg=jb_search_results`;
+    case "partners":
       return token;
   }
 }

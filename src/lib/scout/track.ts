@@ -52,7 +52,7 @@ const LOW_BARRIER_TITLE =
 
 // Roles that need a degree, license or a body of experience.
 const PROFESSIONAL_TITLE =
-  /\b(engineer(?:ing)?|developer|programmer|software|devops|architect|analyst|scientist|accountant|accounting|controller|auditor|tax|attorney|lawyer|counsel|paralegal|manager|director|head of|vp|vice president|chief|consultant|strategist|designer|product|recruiter|talent acquisition|registered nurse|rn|nurse practitioner|lpn|pharmacist|physician|therapist|psychologist|teacher|professor|instructor|actuary|underwriter|economist|chemist|biologist|technologist|marketing|financial|finance|investment|project|program|administrator|superintendent|estimator|planner|buyer|bookkeeper|payroll|human resources|hr (?:generalist|business partner)|specialist|coordinator|supervisor|executive)\b/i;
+  /\b(engineer(?:ing)?|developer|programmer|software|devops|architect|analyst|scientist|accountant|accounting|controller|auditor|attorney|lawyer|counsel|paralegal|manager|director|head of|vp|vice president|chief|consultant|strategist|designer|product|recruiter|talent acquisition|registered nurse|rn|nurse practitioner|lpn|pharmacist|physician|therapist|psychologist|teacher|professor|instructor|actuary|underwriter|economist|chemist|biologist|technologist|marketing|financial|finance|investment|project|program|administrator|superintendent|estimator|planner|buyer|bookkeeper|payroll|human resources|hr (?:generalist|business partner)|specialist|coordinator|supervisor|executive)\b/i;
 
 // Title words that only make it professional when nothing low-barrier matches.
 // ("Warehouse Supervisor", "Security Officer" stay hourly.)
@@ -103,6 +103,9 @@ export function classifyTrack(input: TrackInput): { track: JobTrack; reasons: st
   // --- 2. Title keywords. Strong professional words beat low-barrier ones
   // ("Warehouse Systems Analyst"); weak ones don't ("Warehouse Supervisor").
   const low = LOW_BARRIER_TITLE.exec(title);
+  // Entry-level titles that contain a professional-sounding word.
+  const entryPhrase = /\bleasing (?:agent|consultant)s?\b/i.exec(title);
+  if (entryPhrase) return { track: "hourly", reasons: [`“${entryPhrase[0]}” role`] };
   const proMatches = [...title.matchAll(new RegExp(PROFESSIONAL_TITLE.source, "gi"))].map(
     (m) => m[1],
   );

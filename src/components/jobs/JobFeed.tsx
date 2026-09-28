@@ -51,11 +51,30 @@ export type FeedJob = {
   pay_min: number | null;
   pay_max: number | null;
   pay_unit: string | null;
+  fair_pay_score: number | null;
+  cultures_score: number | null;
+  honest_score: number | null;
+  ethics_summary: EthicsSummary | null;
   organizations: { name: string } | null;
 };
 
 const JOB_COLUMNS =
-  "id, title, company_name, location, type, employment_type, description, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, track, track_override, pay_min, pay_max, pay_unit, organizations (name)";
+  "id, title, company_name, location, type, employment_type, description, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, track, track_override, pay_min, pay_max, pay_unit, fair_pay_score, cultures_score, honest_score, ethics_summary, organizations (name)";
+
+type EthicsSummary = {
+  wba_year?: number | null;
+  wikirate_company?: string | null;
+  dol_checked?: boolean;
+  dol_wage_cases?: number;
+  dol_back_wages?: number;
+  dol_employees_owed?: number;
+  dol_repeat_violator?: boolean;
+  osha_inspections?: number;
+  osha_serious_violations?: number;
+  osha_penalties?: number;
+};
+
+const FAIR_PAY_FLOORS = [25, 40, 50, 60, 75];
 
 const DATE_OPTIONS = [
   { value: "", label: "Any time" },
@@ -483,6 +502,22 @@ function Filters({
               ))}
           </select>
         </label>
+        <label className="block">
+          <span className={label}>Fair pay &amp; worker respect</span>
+          <select
+            value={filters.minFairPay === null ? "" : String(filters.minFairPay)}
+            onChange={(e) => set("minFairPay", e.target.value ? Number(e.target.value) : null)}
+            className={`mt-2 block ${selectCls}`}
+            title="World Benchmarking Alliance decent-work score, 0–100. Hides employers without a score."
+          >
+            <option value="">Any employer</option>
+            {FAIR_PAY_FLOORS.map((n) => (
+              <option key={n} value={n}>
+                {n}+ / 100
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       {filters.track !== "professional" && (
         <div>
@@ -587,6 +622,7 @@ function JobRow({
           <div className="mt-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             {meta.join(" · ")}
           </div>
+          <EthicsLine job={job} />
           {mode === "talent" && job.matchReasons.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {job.matchReasons
@@ -643,6 +679,7 @@ function JobRow({
               Full description is on the company's site.
             </p>
           )}
+          <EthicsDetail job={job} />
           {mode === "talent" && external && <Readiness url={job.apply_url!} />}
           {external && (
             <a
@@ -657,6 +694,114 @@ function JobRow({
         </div>
       )}
     </li>
+  );
+}
+
+const scoreTone = (n: number) =>
+  n >= 60
+    ? "text-emerald-700 dark:text-emerald-400"
+    : n < 30
+      ? "text-amber-700 dark:text-amber-400"
+      : "text-foreground";
+
+/** The employer's three ethics scores, 0–100, when WBA benchmarks it. */
+function EthicsLine({ job }: { job: FeedJob }) {
+  const scores: [string, number | null][] = [
+    ["Fair pay", job.fair_pay_score],
+    ["Communities", job.cultures_score],
+    ["Honest business", job.honest_score],
+  ];
+  if (scores.every(([, v]) => v === null)) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      {scores.map(([label, v]) =>
+        v === null ? null : (
+          <span key={label}>
+            {label}{" "}
+            <span className={`font-medium ${scoreTone(Number(v))}`}>{Math.round(Number(v))}</span>
+            /100
+          </span>
+        ),
+      )}
+    </div>
+  );
+}
+
+/** Scores plus the employer's recent Bay Area labor record, with attribution. */
+function EthicsDetail({ job }: { job: FeedJob }) {
+  const e = job.ethics_summary;
+  const hasScores = [job.fair_pay_score, job.cultures_score, job.honest_score].some(
+    (v) => v !== null,
+  );
+  if (!e || (!hasScores && !e.dol_checked)) return null;
+  const money = (n = 0) =>
+    n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  const record: string[] = [];
+  if (e.dol_checked) {
+    record.push(
+      e.dol_wage_cases
+        ? `${e.dol_wage_cases} wage case${e.dol_wage_cases === 1 ? "" : "s"}${e.dol_back_wages ? `, ${money(e.dol_back_wages)} back wages owed to ${e.dol_employees_owed} worker${e.dol_employees_owed === 1 ? "" : "s"}` : ""}${e.dol_repeat_violator ? " (repeat violator)" : ""}`
+        : "No wage-and-hour violations found",
+    );
+    record.push(
+      e.osha_inspections
+        ? `${e.osha_inspections} OSHA inspection${e.osha_inspections === 1 ? "" : "s"}, ${e.osha_serious_violations} serious violation${e.osha_serious_violations === 1 ? "" : "s"}${e.osha_penalties ? `, ${money(e.osha_penalties)} in penalties` : ""}`
+        : "No OSHA inspections found",
+    );
+  }
+  return (
+    <div className="max-w-3xl rounded-sm border border-[color:var(--color-hairline)] p-4 text-sm">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+        Employer record
+      </div>
+      {hasScores && (
+        <p className="mt-2">
+          World Benchmarking Alliance Social Benchmark{e.wba_year ? ` (${e.wba_year})` : ""}: decent
+          work {job.fair_pay_score ?? "—"}, human rights {job.cultures_score ?? "—"}, ethical
+          conduct {job.honest_score ?? "—"} (out of 100).
+        </p>
+      )}
+      {record.length > 0 && (
+        <p className="mt-2">
+          Bay Area, last 5 years (U.S. Department of Labor): {record.join("; ")}.
+        </p>
+      )}
+      <p className="mt-2 text-xs text-muted-foreground">
+        {hasScores && (
+          <>
+            Scores:{" "}
+            <a
+              href="https://www.worldbenchmarkingalliance.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+            >
+              World Benchmarking Alliance
+            </a>{" "}
+            via{" "}
+            <a
+              href="https://wikirate.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+            >
+              Wikirate.org
+            </a>
+            ,{" "}
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+            >
+              CC BY 4.0
+            </a>
+            , scaled to 0–100.{" "}
+          </>
+        )}
+        {e.dol_checked && "Labor records: U.S. Department of Labor enforcement data."}
+      </p>
+    </div>
   );
 }
 

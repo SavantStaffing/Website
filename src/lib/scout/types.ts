@@ -16,6 +16,10 @@ export const ATS_PLATFORMS = [
   "icims",
   // Not an ATS: a careers site read through its schema.org JobPosting markup.
   "jsonld",
+  // Unique scanners for staffing-agency boards (staffing-boards.ts).
+  "avionte",
+  "smpl",
+  "partners",
 ] as const;
 export type AtsPlatform = (typeof ATS_PLATFORMS)[number];
 
@@ -111,6 +115,12 @@ export type NormalizedJob = {
   pay_min: number | null;
   pay_max: number | null;
   pay_unit: PayRange["unit"] | null;
+  /** Employer ethics scores, 0–100, from ethics.ts (null = not benchmarked). */
+  fair_pay_score: number | null;
+  cultures_score: number | null;
+  honest_score: number | null;
+  /** WBA year + Department of Labor / OSHA counts behind the scores, for display. */
+  ethics_summary: Record<string, unknown> | null;
   fingerprint: string;
   ghost_score: number;
   ghost_reasons: string[];
