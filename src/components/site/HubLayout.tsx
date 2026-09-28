@@ -113,7 +113,7 @@ function Notifications({ userId, inboxTo }: { userId: string; inboxTo: string })
   }
 
   return (
-    <div className="relative">
+    <div className="relative flex">
       <button
         onClick={() => {
           setOpen((v) => !v);
