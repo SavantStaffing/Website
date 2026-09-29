@@ -595,6 +595,9 @@ export type Database = {
       };
       talent_profiles: {
         Row: {
+          resume_filename: string | null;
+          resume_path: string | null;
+          resume_uploaded_at: string | null;
           current_company: string | null;
           current_title: string | null;
           earliest_start: string | null;
@@ -615,6 +618,9 @@ export type Database = {
           work_authorized: boolean | null;
         };
         Insert: {
+          resume_filename?: string | null;
+          resume_path?: string | null;
+          resume_uploaded_at?: string | null;
           current_company?: string | null;
           current_title?: string | null;
           earliest_start?: string | null;
@@ -635,6 +641,9 @@ export type Database = {
           work_authorized?: boolean | null;
         };
         Update: {
+          resume_filename?: string | null;
+          resume_path?: string | null;
+          resume_uploaded_at?: string | null;
           current_company?: string | null;
           current_title?: string | null;
           earliest_start?: string | null;
@@ -703,6 +712,7 @@ export type Database = {
       };
       saved_answers: {
         Row: {
+          question_label: string | null;
           answer: string;
           id: string;
           question_key: string;
@@ -710,6 +720,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          question_label?: string | null;
           answer: string;
           id?: string;
           question_key: string;
@@ -717,6 +728,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          question_label?: string | null;
           answer?: string;
           id?: string;
           question_key?: string;

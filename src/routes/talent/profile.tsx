@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { ResumeUpload } from "@/components/talent/ResumeUpload";
 import {
   Field,
   TagInput,
@@ -179,6 +180,13 @@ function Profile() {
       </div>
 
       <div>
+        <h2 className="text-2xl font-semibold">Resume</h2>
+        <div className="mt-8">
+          <ResumeUpload userId={userId} />
+        </div>
+      </div>
+
+      <div>
         <h2 className="text-2xl font-semibold">Professional profile</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Recruiters see this in their talent feed (unless you hide it), and Savant Apply uses it to
@@ -254,7 +262,7 @@ function Profile() {
             rows={10}
             value={pro.resume_text}
             onChange={set("resume_text")}
-            placeholder="Paste your resume. It's used to draft answers to open-ended application questions — you always review before submitting."
+            placeholder="Paste your resume's text. It's used to draft answers to open-ended application questions — you always review before submitting. (The file you upload above is what gets attached.)"
           />
           <Toggle
             checked={visible}

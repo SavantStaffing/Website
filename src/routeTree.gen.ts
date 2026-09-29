@@ -62,6 +62,7 @@ import { Route as RecruiterSavedRouteImport } from './routes/recruiter/saved'
 import { Route as RecruiterScheduleRouteImport } from './routes/recruiter/schedule'
 import { Route as RecruiterTalentRouteImport } from './routes/recruiter/talent'
 import { Route as TalentIndexRouteImport } from './routes/talent/index'
+import { Route as TalentAnswersRouteImport } from './routes/talent/answers'
 import { Route as TalentApplicationsRouteImport } from './routes/talent/applications'
 import { Route as TalentInboxRouteImport } from './routes/talent/inbox'
 import { Route as TalentJobsRouteImport } from './routes/talent/jobs'
@@ -339,6 +340,11 @@ const TalentIndexRoute = TalentIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TalentRouteRoute,
 } as any)
+const TalentAnswersRoute = TalentAnswersRouteImport.update({
+  id: '/answers',
+  path: '/answers',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
 const TalentApplicationsRoute = TalentApplicationsRouteImport.update({
   id: '/applications',
   path: '/applications',
@@ -446,6 +452,7 @@ export interface FileRoutesByFullPath {
   '/recruiter/saved': typeof RecruiterSavedRoute
   '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
+  '/talent/answers': typeof TalentAnswersRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/inbox': typeof TalentInboxRoute
   '/talent/jobs': typeof TalentJobsRoute
@@ -508,6 +515,7 @@ export interface FileRoutesByTo {
   '/recruiter/saved': typeof RecruiterSavedRoute
   '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
+  '/talent/answers': typeof TalentAnswersRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/inbox': typeof TalentInboxRoute
   '/talent/jobs': typeof TalentJobsRoute
@@ -575,6 +583,7 @@ export interface FileRoutesById {
   '/recruiter/saved': typeof RecruiterSavedRoute
   '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
+  '/talent/answers': typeof TalentAnswersRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/inbox': typeof TalentInboxRoute
   '/talent/jobs': typeof TalentJobsRoute
@@ -643,6 +652,7 @@ export interface FileRouteTypes {
     | '/recruiter/saved'
     | '/recruiter/schedule'
     | '/recruiter/talent'
+    | '/talent/answers'
     | '/talent/applications'
     | '/talent/inbox'
     | '/talent/jobs'
@@ -705,6 +715,7 @@ export interface FileRouteTypes {
     | '/recruiter/saved'
     | '/recruiter/schedule'
     | '/recruiter/talent'
+    | '/talent/answers'
     | '/talent/applications'
     | '/talent/inbox'
     | '/talent/jobs'
@@ -771,6 +782,7 @@ export interface FileRouteTypes {
     | '/recruiter/saved'
     | '/recruiter/schedule'
     | '/recruiter/talent'
+    | '/talent/answers'
     | '/talent/applications'
     | '/talent/inbox'
     | '/talent/jobs'
@@ -1188,6 +1200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TalentIndexRouteImport
       parentRoute: typeof TalentRouteRoute
     }
+    '/talent/answers': {
+      id: '/talent/answers'
+      path: '/answers'
+      fullPath: '/talent/answers'
+      preLoaderRoute: typeof TalentAnswersRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
     '/talent/applications': {
       id: '/talent/applications'
       path: '/applications'
@@ -1361,6 +1380,7 @@ const RecruiterRouteRouteWithChildren = RecruiterRouteRoute._addFileChildren(
 )
 
 interface TalentRouteRouteChildren {
+  TalentAnswersRoute: typeof TalentAnswersRoute
   TalentApplicationsRoute: typeof TalentApplicationsRoute
   TalentInboxRoute: typeof TalentInboxRoute
   TalentJobsRoute: typeof TalentJobsRoute
@@ -1372,6 +1392,7 @@ interface TalentRouteRouteChildren {
 }
 
 const TalentRouteRouteChildren: TalentRouteRouteChildren = {
+  TalentAnswersRoute: TalentAnswersRoute,
   TalentApplicationsRoute: TalentApplicationsRoute,
   TalentInboxRoute: TalentInboxRoute,
   TalentJobsRoute: TalentJobsRoute,

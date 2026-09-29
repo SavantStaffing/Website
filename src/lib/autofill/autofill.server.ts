@@ -36,14 +36,37 @@ export async function userFromRequest(request: Request): Promise<string> {
   return data.user.id;
 }
 
-async function loadProfile(uid: string): Promise<AutofillProfile> {
+/** How long the resume link handed to the extension stays valid. */
+const RESUME_LINK_SECONDS = 600;
+
+/**
+ * The talent's profile as Autofill uses it. With `withResumeLink`, resume_path
+ * becomes a short-lived signed URL the extension downloads and attaches;
+ * otherwise it's just the storage path (enough to know a file exists).
+ */
+async function loadProfile(
+  uid: string,
+  opts: { withResumeLink?: boolean } = {},
+): Promise<AutofillProfile> {
   const [{ data: tp }, { data: base }] = await Promise.all([
     supabaseAdmin.from("talent_profiles").select("*").eq("user_id", uid).maybeSingle(),
     supabaseAdmin.from("profiles").select("email, phone").eq("id", uid).maybeSingle(),
   ]);
   if (!tp) throw new AutofillError(404, "Complete your Talent profile first");
   const { skills: _skills, ...rest } = tp;
-  return { ...rest, email: base?.email ?? null, phone: base?.phone ?? null };
+  let resumePath = tp.resume_path ?? null;
+  if (resumePath && opts.withResumeLink) {
+    const { data } = await supabaseAdmin.storage
+      .from("resumes")
+      .createSignedUrl(resumePath, RESUME_LINK_SECONDS);
+    resumePath = data?.signedUrl ?? null; // no link → the resume field is left for the talent
+  }
+  return {
+    ...rest,
+    resume_path: resumePath,
+    email: base?.email ?? null,
+    phone: base?.phone ?? null,
+  };
 }
 
 async function loadSaved(uid: string): Promise<Record<string, string>> {
@@ -59,7 +82,7 @@ export async function createPlan(
   req: { job_url: string; fields: FormField[]; job_description?: string | null },
 ): Promise<FillPlan> {
   const ats = detectJob(req.job_url)?.ats ?? "generic";
-  const profile = await loadProfile(uid);
+  const profile = await loadProfile(uid, { withResumeLink: true });
   const fills = buildPlan(ats, req.fields, profile, await loadSaved(uid));
   await draftOpenAnswers(fills, profile.resume_text as string | null, req.job_description);
 
@@ -79,7 +102,13 @@ export async function createPlan(
     ats,
     job_url: req.job_url,
     status: "filled",
-    fill_plan: plan as unknown as Json,
+    // The resume link is a short-lived credential; don't keep it in the log.
+    fill_plan: {
+      ...plan,
+      fills: plan.fills.map((f) =>
+        f.type === "file" && f.value ? { ...f, value: "[resume]" } : f,
+      ),
+    } as unknown as Json,
   });
   return plan;
 }
@@ -91,7 +120,12 @@ export async function saveAnswers(
 ) {
   const rows = req.answers
     .filter((a) => a.answer.trim() && !EEO_RE.test(a.label))
-    .map((a) => ({ user_id: uid, question_key: norm(a.label), answer: a.answer.trim() }));
+    .map((a) => ({
+      user_id: uid,
+      question_key: norm(a.label),
+      question_label: a.label.trim().slice(0, 500),
+      answer: a.answer.trim(),
+    }));
   if (rows.length) {
     await supabaseAdmin.from("saved_answers").upsert(rows, { onConflict: "user_id,question_key" });
   }

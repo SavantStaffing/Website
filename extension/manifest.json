@@ -1,11 +1,18 @@
 {
   "manifest_version": 3,
   "name": "Savant Apply",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fills ATS application forms from your Savant talent profile. You review and submit.",
-  "permissions": ["storage"],
-  "host_permissions": ["https://savantstaffing.com/*"],
-  "background": { "service_worker": "background.js" },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://savantstaffing.com/*",
+    "https://*.supabase.co/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -14,9 +21,16 @@
         "https://jobs.lever.co/*",
         "https://jobs.ashbyhq.com/*"
       ],
-      "js": ["content.js"],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  "externally_connectable": { "matches": ["https://savantstaffing.com/*", "http://localhost/*"] }
+  "externally_connectable": {
+    "matches": [
+      "https://savantstaffing.com/*",
+      "http://localhost/*"
+    ]
+  }
 }

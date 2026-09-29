@@ -190,7 +190,12 @@ export function buildPlan(
           value: val,
           source: "profile",
           needs_review: REVIEW_ATTRS.has(attr),
-          filename: f.type === "file" ? String(pv).split("/").pop() : null,
+          filename:
+            f.type === "file"
+              ? String(p.resume_filename ?? "") ||
+                String(pv).split("?")[0].split("/").pop() ||
+                "resume.pdf"
+              : null,
         };
       }
     }
