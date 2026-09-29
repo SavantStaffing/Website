@@ -9,8 +9,16 @@ import {
 
 let cached: Promise<Map<string, RatedEmployer>> | null = null;
 
-/** Loads every employer's rating once per page load (shared by the feed and the ratings page). */
-function loadIndex() {
+/**
+ * Loads every employer's rating once per page load (shared by the feed and the
+ * ratings page). Ratings are for signed-in users only, so a guest gets null —
+ * not cached, so signing in later loads them.
+ */
+async function loadIndex(): Promise<Map<string, RatedEmployer> | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return null;
   cached ??= (async () => {
     const { data, error } = await supabase.rpc("employer_rating_inputs");
     if (error || !data) {

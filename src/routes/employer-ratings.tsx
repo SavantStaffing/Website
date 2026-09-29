@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChipGroup, label, list, mutedButton } from "@/components/site/ui";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { ChipGroup, label, list, mutedButton, primaryButton } from "@/components/site/ui";
 import { RatingBadge } from "@/components/ratings/RatingBadge";
 import {
   TIERS,
@@ -10,6 +11,9 @@ import {
 } from "@/lib/ratings/employer-rating";
 import { useEmployerRatings } from "@/lib/ratings/use-employer-ratings";
 
+// Ratings are for signed-in users of any role. Guests see what the ratings
+// are and how they work, with a sign-up prompt in place of the list; the data
+// itself is locked to signed-in users (employer_rating_inputs()).
 export const Route = createFileRoute("/employer-ratings")({
   head: () => ({
     meta: [
@@ -27,6 +31,7 @@ export const Route = createFileRoute("/employer-ratings")({
 const PAGE = 40;
 
 function EmployerRatings() {
+  const { auth, loading } = useAuth();
   const { index, error } = useEmployerRatings();
   const [scope, setScope] = useState<"hiring" | "all">("hiring");
   const [tiers, setTiers] = useState<Tier[]>([]);
@@ -88,91 +93,99 @@ function EmployerRatings() {
         ))}
       </div>
 
-      <div className="mt-12 flex flex-wrap items-end justify-between gap-6 border-b border-[color:var(--color-hairline)] pb-6">
-        <div className="flex flex-wrap items-end gap-6">
-          <label className="block">
-            <span className={label}>Show</span>
-            <select
-              value={scope}
-              onChange={(e) => {
-                setScope(e.target.value as "hiring" | "all");
-                setShown(PAGE);
-              }}
-              className="mt-2 block border-b border-foreground bg-transparent py-2 text-lg font-medium outline-none"
-            >
-              <option value="hiring">Hiring on Savant</option>
-              <option value="all">All rated companies</option>
-            </select>
-          </label>
-          <label className="block">
-            <span className={label}>Search</span>
-            <input
-              value={q}
-              onChange={(e) => {
-                setQ(e.target.value);
-                setShown(PAGE);
-              }}
-              placeholder="Company name"
-              className="mt-2 block w-56 border-b border-foreground bg-transparent py-2 text-lg outline-none"
-            />
-          </label>
-        </div>
-        <ChipGroup
-          options={TIERS.map((t) => ({ value: t.tier, label: t.tier }))}
-          value={tiers}
-          onChange={(v) => {
-            setTiers(v);
-            setShown(PAGE);
-          }}
-        />
-      </div>
-
-      {error ? (
-        <p className="mt-8 text-sm text-muted-foreground">
-          Ratings aren't available right now. Please try again shortly.
-        </p>
-      ) : !index ? (
-        <p className="mt-8 text-sm text-muted-foreground">Loading ratings…</p>
-      ) : rows.length === 0 ? (
-        <p className="mt-8 text-sm text-muted-foreground">
-          No rated employers match.
-          {scope === "hiring" && (
-            <>
-              {" "}
-              <button onClick={() => setScope("all")} className="underline underline-offset-4">
-                Show all rated companies
-              </button>
-            </>
-          )}
-        </p>
+      {loading ? (
+        <p className="mt-12 text-sm text-muted-foreground">Loading…</p>
+      ) : !auth ? (
+        <SignUpToView />
       ) : (
         <>
-          <p className="mt-6 text-xs text-muted-foreground">
-            {rows.length} rated employer{rows.length === 1 ? "" : "s"}, best first.
-          </p>
-          <ol className={`mt-4 ${list}`}>
-            {rows.slice(0, shown).map((e, i) => (
-              <EmployerRow
-                key={e.key}
-                e={e}
-                position={i + 1}
-                open={open === e.key}
-                onToggle={() => setOpen(open === e.key ? null : e.key)}
-              />
-            ))}
-          </ol>
-          {rows.length > shown && (
-            <button onClick={() => setShown(shown + PAGE)} className={`mt-6 ${mutedButton}`}>
-              Show more ({rows.length - shown} left)
-            </button>
+          <div className="mt-12 flex flex-wrap items-end justify-between gap-6 border-b border-[color:var(--color-hairline)] pb-6">
+            <div className="flex flex-wrap items-end gap-6">
+              <label className="block">
+                <span className={label}>Show</span>
+                <select
+                  value={scope}
+                  onChange={(e) => {
+                    setScope(e.target.value as "hiring" | "all");
+                    setShown(PAGE);
+                  }}
+                  className="mt-2 block border-b border-foreground bg-transparent py-2 text-lg font-medium outline-none"
+                >
+                  <option value="hiring">Hiring on Savant</option>
+                  <option value="all">All rated companies</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className={label}>Search</span>
+                <input
+                  value={q}
+                  onChange={(e) => {
+                    setQ(e.target.value);
+                    setShown(PAGE);
+                  }}
+                  placeholder="Company name"
+                  className="mt-2 block w-56 border-b border-foreground bg-transparent py-2 text-lg outline-none"
+                />
+              </label>
+            </div>
+            <ChipGroup
+              options={TIERS.map((t) => ({ value: t.tier, label: t.tier }))}
+              value={tiers}
+              onChange={(v) => {
+                setTiers(v);
+                setShown(PAGE);
+              }}
+            />
+          </div>
+
+          {error ? (
+            <p className="mt-8 text-sm text-muted-foreground">
+              Ratings aren't available right now. Please try again shortly.
+            </p>
+          ) : !index ? (
+            <p className="mt-8 text-sm text-muted-foreground">Loading ratings…</p>
+          ) : rows.length === 0 ? (
+            <p className="mt-8 text-sm text-muted-foreground">
+              No rated employers match.
+              {scope === "hiring" && (
+                <>
+                  {" "}
+                  <button onClick={() => setScope("all")} className="underline underline-offset-4">
+                    Show all rated companies
+                  </button>
+                </>
+              )}
+            </p>
+          ) : (
+            <>
+              <p className="mt-6 text-xs text-muted-foreground">
+                {rows.length} rated employer{rows.length === 1 ? "" : "s"}, best first.
+              </p>
+              <ol className={`mt-4 ${list}`}>
+                {rows.slice(0, shown).map((e, i) => (
+                  <EmployerRow
+                    key={e.key}
+                    e={e}
+                    position={i + 1}
+                    open={open === e.key}
+                    onToggle={() => setOpen(open === e.key ? null : e.key)}
+                  />
+                ))}
+              </ol>
+              {rows.length > shown && (
+                <button onClick={() => setShown(shown + PAGE)} className={`mt-6 ${mutedButton}`}>
+                  Show more ({rows.length - shown} left)
+                </button>
+              )}
+            </>
+          )}
+
+          {scope === "hiring" && unrated.length > 0 && (
+            <p className="mt-8 text-xs text-muted-foreground">
+              Not yet rated (no independent data found): {unrated.map((e) => e.name).join(", ")}.
+            </p>
           )}
         </>
-      )}
-
-      {scope === "hiring" && unrated.length > 0 && (
-        <p className="mt-8 text-xs text-muted-foreground">
-          Not yet rated (no independent data found): {unrated.map((e) => e.name).join(", ")}.
-        </p>
       )}
 
       <Methodology />
@@ -276,6 +289,57 @@ function EmployerRow({
         </div>
       )}
     </li>
+  );
+}
+
+/** Shown to guests in place of the ratings list. The preview rows are placeholders, not data. */
+function SignUpToView() {
+  const preview: [Tier, number][] = [
+    ["Exemplary", 86],
+    ["Strong", 74],
+    ["Strong", 68],
+    ["Fair", 57],
+  ];
+  return (
+    <section className="relative mt-12 overflow-hidden rounded-sm border border-[color:var(--color-hairline)]">
+      <ol aria-hidden className={`pointer-events-none select-none blur-[5px] ${list}`}>
+        {preview.map(([tier, score], i) => (
+          <li key={i} className="flex items-center gap-6 px-6 py-5">
+            <span className="w-8 text-sm text-muted-foreground">{i + 1}</span>
+            <span className="h-4 flex-1 rounded-sm bg-[color:var(--color-hairline)]" />
+            <RatingBadge tier={tier} score={score} />
+            <span className="w-24 text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+              {12 - i * 3} open jobs
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div className="absolute inset-0 flex items-center justify-center bg-background/70 p-6">
+        <div className="max-w-md text-center">
+          <h2 className="text-2xl font-semibold">Sign up to view employer ratings</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            See how every employer hiring through Savant scores on pay, conduct, inclusion and
+            labor-law record, before you apply. Free for job seekers and employers.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-5">
+            <Link
+              to="/auth"
+              search={{ mode: "signup", next: "/employer-ratings" } as never}
+              className={primaryButton}
+            >
+              Sign up free
+            </Link>
+            <Link
+              to="/auth"
+              search={{ mode: "login", next: "/employer-ratings" } as never}
+              className={mutedButton}
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
