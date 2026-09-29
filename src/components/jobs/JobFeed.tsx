@@ -17,6 +17,9 @@ import {
 import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
 import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS, JOB_TRACKS } from "@/lib/scout/track";
 import { PARTNER_IDS, PARTNER_NAMES, type PartnerId } from "@/data/temp-listings";
+import { RatingBadge } from "@/components/ratings/RatingBadge";
+import { employerAnchor, type RatedEmployer } from "@/lib/ratings/employer-rating";
+import { useEmployerRatings } from "@/lib/ratings/use-employer-ratings";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES } from "@/lib/scout/types";
 import {
   Badge,
@@ -592,6 +595,7 @@ function JobRow({
   onApply: () => void;
 }) {
   const external = !!job.apply_url && job.source !== "manual";
+  const employer = useEmployerRatings().lookup(companyOf(job));
   const meta = [
     job.location ?? (job.remote ? null : "Location not listed"),
     job.remote ? "Remote" : null,
@@ -611,6 +615,9 @@ function JobRow({
           <div className="text-xl font-medium md:text-2xl">{job.title}</div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             {companyOf(job)}
+            {employer?.rating && (
+              <RatingBadge tier={employer.rating.tier} score={employer.rating.score} />
+            )}
             {job.employer_badges?.map((b) => (
               <Badge key={b} tone="good">
                 {b}
@@ -679,6 +686,7 @@ function JobRow({
               Full description is on the company's site.
             </p>
           )}
+          {employer?.rating && <EmployerRatingLine employer={employer} />}
           <EthicsDetail job={job} />
           {mode === "talent" && external && <Readiness url={job.apply_url!} />}
           {external && (
@@ -694,6 +702,26 @@ function JobRow({
         </div>
       )}
     </li>
+  );
+}
+
+/** The employer's Savant rating in one line, linking to its full breakdown. */
+function EmployerRatingLine({ employer }: { employer: RatedEmployer }) {
+  const r = employer.rating!;
+  return (
+    <div className="flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+      <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+        Employer rating
+      </span>
+      <RatingBadge tier={r.tier} score={r.score} />
+      <span className="text-xs text-muted-foreground">
+        {employer.hiringRank ? `#${employer.hiringRank} among employers hiring on Savant · ` : ""}
+        {r.confidence} confidence
+      </span>
+      <Link to="/employer-ratings" hash={employerAnchor(employer.key)} className={mutedButton}>
+        How it's rated →
+      </Link>
+    </div>
   );
 }
 
