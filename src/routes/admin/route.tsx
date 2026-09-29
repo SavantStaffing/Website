@@ -26,6 +26,8 @@ const NAV = [
 ] as const;
 
 function AdminLayout() {
-  const { userId, email } = Route.useRouteContext();
-  return <HubLayout eyebrow="Admin hub" email={email} userId={userId} nav={NAV} root="/admin" />;
+  const { userId, displayName } = Route.useRouteContext();
+  return (
+    <HubLayout eyebrow="Admin hub" name={displayName} userId={userId} nav={NAV} root="/admin" />
+  );
 }

@@ -22,8 +22,10 @@ const NAV = [
 ] as const;
 
 function TalentLayout() {
-  const { userId, email } = Route.useRouteContext();
+  const { userId, displayName } = Route.useRouteContext();
   // Lets the Savant Apply extension autofill applications as this talent.
   useEffect(() => connectSavantApplyExtension(), []);
-  return <HubLayout eyebrow="Talent hub" email={email} userId={userId} nav={NAV} root="/talent" />;
+  return (
+    <HubLayout eyebrow="Talent hub" name={displayName} userId={userId} nav={NAV} root="/talent" />
+  );
 }

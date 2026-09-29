@@ -19,8 +19,14 @@ const NAV = [
 ] as const;
 
 function CoachLayout() {
-  const { userId, email } = Route.useRouteContext();
+  const { userId, displayName } = Route.useRouteContext();
   return (
-    <HubLayout eyebrow="Career coach hub" email={email} userId={userId} nav={NAV} root="/coach" />
+    <HubLayout
+      eyebrow="Career coach hub"
+      name={displayName}
+      userId={userId}
+      nav={NAV}
+      root="/coach"
+    />
   );
 }

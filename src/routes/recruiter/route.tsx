@@ -21,8 +21,14 @@ const NAV = [
 ] as const;
 
 function RecruiterLayout() {
-  const { userId, email } = Route.useRouteContext();
+  const { userId, displayName } = Route.useRouteContext();
   return (
-    <HubLayout eyebrow="Recruiter hub" email={email} userId={userId} nav={NAV} root="/recruiter" />
+    <HubLayout
+      eyebrow="Recruiter hub"
+      name={displayName}
+      userId={userId}
+      nav={NAV}
+      root="/recruiter"
+    />
   );
 }

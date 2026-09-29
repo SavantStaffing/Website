@@ -8,18 +8,18 @@ type NavItem = { to: LinkProps["to"]; label: string };
 
 /**
  * Shared shell for the /talent, /recruiter and /admin hubs: header with the
- * signed-in email, notifications, sign out, and the section nav. The route
+ * signed-in user's name, notifications, sign out, and the section nav. The route
  * files keep their own `beforeLoad` role guards.
  */
 export function HubLayout({
   eyebrow,
-  email,
+  name,
   userId,
   nav,
   root,
 }: {
   eyebrow: string;
-  email: string | null;
+  name: string;
   userId: string;
   nav: readonly NavItem[];
   root: string;
@@ -39,7 +39,7 @@ export function HubLayout({
       <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[color:var(--color-hairline)] pb-8">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">{eyebrow}</p>
-          <h1 className="mt-3 truncate text-3xl font-semibold md:text-4xl">{email}</h1>
+          <h1 className="mt-3 truncate text-3xl font-semibold md:text-4xl">{name}</h1>
         </div>
         <div className="flex items-center gap-6">
           <Notifications userId={userId} inboxTo={`${root}/inbox`} />

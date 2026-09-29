@@ -7,6 +7,8 @@ export type AuthContext = {
   userId: string;
   email: string | null;
   role: AppRole;
+  /** What to call the user: full name from their talent profile, else username, else email. */
+  displayName: string;
   profile: {
     username: string | null;
     organizationId: string | null;
@@ -27,14 +29,24 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
     const { data: userRes, error } = await supabase.auth.getUser();
     if (error || !userRes.user) return null;
 
-    const [{ data: roleRows }, { data: profileRow }] = await Promise.all([
+    const [{ data: roleRows }, { data: profileRow }, { data: talentRow }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userRes.user.id),
       supabase
         .from("profiles")
         .select("username, organization_id")
         .eq("id", userRes.user.id)
         .maybeSingle(),
+      // Only job seekers have one; everyone else gets no row back.
+      supabase
+        .from("talent_profiles")
+        .select("first_name, last_name")
+        .eq("user_id", userRes.user.id)
+        .maybeSingle(),
     ]);
+    const fullName = [talentRow?.first_name, talentRow?.last_name]
+      .map((s) => s?.trim())
+      .filter(Boolean)
+      .join(" ");
 
     const roles = (roleRows ?? []).map((r) => r.role);
     const role: AppRole = roles.includes("admin")
@@ -49,6 +61,7 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
       userId: userRes.user.id,
       email: userRes.user.email ?? null,
       role,
+      displayName: fullName || profileRow?.username?.trim() || userRes.user.email || "Your account",
       profile: {
         username: profileRow?.username ?? null,
         organizationId: profileRow?.organization_id ?? null,
