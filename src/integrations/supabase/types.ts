@@ -346,6 +346,9 @@ export type Database = {
       };
       scout_settings: {
         Row: {
+          as_you_sow_min_employees: number;
+          max_age_days: number;
+          max_per_position: number;
           as_you_sow_min_score: number;
           audit_threshold: number;
           board_queries: Json;
@@ -362,6 +365,9 @@ export type Database = {
           ethics_min_honest: number | null;
         };
         Insert: {
+          as_you_sow_min_employees?: number;
+          max_age_days?: number;
+          max_per_position?: number;
           as_you_sow_min_score?: number;
           audit_threshold?: number;
           board_queries?: Json;
@@ -378,6 +384,9 @@ export type Database = {
           ethics_min_honest?: number | null;
         };
         Update: {
+          as_you_sow_min_employees?: number;
+          max_age_days?: number;
+          max_per_position?: number;
           as_you_sow_min_score?: number;
           audit_threshold?: number;
           board_queries?: Json;
@@ -448,6 +457,7 @@ export type Database = {
       };
       company_ratings: {
         Row: {
+          employees: number | null;
           company_name: string;
           id: string;
           imported_at: string;
@@ -458,6 +468,7 @@ export type Database = {
           year: number | null;
         };
         Insert: {
+          employees?: number | null;
           company_name: string;
           id?: string;
           imported_at?: string;
@@ -468,6 +479,7 @@ export type Database = {
           year?: number | null;
         };
         Update: {
+          employees?: number | null;
           company_name?: string;
           id?: string;
           imported_at?: string;
@@ -1046,6 +1058,10 @@ export type Database = {
         Args: {
           p_hours?: number;
         };
+        Returns: Json;
+      };
+      employer_rating_inputs: {
+        Args: Record<PropertyKey, never>;
         Returns: Json;
       };
       has_role: {

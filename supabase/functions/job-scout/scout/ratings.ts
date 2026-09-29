@@ -4,7 +4,9 @@
  * before the Job Scout ingests its postings.
  *
  *   JUST Capital rankings  — passes at rank ≤ just_capital_max_rank (default 50)
- *   As You Sow DEI scores  — passes at score ≥ as_you_sow_min_score (default 40)
+ *   As You Sow DEI scores  — passes at score ≥ as_you_sow_min_score (default 40),
+ *                            applied only to companies with at least
+ *                            as_you_sow_min_employees employees (default 1,000)
  *
  * A company that appears on a list and misses its cutoff is gated out. With
  * mode "all" (default) it must pass every list it appears on; with "any",
@@ -28,12 +30,16 @@ export type CompanyRating = {
   normalized_name: string;
   rank: number | null; // JUST Capital
   score: number | null; // As You Sow (0–100)
+  /** Headcount from the As You Sow list (num_emp); null when unknown. */
+  employees?: number | null;
 };
 
 export type RatingsConfig = {
   enabled: boolean;
   just_capital_max_rank: number;
   as_you_sow_min_score: number;
+  /** Smaller companies aren't held to the As You Sow cutoff. Unknown headcount is. */
+  as_you_sow_min_employees: number;
   mode: "all" | "any";
 };
 
@@ -41,6 +47,7 @@ export const DEFAULT_RATINGS_CONFIG: RatingsConfig = {
   enabled: true,
   just_capital_max_rank: 50,
   as_you_sow_min_score: 40,
+  as_you_sow_min_employees: 1000,
   mode: "all",
 };
 
@@ -118,7 +125,15 @@ export function evaluateCompany(
         value: `#${r.rank}`,
         passed: r.rank <= config.just_capital_max_rank,
       });
-    } else if (r.source === "as_you_sow" && r.score !== null) {
+    } else if (
+      r.source === "as_you_sow" &&
+      r.score !== null &&
+      !(
+        r.employees !== null &&
+        r.employees !== undefined &&
+        r.employees < config.as_you_sow_min_employees
+      )
+    ) {
       checks.push({
         source: r.source,
         label: `As You Sow DEI ${r.score}%`,
@@ -206,6 +221,12 @@ export function parseCsv(text: string): Record<string, string>[] {
   return body.map((r) => Object.fromEntries(keys.map((k, i) => [k, (r[i] ?? "").trim()])));
 }
 
+/** "2,200" → 2200; blank or unreadable → null. */
+const headcount = (v: string | undefined) => {
+  const n = Number((v ?? "").replace(/,/g, "").trim());
+  return v?.trim() && Number.isFinite(n) ? n : null;
+};
+
 /**
  * Turn an uploaded CSV into ratings. Accepts the As You Sow export
  * (name, score, …) and a JUST Capital list (rank, name). Returns the rows
@@ -236,6 +257,7 @@ export function ratingsFromCsv(
       normalized_name: normalized,
       rank: source === "just_capital" ? num : null,
       score: source === "as_you_sow" ? num : null,
+      employees: headcount(r.num_emp ?? r.employees),
     });
   }
   return { rows, skipped };

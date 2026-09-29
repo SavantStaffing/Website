@@ -17,6 +17,9 @@ import {
 import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
 import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS, JOB_TRACKS } from "@/lib/scout/track";
 import { PARTNER_IDS, PARTNER_NAMES, type PartnerId } from "@/data/temp-listings";
+import { RatingBadge } from "@/components/ratings/RatingBadge";
+import { employerAnchor, type RatedEmployer } from "@/lib/ratings/employer-rating";
+import { useEmployerRatings } from "@/lib/ratings/use-employer-ratings";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES } from "@/lib/scout/types";
 import {
   Badge,
@@ -592,6 +595,7 @@ function JobRow({
   onApply: () => void;
 }) {
   const external = !!job.apply_url && job.source !== "manual";
+  const employer = useEmployerRatings().lookup(companyOf(job));
   const meta = [
     job.location ?? (job.remote ? null : "Location not listed"),
     job.remote ? "Remote" : null,
@@ -611,6 +615,9 @@ function JobRow({
           <div className="text-xl font-medium md:text-2xl">{job.title}</div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             {companyOf(job)}
+            {employer?.rating && (
+              <RatingBadge tier={employer.rating.tier} score={employer.rating.score} />
+            )}
             {job.employer_badges?.map((b) => (
               <Badge key={b} tone="good">
                 {b}
@@ -659,13 +666,16 @@ function JobRow({
             <button onClick={onApply} className={linkButton}>
               {partnerOf(job)
                 ? `Book on ${partnerOf(job)} ↗`
-                : external
-                  ? "Apply on company site ↗"
-                  : "Apply →"}
+                : AGGREGATOR_NAMES[job.source]
+                  ? `Apply via ${AGGREGATOR_NAMES[job.source]} ↗`
+                  : external
+                    ? "Apply on company site ↗"
+                    : "Apply →"}
             </button>
           )}
         </div>
       </div>
+      <AggregatorCredit source={job.source} />
       {open && (
         <div className="mt-5 space-y-4">
           {job.description ? (
@@ -679,6 +689,7 @@ function JobRow({
               Full description is on the company's site.
             </p>
           )}
+          {employer?.rating && <EmployerRatingLine employer={employer} />}
           <EthicsDetail job={job} />
           {mode === "talent" && external && <Readiness url={job.apply_url!} />}
           {external && (
@@ -694,6 +705,58 @@ function JobRow({
         </div>
       )}
     </li>
+  );
+}
+
+const AGGREGATOR_NAMES: Record<string, string> = { adzuna: "Adzuna", jooble: "Jooble" };
+
+/**
+ * Credit for listings from a job-search API. Adzuna's API terms require
+ * "Jobs by Adzuna" on every advert shown, linked to Adzuna.
+ */
+function AggregatorCredit({ source }: { source: string }) {
+  if (source === "adzuna")
+    return (
+      <a
+        href="https://www.adzuna.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+      >
+        Jobs by <span className="font-semibold tracking-tight">Adzuna</span>
+      </a>
+    );
+  if (source === "jooble")
+    return (
+      <a
+        href="https://jooble.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-block text-xs text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+      >
+        via Jooble
+      </a>
+    );
+  return null;
+}
+
+/** The employer's Savant rating in one line, linking to its full breakdown. */
+function EmployerRatingLine({ employer }: { employer: RatedEmployer }) {
+  const r = employer.rating!;
+  return (
+    <div className="flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+      <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+        Employer rating
+      </span>
+      <RatingBadge tier={r.tier} score={r.score} />
+      <span className="text-xs text-muted-foreground">
+        {employer.hiringRank ? `#${employer.hiringRank} among employers hiring on Savant · ` : ""}
+        {r.confidence} confidence
+      </span>
+      <Link to="/employer-ratings" hash={employerAnchor(employer.key)} className={mutedButton}>
+        How it's rated →
+      </Link>
+    </div>
   );
 }
 

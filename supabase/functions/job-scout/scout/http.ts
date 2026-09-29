@@ -54,7 +54,8 @@ export class HttpError extends Error {
 const USER_AGENT = "SavantJobScout/1.0 (+https://savantstaffing.com)";
 
 /**
- * GET with timeout, and one polite retry on 429/5xx honoring Retry-After.
+ * GET with timeout, and one polite retry on 429/5xx honoring Retry-After
+ * (`retry: false` for metered APIs, where a retry would spend another request).
  * Status 0 in the metrics means a network error or timeout.
  */
 export async function scoutFetch(
@@ -67,6 +68,7 @@ export async function scoutFetch(
     method?: string;
     body?: string;
     headers?: Record<string, string>;
+    retry?: boolean;
   } = {},
 ): Promise<Response> {
   const attempt = async () => {
@@ -93,7 +95,7 @@ export async function scoutFetch(
   };
 
   let res = await attempt();
-  if (res.status === 429 || res.status >= 500) {
+  if (opts.retry !== false && (res.status === 429 || res.status >= 500)) {
     const retryAfter = Number(res.headers.get("retry-after"));
     const waitMs =
       Number.isFinite(retryAfter) && retryAfter > 0 ? Math.min(retryAfter, 10) * 1000 : 1500;

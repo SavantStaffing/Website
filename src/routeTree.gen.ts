@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CoachRouteRouteImport } from './routes/coach/route'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as EmployerRatingsRouteImport } from './routes/employer-ratings'
 import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as JobsRouteImport } from './routes/jobs'
@@ -106,6 +107,11 @@ const ContactRoute = ContactRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployerRatingsRoute = EmployerRatingsRouteImport.update({
+  id: '/employer-ratings',
+  path: '/employer-ratings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForbiddenRoute = ForbiddenRouteImport.update({
@@ -400,6 +406,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/employer-ratings': typeof EmployerRatingsRoute
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
@@ -461,6 +468,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/employer-ratings': typeof EmployerRatingsRoute
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
@@ -527,6 +535,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/employer-ratings': typeof EmployerRatingsRoute
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
@@ -594,6 +603,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
+    | '/employer-ratings'
     | '/forbidden'
     | '/insights'
     | '/jobs'
@@ -655,6 +665,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
+    | '/employer-ratings'
     | '/forbidden'
     | '/insights'
     | '/jobs'
@@ -720,6 +731,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
+    | '/employer-ratings'
     | '/forbidden'
     | '/insights'
     | '/jobs'
@@ -786,6 +798,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
+  EmployerRatingsRoute: typeof EmployerRatingsRoute
   ForbiddenRoute: typeof ForbiddenRoute
   InsightsRoute: typeof InsightsRoute
   JobsRoute: typeof JobsRoute
@@ -851,6 +864,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employer-ratings': {
+      id: '/employer-ratings'
+      path: '/employer-ratings'
+      fullPath: '/employer-ratings'
+      preLoaderRoute: typeof EmployerRatingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forbidden': {
@@ -1386,6 +1406,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
+  EmployerRatingsRoute: EmployerRatingsRoute,
   ForbiddenRoute: ForbiddenRoute,
   InsightsRoute: InsightsRoute,
   JobsRoute: JobsRoute,

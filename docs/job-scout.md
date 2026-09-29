@@ -102,6 +102,19 @@ INC"); for a mismatch, use **Match name** on the company's row in
 employers' postings carry a badge in the feed and rank slightly higher.
 Job-board postings are gated per posting by their employer name.
 
+The As You Sow cutoff only applies to companies with at least
+`as_you_sow_min_employees` employees (default 1,000, headcount from the As You
+Sow list). Its score mostly reflects published workforce-diversity reporting,
+which smaller companies rarely produce.
+
+**What gets ingested** (`/admin/settings`, `scout_settings`): U.S. postings
+only (`location.ts`; Workday boards are also searched with their own U.S.
+filter); posted within `max_age_days` (default 21; undated postings stay); and
+at most `max_per_position` postings (default 5) per position type per employer
+(`position.ts` — software engineering, accounting, admin…), Bay Area first,
+then newest. Staffing agencies aren't capped. Skipped postings are closed on
+the company's next scan.
+
 `node scripts/scout-smoke.ts` runs the real pipeline against live boards with an
 in-memory store — no database needed. Pass a careers URL to try one company:
 `node scripts/scout-smoke.ts https://www.figma.com/careers/ Figma`.

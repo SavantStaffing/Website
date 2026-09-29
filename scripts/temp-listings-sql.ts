@@ -148,9 +148,12 @@ WITH listing(external_id, normalized_name) AS (
 ${rows.map((r) => `    (${q(r.externalId)}, ${q(r.normalized)})`).join(",\n")}
 ), verdicts AS (
   SELECT l.external_id,
+         -- As You Sow only applies from as_you_sow_min_employees employees up.
          bool_and(CASE WHEN r.source = 'just_capital' THEN r.rank <= s.just_capital_max_rank
+                       WHEN r.employees < s.as_you_sow_min_employees THEN true
                        ELSE r.score >= s.as_you_sow_min_score END) AS passes_all,
          bool_or(CASE WHEN r.source = 'just_capital' THEN r.rank <= s.just_capital_max_rank
+                      WHEN r.employees < s.as_you_sow_min_employees THEN true
                       ELSE r.score >= s.as_you_sow_min_score END) AS passes_any,
          s.ratings_mode
   FROM listing l

@@ -42,6 +42,10 @@ function Settings() {
   const [queries, setQueries] = useState<Query[]>([]);
   const [ghost, setGhost] = useState("50");
   const [audit, setAudit] = useState("80");
+  const [perPosition, setPerPosition] = useState("5");
+  const [maxAge, setMaxAge] = useState("21");
+  // False until the database has these columns (migration 20260928000005).
+  const [hasIngestRules, setHasIngestRules] = useState(false);
   const [term, setTerm] = useState("");
   const [where, setWhere] = useState("");
 
@@ -60,6 +64,11 @@ function Settings() {
           setQueries(Array.isArray(data.board_queries) ? (data.board_queries as Query[]) : []);
           setGhost(String(data.ghost_threshold));
           setAudit(String(Math.round(Number(data.audit_threshold) * 100)));
+          if (data.max_per_position !== undefined) {
+            setHasIngestRules(true);
+            setPerPosition(String(data.max_per_position));
+            setMaxAge(String(data.max_age_days));
+          }
         }
         setLoading(false);
       });
@@ -73,6 +82,12 @@ function Settings() {
       return toast.error("Ghost threshold must be 1–100.");
     if (!Number.isFinite(a) || a < 0 || a > 100)
       return toast.error("Audit pass rate must be 0–100%.");
+    const cap = Number(perPosition);
+    const age = Number(maxAge);
+    if (hasIngestRules && (!Number.isInteger(cap) || cap < 1))
+      return toast.error("Postings per position type must be 1 or more.");
+    if (hasIngestRules && (!Number.isInteger(age) || age < 1))
+      return toast.error("Maximum age must be 1 day or more.");
     setSaving(true);
     const { error } = await supabase
       .from("scout_settings")
@@ -81,6 +96,7 @@ function Settings() {
         board_queries: queries,
         ghost_threshold: g,
         audit_threshold: a / 100,
+        ...(hasIngestRules ? { max_per_position: cap, max_age_days: age } : {}),
       })
       .eq("id", 1);
     setSaving(false);
@@ -125,6 +141,33 @@ function Settings() {
           />
         </ul>
       </section>
+
+      {hasIngestRules && (
+        <section>
+          <SectionHeading title="What gets ingested" />
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            U.S. postings only. Per employer, the scout keeps this many postings of each position
+            type (software engineering, accounting, admin…), Bay Area first, then newest. Staffing
+            agencies aren't capped.
+          </p>
+          <div className="mt-6 grid max-w-xl gap-6 sm:grid-cols-2">
+            <Field
+              label="Postings per position type"
+              type="number"
+              value={perPosition}
+              onChange={setPerPosition}
+              hint="Per employer. Default 5."
+            />
+            <Field
+              label="Maximum age (days)"
+              type="number"
+              value={maxAge}
+              onChange={setMaxAge}
+              hint="Older postings aren't ingested. Default 21."
+            />
+          </div>
+        </section>
+      )}
 
       <section>
         <SectionHeading title="Ghost Job Detector & auditor" />
