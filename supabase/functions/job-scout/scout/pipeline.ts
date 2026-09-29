@@ -9,6 +9,8 @@ import {
 } from "./ethics.ts";
 import { scoreGhost, GHOST_FLAG_THRESHOLD } from "./ghost.ts";
 import { HttpError, MetricsRecorder, mapLimit } from "./http.ts";
+import { BAY_AREA, classifyLocation } from "./location.ts";
+import { positionType } from "./position.ts";
 import {
   cleanTitle,
   employmentTypeLabel,
@@ -25,9 +27,25 @@ import {
   type CompanyRating,
   type RatingsConfig,
 } from "./ratings.ts";
+import {
+  API_BUDGETS,
+  DEFAULT_AGGREGATOR_QUERIES,
+  adzunaSearch,
+  joobleSearch,
+  requestAllowance,
+  type AdzunaCredentials,
+  type ApiUsage,
+} from "./aggregators.ts";
 import { ATS_ADAPTERS, jobspy } from "./sources.ts";
 import { classifyTrack } from "./track.ts";
-import type { BoardSource, NormalizedJob, RawJob, ScoutCompany, SourceMetrics } from "./types.ts";
+import type {
+  AggregatorSource,
+  BoardSource,
+  NormalizedJob,
+  RawJob,
+  ScoutCompany,
+  SourceMetrics,
+} from "./types.ts";
 import { audit, AUDIT_PASS_THRESHOLD, fillRates } from "./validate.ts";
 import { scanCompanySite } from "./webscan.ts";
 
@@ -41,6 +59,8 @@ import { scanCompanySite } from "./webscan.ts";
  *     → Company Web Scan (identify the ATS when the config row doesn't know it yet)
  *     → Call endpoint → Map into site schema               (sources.ts)
  *     → Data-quality check (schema validation)             (validate.ts)
+ *     → U.S. only, posted in the last 21 days, ≤ 5 per position type per employer
+ *                                                          (location.ts, position.ts)
  *     → Refine parameters: position, industry/NAICS, date, location, type (refine.ts)
  *     → Feed track: temp & hourly vs professional          (track.ts)
  *     → Ghost Job Detector v2                              (ghost.ts)
@@ -62,11 +82,17 @@ export type ExistingJob = {
   ghost_override: boolean;
 };
 
+type BoardQuery = { search_term: string; location?: string };
+
 export type ScoutSettings = {
   enabled_boards: BoardSource[];
-  board_queries: { search_term: string; location?: string }[];
+  board_queries: BoardQuery[];
   ghost_threshold: number;
   audit_threshold: number;
+  /** Most postings of one position type (position.ts) kept per employer. */
+  max_per_position: number;
+  /** Postings older than this many days aren't ingested. */
+  max_age_days: number;
 };
 
 export const DEFAULT_SETTINGS: ScoutSettings = {
@@ -74,6 +100,8 @@ export const DEFAULT_SETTINGS: ScoutSettings = {
   board_queries: [],
   ghost_threshold: GHOST_FLAG_THRESHOLD,
   audit_threshold: AUDIT_PASS_THRESHOLD,
+  max_per_position: 5,
+  max_age_days: 21,
 };
 
 export type CompanyPatch = Partial<
@@ -127,6 +155,10 @@ export interface ScoutStore {
   /** Cached ethics lookup for a company key, if any. */
   getEthics(companyKey: string): Promise<EthicsRecord | null>;
   saveEthics(record: EthicsRecord): Promise<void>;
+  /** Metered-API calls made so far (aggregators.ts budgets). */
+  apiUsage(source: AggregatorSource): Promise<ApiUsage>;
+  /** Count one call, atomically; returns the counts after it. */
+  recordApiRequest(source: AggregatorSource): Promise<{ today: number; total: number }>;
 }
 
 export type CompanyOutcome = {
@@ -170,6 +202,8 @@ export async function runScout(
     settings?: ScoutSettings;
     jobspyUrl?: string | null;
     jobspyToken?: string | null;
+    /** Job-aggregator API keys; a source without one is skipped. */
+    aggregators?: { adzuna?: AdzunaCredentials | null; joobleKey?: string | null };
     /** JUST Capital / As You Sow lists + cutoffs. Omit to skip the gate. */
     ratings?: { config: RatingsConfig; list: CompanyRating[] };
     /** Live employer-ethics lookups. Omit to skip them. */
@@ -366,6 +400,114 @@ export async function runScout(
     }
   });
 
+  // Board and aggregator postings name their employer per row, so the ratings
+  // gate runs per posting; ingest() caps per employer and position type.
+  const verdicts = new Map<string, ReturnType<typeof rate>>();
+  const verdictFor = (name: string) => {
+    if (!verdicts.has(name)) verdicts.set(name, rate(name));
+    return verdicts.get(name)!;
+  };
+  const ingestBoardRows = async (
+    raw: RawJob[],
+    outcome: CompanyOutcome,
+    descriptionAvailable: boolean,
+  ) => {
+    const allowed = raw.filter((r) => {
+      const v = verdictFor(r.company_name);
+      return !(v && isGatedOut(v));
+    });
+    outcome.rejected += raw.length - allowed.length;
+    outcome.found += raw.length - allowed.length;
+    const bySite = new Map<string, RawJob[]>();
+    for (const r of allowed) bySite.set(r.source, [...(bySite.get(r.source) ?? []), r]);
+    for (const [site, rows] of bySite) {
+      const r = await ingest(store, rows, {
+        company: null,
+        settings,
+        now,
+        runStartedAt,
+        dryRun: !!opts.dryRun,
+        descriptionAvailable,
+        tally: tally(site),
+        badgesFor: (name) => verdictFor(name)?.badges ?? [],
+      });
+      outcome.found += rows.length;
+      outcome.inserted += r.inserted;
+      outcome.updated += r.updated;
+      outcome.rejected += r.rejected;
+      outcome.flagged += r.flagged;
+    }
+  };
+
+  // --- Job-aggregator APIs (Adzuna, Jooble), within their request budgets
+  const searches: [AggregatorSource, string, (q: BoardQuery) => Promise<RawJob[]>][] = [];
+  const adzunaCreds = opts.aggregators?.adzuna;
+  const joobleKey = opts.aggregators?.joobleKey;
+  if (adzunaCreds)
+    searches.push([
+      "adzuna",
+      "Adzuna",
+      (q) => adzunaSearch(rec, adzunaCreds, q, { maxDaysOld: settings.max_age_days }),
+    ]);
+  if (joobleKey) searches.push(["jooble", "Jooble", (q) => joobleSearch(rec, joobleKey, q)]);
+  const queries = settings.board_queries.length
+    ? settings.board_queries
+    : DEFAULT_AGGREGATOR_QUERIES;
+  for (const [source, label, search] of searches) {
+    const outcome: CompanyOutcome = {
+      company: `Job search API: ${label}`,
+      status: "ok",
+      ats: source,
+      found: 0,
+      passRate: 1,
+      inserted: 0,
+      updated: 0,
+      rejected: 0,
+      flagged: 0,
+      closed: 0,
+    };
+    try {
+      const budget = API_BUDGETS[source];
+      const usage = await store.apiUsage(source);
+      // A preview never spends metered requests.
+      const allowance = opts.dryRun ? 0 : requestAllowance(budget, usage, now);
+      if (allowance === 0) {
+        outcome.error = `Skipped: request budget (used ${usage.today} today, ${usage.total} total)`;
+        outcomes.push(outcome);
+        continue;
+      }
+      // Rotate through the searches from one scan to the next.
+      const start = usage.total % queries.length;
+      const raw: RawJob[] = [];
+      for (let i = 0; i < Math.min(allowance, queries.length); i++) {
+        if (i) await new Promise((r) => setTimeout(r, budget.minMsBetweenRequests));
+        // Counted before it's sent (a failed call still uses the provider's quota),
+        // atomically, so a second scan running at the same time can't overspend.
+        const after = await store.recordApiRequest(source);
+        if (
+          after.today > budget.perDay ||
+          (budget.lifetime !== null && after.total > budget.lifetime)
+        )
+          break;
+        try {
+          raw.push(...(await search(queries[(start + i) % queries.length])));
+        } catch (error) {
+          // Throttled or the key was refused: stop spending on this source for now.
+          if (error instanceof HttpError && [401, 403, 429].includes(error.status)) throw error;
+          outcome.error = error instanceof Error ? error.message : String(error);
+        }
+      }
+      await ingestBoardRows(raw, outcome, false);
+      // Searches return recent postings only; close ones unseen for two weeks.
+      const twoWeeksAgo = new Date(now.getTime() - 14 * 86_400_000).toISOString();
+      outcome.closed += await store.closeUnseen({ sources: [source] }, twoWeeksAgo);
+    } catch (error) {
+      outcome.status = error instanceof HttpError ? "http_error" : "error";
+      outcome.error = error instanceof Error ? error.message : String(error);
+    }
+    outcomes.push(outcome);
+  }
+
   // --- Job boards through JobSpy (off unless configured + enabled by an admin)
   if (opts.jobspyUrl && settings.enabled_boards.length && settings.board_queries.length) {
     for (const q of settings.board_queries) {
@@ -386,37 +528,7 @@ export async function runScout(
           ...q,
           sites: settings.enabled_boards,
         });
-        // Board postings name their employer per row, so the ratings gate runs per posting.
-        const verdicts = new Map<string, ReturnType<typeof rate>>();
-        const verdictFor = (name: string) => {
-          if (!verdicts.has(name)) verdicts.set(name, rate(name));
-          return verdicts.get(name)!;
-        };
-        const allowed = raw.filter((r) => {
-          const v = verdictFor(r.company_name);
-          return !(v && isGatedOut(v));
-        });
-        outcome.rejected += raw.length - allowed.length;
-        outcome.found += raw.length - allowed.length;
-        const bySite = new Map<string, RawJob[]>();
-        for (const r of allowed) bySite.set(r.source, [...(bySite.get(r.source) ?? []), r]);
-        for (const [site, rows] of bySite) {
-          const r = await ingest(store, rows, {
-            company: null,
-            settings,
-            now,
-            runStartedAt,
-            dryRun: !!opts.dryRun,
-            descriptionAvailable: true,
-            tally: tally(site),
-            badgesFor: (name) => verdictFor(name)?.badges ?? [],
-          });
-          outcome.found += rows.length;
-          outcome.inserted += r.inserted;
-          outcome.updated += r.updated;
-          outcome.rejected += r.rejected;
-          outcome.flagged += r.flagged;
-        }
+        await ingestBoardRows(raw, outcome, true);
       } catch (error) {
         outcome.status = error instanceof HttpError ? "http_error" : "error";
         outcome.error = error instanceof Error ? error.message : String(error);
@@ -496,9 +608,31 @@ async function ingest(
   }
 
   // Duplicate IDs inside one response happen (multi-location postings); keep the first.
-  const unique = [
+  const deduped = [
     ...new Map(audited.valid.map((j) => [`${j.source}:${j.external_id}`, j])).values(),
   ];
+
+  // --- Which postings to keep. Skipped postings aren't upserted, so any copy
+  // already in the database is closed by closeUnseen below.
+  //
+  // 1. U.S. only (location.ts). A source that already filtered to the U.S.
+  //    vouches for postings with no readable location; clearly foreign ones
+  //    are still dropped.
+  const domestic = deduped.filter((j) => {
+    const where = classifyLocation(j.location);
+    return where === "us" || (where === "unknown" && j.country_hint === "US");
+  });
+  // 2. Posted within max_age_days. A posting with no date can't be judged and stays.
+  const cutoff = ctx.now.getTime() - ctx.settings.max_age_days * 86_400_000;
+  const fresh = domestic.filter((j) => !j.posted_at || Date.parse(j.posted_at) >= cutoff);
+  // 3. At most max_per_position postings of each position type per employer
+  //    (position.ts), Bay Area first, then newest. Staffing agencies post for
+  //    many clients, so they aren't capped.
+  const unique =
+    ctx.company?.company_type === "staffing_agency"
+      ? fresh
+      : capPerPosition(fresh, ctx.settings.max_per_position);
+  const skipped = deduped.length - unique.length;
 
   const existing = new Map<string, ExistingJob>();
   const bySource = new Map<string, string[]>();
@@ -601,7 +735,7 @@ async function ingest(
       ...empty,
       passed: true,
       passRate: audited.passRate,
-      rejected: audited.failures.length,
+      rejected: audited.failures.length + skipped,
       flagged,
       inserted: rows.length,
     };
@@ -617,12 +751,33 @@ async function ingest(
   return {
     passed: true,
     passRate: audited.passRate,
-    rejected: audited.failures.length,
+    // Schema failures plus postings skipped: outside the U.S., too old, over the cap.
+    rejected: audited.failures.length + skipped,
     inserted,
     updated,
     flagged,
     closed,
   };
+}
+
+/**
+ * Keep at most `max` postings per (employer, position type): Bay Area
+ * postings first, then the most recently posted.
+ */
+export function capPerPosition(jobs: RawJob[], max: number): RawJob[] {
+  const time = (j: RawJob) => (j.posted_at ? Date.parse(j.posted_at) : 0);
+  const ordered = [...jobs].sort(
+    (a, b) =>
+      Number(BAY_AREA.test(b.location ?? "")) - Number(BAY_AREA.test(a.location ?? "")) ||
+      time(b) - time(a),
+  );
+  const counts = new Map<string, number>();
+  return ordered.filter((j) => {
+    const key = `${j.company_name.toLowerCase()}|${positionType(j.title, j.department)}`;
+    const n = counts.get(key) ?? 0;
+    counts.set(key, n + 1);
+    return n < max;
+  });
 }
 
 // ---------------------------------------------------------------- employer ethics

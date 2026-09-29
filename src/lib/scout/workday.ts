@@ -1,4 +1,5 @@
 import { mapLimit, scoutJson, type MetricsRecorder } from "./http.ts";
+import { isUnitedStates } from "./location.ts";
 import { htmlToText, iso } from "./text.ts";
 import type { RawJob } from "./types.ts";
 
@@ -64,25 +65,69 @@ export function workdayPostedOn(text: string | undefined, now = Date.now()): str
   return null;
 }
 
+type WorkdayFacet = {
+  facetParameter?: string;
+  descriptor?: string;
+  id?: string;
+  values?: WorkdayFacet[];
+};
+
+const US_COUNTRY_VALUE = /^(united states( of america)?|usa|us)$/i;
+
+/**
+ * The search filter that limits a board to U.S. postings. Facet names differ
+ * per tenant: a country facet ("Location_Country", "locationHierarchy1") when
+ * there is one; otherwise every U.S. value of the site/city facet
+ * ("locations", "primaryLocation"). Null when neither exists.
+ */
+export function workdayUsFacet(
+  facets: WorkdayFacet[] | undefined,
+): Record<string, string[]> | null {
+  const all: WorkdayFacet[] = [];
+  const walk = (fs: WorkdayFacet[] | undefined) => {
+    for (const f of fs ?? []) {
+      if (f.facetParameter && f.values?.some((v) => v.id)) all.push(f);
+      walk(f.values?.filter((v) => v.values));
+    }
+  };
+  walk(facets);
+
+  for (const f of all) {
+    const us = f.values!.find((v) => v.id && US_COUNTRY_VALUE.test(v.descriptor?.trim() ?? ""));
+    if (us) return { [f.facetParameter!]: [us.id!] };
+  }
+  for (const f of all) {
+    if (!/^(locations|primaryLocation)$/i.test(f.facetParameter!)) continue;
+    const ids = f.values!.filter((v) => v.id && isUnitedStates(v.descriptor)).map((v) => v.id!);
+    if (ids.length) return { [f.facetParameter!]: ids };
+  }
+  return null;
+}
+
 export async function workday(
   rec: MetricsRecorder,
   token: string,
   company: string,
 ): Promise<RawJob[]> {
   const { host, site, api } = parseWorkdayToken(token);
-
-  const listed: WorkdayListing[] = [];
-  for (let offset = 0; offset < MAX_LISTED; offset += PAGE) {
-    const page = await scoutJson<{ jobPostings?: WorkdayListing[] }>(
+  const page = (offset: number, appliedFacets: Record<string, string[]>) =>
+    scoutJson<{ jobPostings?: WorkdayListing[]; facets?: WorkdayFacet[] }>(
       rec,
       "workday",
       `${api}/jobs`,
       {
         method: "POST",
-        body: JSON.stringify({ appliedFacets: {}, limit: PAGE, offset, searchText: "" }),
+        body: JSON.stringify({ appliedFacets, limit: PAGE, offset, searchText: "" }),
       },
     );
-    const rows = page.jobPostings ?? [];
+
+  // The first unfiltered page carries the facets; use them to list U.S. postings only.
+  const first = await page(0, {});
+  const usFacet = workdayUsFacet(first.facets);
+  const listed: WorkdayListing[] = [];
+  for (let offset = 0; offset < MAX_LISTED; offset += PAGE) {
+    const rows =
+      (!usFacet && offset === 0 ? first : await page(offset, usFacet ?? {})).jobPostings ?? [];
     listed.push(...rows);
     if (rows.length < PAGE) break;
   }
@@ -119,6 +164,7 @@ export async function workday(
           ? /\b(remote|virtual)\b/i.test(`${d?.remoteType ?? ""} ${locations}`)
           : null,
       posted_at: iso(d?.startDate) ?? workdayPostedOn(l.postedOn),
+      country_hint: usFacet ? "US" : null,
     } satisfies RawJob;
   });
 }

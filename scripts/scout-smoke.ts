@@ -93,6 +93,13 @@ const store: ScoutStore = {
     return null;
   },
   async saveEthics() {},
+  // The smoke run passes no aggregator keys, so these are never reached.
+  async apiUsage() {
+    return { today: 0, last7Days: 0, last30Days: 0, total: 0, lastRequestAt: null };
+  },
+  async recordApiRequest() {
+    return { today: 0, total: 0 };
+  },
 };
 
 const summary = await runScout(store);

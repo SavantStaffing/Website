@@ -24,5 +24,10 @@ export function runAndRecord(opts: {
     jobspyToken: process.env.JOBSPY_TOKEN || null,
     dolApiKey: process.env.DOL_API_KEY || null,
     wikirateKey: process.env.WIKIRATE_API_KEY || null,
+    adzuna:
+      process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY
+        ? { appId: process.env.ADZUNA_APP_ID, appKey: process.env.ADZUNA_APP_KEY }
+        : null,
+    joobleKey: process.env.JOOBLE_API_KEY || null,
   });
 }

@@ -47,14 +47,17 @@ function Ratings() {
     for (let from = 0; ; from += 1000) {
       const { data } = await supabase
         .from("company_ratings")
-        .select("source, company_name, normalized_name, rank, score")
+        .select("*")
         .order("company_name")
         .range(from, from + 999);
       rows.push(
         ...(data ?? []).map((r) => ({
-          ...r,
           source: r.source as RatingSource,
+          company_name: r.company_name,
+          normalized_name: r.normalized_name,
+          rank: r.rank,
           score: r.score === null ? null : Number(r.score),
+          employees: r.employees ?? null,
         })),
       );
       if (!data || data.length < 1000) break;
@@ -66,7 +69,7 @@ function Ratings() {
     load();
     supabase
       .from("scout_settings")
-      .select("ratings_enabled, just_capital_max_rank, as_you_sow_min_score, ratings_mode")
+      .select("*")
       .eq("id", 1)
       .maybeSingle()
       .then(({ data }) => {
@@ -75,6 +78,8 @@ function Ratings() {
             enabled: data.ratings_enabled,
             just_capital_max_rank: data.just_capital_max_rank,
             as_you_sow_min_score: Number(data.as_you_sow_min_score),
+            as_you_sow_min_employees:
+              data.as_you_sow_min_employees ?? DEFAULT_RATINGS_CONFIG.as_you_sow_min_employees,
             mode: data.ratings_mode === "any" ? "any" : "all",
           });
       });
@@ -87,7 +92,13 @@ function Ratings() {
     const verdicts = names.map((n) => evaluateCompany(n, index, config).verdict);
     const bySource = (s: RatingSource) => (list ?? []).filter((r) => r.source === s);
     const just = bySource("just_capital");
-    const ays = bySource("as_you_sow");
+    // Companies under the headcount floor aren't held to the As You Sow cutoff.
+    const ays = bySource("as_you_sow").filter(
+      (r) =>
+        r.employees === null ||
+        r.employees === undefined ||
+        r.employees >= config.as_you_sow_min_employees,
+    );
     return {
       companies: names.length,
       pass: verdicts.filter((v) => v === "pass").length,
@@ -109,6 +120,8 @@ function Ratings() {
       return toast.error("JUST Capital cutoff must be a rank above 0.");
     if (!(config.as_you_sow_min_score >= 0 && config.as_you_sow_min_score <= 100))
       return toast.error("As You Sow cutoff must be 0–100.");
+    if (!(config.as_you_sow_min_employees >= 0))
+      return toast.error("Employee minimum can't be negative.");
     setSaving(true);
     const { error } = await supabase
       .from("scout_settings")
@@ -116,6 +129,7 @@ function Ratings() {
         ratings_enabled: config.enabled,
         just_capital_max_rank: config.just_capital_max_rank,
         as_you_sow_min_score: config.as_you_sow_min_score,
+        as_you_sow_min_employees: config.as_you_sow_min_employees,
         ratings_mode: config.mode,
       })
       .eq("id", 1);
@@ -154,7 +168,8 @@ function Ratings() {
             {list ? `${stats.ays.pass} / ${stats.ays.total}` : "…"}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
-            pass at score ≥ {config.as_you_sow_min_score}%
+            pass at score ≥ {config.as_you_sow_min_score}%, applied at{" "}
+            {config.as_you_sow_min_employees.toLocaleString()}+ employees
           </div>
         </div>
         <div className={card}>
@@ -187,6 +202,12 @@ function Ratings() {
             type="number"
             value={String(config.as_you_sow_min_score)}
             onChange={(v) => setConfig((c) => ({ ...c, as_you_sow_min_score: Number(v) }))}
+          />
+          <Field
+            label="As You Sow: only for companies with at least (employees)"
+            type="number"
+            value={String(config.as_you_sow_min_employees)}
+            onChange={(v) => setConfig((c) => ({ ...c, as_you_sow_min_employees: Number(v) }))}
           />
         </div>
         <label className="block">

@@ -14,6 +14,7 @@ import {
   type RatingSource,
 } from "./ratings.ts";
 import type { CompanyType } from "./track.ts";
+import type { AdzunaCredentials, ApiUsage } from "./aggregators.ts";
 import type { AtsPlatform, BoardSource, ScoutCompany } from "./types.ts";
 
 /**
@@ -28,8 +29,13 @@ import type { AtsPlatform, BoardSource, ScoutCompany } from "./types.ts";
  */
 
 // The slice of supabase-js used here, so this module doesn't import it.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ScoutDb = { from: (table: string) => any };
+export type ScoutDb = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  from: (table: string) => any;
+  // The typed client narrows `fn` to known function names; accept any.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rpc: (fn: any, args?: any) => any;
+};
 
 type Row = Record<string, unknown>;
 
@@ -188,6 +194,37 @@ export function createScoutStore(db: ScoutDb): ScoutStore {
       if (error) throw new Error(error.message);
     },
 
+    async apiUsage(source): Promise<ApiUsage> {
+      const { data, error } = await db
+        .from("scout_api_usage")
+        .select("day, requests, last_request_at")
+        .eq("source", source);
+      if (error) throw new Error(error.message);
+      const rows = (data ?? []) as { day: string; requests: number; last_request_at: string }[];
+      // Days are UTC dates, as the database stores them.
+      const dayAgo = (n: number) =>
+        new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
+      const sum = (since: string) =>
+        rows.filter((r) => r.day > since).reduce((a, r) => a + r.requests, 0);
+      return {
+        today: sum(dayAgo(1)),
+        last7Days: sum(dayAgo(7)),
+        last30Days: sum(dayAgo(30)),
+        total: rows.reduce((a, r) => a + r.requests, 0),
+        lastRequestAt:
+          rows
+            .map((r) => r.last_request_at)
+            .sort()
+            .at(-1) ?? null,
+      };
+    },
+
+    async recordApiRequest(source) {
+      const { data, error } = await db.rpc("record_scout_api_request", { p_source: source });
+      if (error) throw new Error(error.message);
+      return { today: Number(data?.today ?? 0), total: Number(data?.total ?? 0) };
+    },
+
     async resolveUniqueScanner(companyId) {
       const { error } = await db
         .from("unique_scanner_sites")
@@ -209,6 +246,8 @@ export async function loadScoutSettings(db: ScoutDb): Promise<ScoutSettings> {
       : []) as ScoutSettings["board_queries"],
     ghost_threshold: data.ghost_threshold,
     audit_threshold: Number(data.audit_threshold),
+    max_per_position: data.max_per_position ?? DEFAULT_SETTINGS.max_per_position,
+    max_age_days: data.max_age_days ?? DEFAULT_SETTINGS.max_age_days,
   };
 }
 
@@ -222,20 +261,25 @@ export async function loadRatings(
       const rows: CompanyRating[] = [];
       // PostgREST caps a response at 1000 rows; page through.
       for (let from = 0; ; from += 1000) {
+        // "*" so a database without the employees column yet still loads.
         const { data, error } = await db
           .from("company_ratings")
-          .select("source, company_name, normalized_name, rank, score")
+          .select("*")
           .range(from, from + 999);
         if (error) throw new Error(error.message);
-        const page = (data ?? []) as (Omit<CompanyRating, "source" | "score"> & {
+        const page = (data ?? []) as (Omit<CompanyRating, "source" | "score" | "employees"> & {
           source: string;
           score: number | string | null;
+          employees?: number | null;
         })[];
         rows.push(
           ...page.map((r) => ({
-            ...r,
             source: r.source as RatingSource,
+            company_name: r.company_name,
+            normalized_name: r.normalized_name,
+            rank: r.rank,
             score: r.score === null ? null : Number(r.score),
+            employees: r.employees ?? null,
           })),
         );
         if (page.length < 1000) break;
@@ -248,6 +292,8 @@ export async function loadRatings(
         enabled: settings.ratings_enabled,
         just_capital_max_rank: settings.just_capital_max_rank,
         as_you_sow_min_score: Number(settings.as_you_sow_min_score),
+        as_you_sow_min_employees:
+          settings.as_you_sow_min_employees ?? DEFAULT_RATINGS_CONFIG.as_you_sow_min_employees,
         mode: settings.ratings_mode === "any" ? "any" : "all",
       }
     : DEFAULT_RATINGS_CONFIG;
@@ -278,6 +324,24 @@ export async function loadEthicsOptions(
   };
 }
 
+/**
+ * Job-aggregator API keys from scout_secrets (service role only), falling
+ * back to the given ones (local env). A source with no key is skipped.
+ */
+export async function loadAggregatorKeys(
+  db: ScoutDb,
+  fallback: { adzuna?: AdzunaCredentials | null; joobleKey?: string | null } = {},
+): Promise<{ adzuna: AdzunaCredentials | null; joobleKey: string | null }> {
+  // "*" so a database without these columns yet still loads (keys just come up empty).
+  const { data } = await db.from("scout_secrets").select("*").eq("id", 1).maybeSingle();
+  const appId = data?.adzuna_app_id || fallback.adzuna?.appId;
+  const appKey = data?.adzuna_app_key || fallback.adzuna?.appKey;
+  return {
+    adzuna: appId && appKey ? { appId, appKey } : null,
+    joobleKey: data?.jooble_api_key || fallback.joobleKey || null,
+  };
+}
+
 /** Run the scout and record the run + per-source diagnostics. */
 export async function runAndRecord(
   db: ScoutDb,
@@ -290,6 +354,8 @@ export async function runAndRecord(
     /** Keys to use when scout_secrets has none (local development). */
     dolApiKey?: string | null;
     wikirateKey?: string | null;
+    adzuna?: AdzunaCredentials | null;
+    joobleKey?: string | null;
   },
 ): Promise<{ runId: string; summary: RunSummary }> {
   const { data: run, error } = await db
@@ -306,6 +372,7 @@ export async function runAndRecord(
       jobspyUrl: opts.jobspyUrl ?? null,
       jobspyToken: opts.jobspyToken ?? null,
       ratings: await loadRatings(db),
+      aggregators: await loadAggregatorKeys(db, { adzuna: opts.adzuna, joobleKey: opts.joobleKey }),
       ethics: await loadEthicsOptions(db, {
         dolApiKey: opts.dolApiKey,
         wikirateKey: opts.wikirateKey,

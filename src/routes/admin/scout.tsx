@@ -132,13 +132,16 @@ function JobScout() {
       for (let from = 0; ; from += 1000) {
         const { data } = await supabase
           .from("company_ratings")
-          .select("source, company_name, normalized_name, rank, score")
+          .select("*")
           .range(from, from + 999);
         rows.push(
           ...(data ?? []).map((r) => ({
-            ...r,
             source: r.source as RatingSource,
+            company_name: r.company_name,
+            normalized_name: r.normalized_name,
+            rank: r.rank,
             score: r.score === null ? null : Number(r.score),
+            employees: r.employees ?? null,
           })),
         );
         if (!data || data.length < 1000) break;
@@ -146,7 +149,7 @@ function JobScout() {
       setRatings(rows);
       const { data: st } = await supabase
         .from("scout_settings")
-        .select("ratings_enabled, just_capital_max_rank, as_you_sow_min_score, ratings_mode")
+        .select("*")
         .eq("id", 1)
         .maybeSingle();
       if (st)
@@ -154,6 +157,8 @@ function JobScout() {
           enabled: st.ratings_enabled,
           just_capital_max_rank: st.just_capital_max_rank,
           as_you_sow_min_score: Number(st.as_you_sow_min_score),
+          as_you_sow_min_employees:
+            st.as_you_sow_min_employees ?? DEFAULT_RATINGS_CONFIG.as_you_sow_min_employees,
           mode: st.ratings_mode === "any" ? "any" : "all",
         });
     })();

@@ -34,7 +34,11 @@ export const BOARD_SOURCES = [
 ] as const;
 export type BoardSource = (typeof BOARD_SOURCES)[number];
 
-export type JobSource = AtsPlatform | BoardSource | "manual";
+/** Official job-aggregator APIs, searched on a request budget (aggregators.ts). */
+export const AGGREGATOR_SOURCES = ["adzuna", "jooble"] as const;
+export type AggregatorSource = (typeof AGGREGATOR_SOURCES)[number];
+
+export type JobSource = AtsPlatform | BoardSource | AggregatorSource | "manual";
 
 export const EMPLOYMENT_TYPES = [
   "full_time",
@@ -89,6 +93,8 @@ export type RawJob = {
   industry_raw?: string | null;
   /** Posted pay, when the source publishes it. */
   pay?: PayRange | null;
+  /** The source itself filtered to U.S. postings (e.g. a Workday country facet). */
+  country_hint?: "US" | null;
 };
 
 /** A job after validation + refinement, ready to upsert into public.jobs. */

@@ -666,13 +666,16 @@ function JobRow({
             <button onClick={onApply} className={linkButton}>
               {partnerOf(job)
                 ? `Book on ${partnerOf(job)} ↗`
-                : external
-                  ? "Apply on company site ↗"
-                  : "Apply →"}
+                : AGGREGATOR_NAMES[job.source]
+                  ? `Apply via ${AGGREGATOR_NAMES[job.source]} ↗`
+                  : external
+                    ? "Apply on company site ↗"
+                    : "Apply →"}
             </button>
           )}
         </div>
       </div>
+      <AggregatorCredit source={job.source} />
       {open && (
         <div className="mt-5 space-y-4">
           {job.description ? (
@@ -703,6 +706,38 @@ function JobRow({
       )}
     </li>
   );
+}
+
+const AGGREGATOR_NAMES: Record<string, string> = { adzuna: "Adzuna", jooble: "Jooble" };
+
+/**
+ * Credit for listings from a job-search API. Adzuna's API terms require
+ * "Jobs by Adzuna" on every advert shown, linked to Adzuna.
+ */
+function AggregatorCredit({ source }: { source: string }) {
+  if (source === "adzuna")
+    return (
+      <a
+        href="https://www.adzuna.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+      >
+        Jobs by <span className="font-semibold tracking-tight">Adzuna</span>
+      </a>
+    );
+  if (source === "jooble")
+    return (
+      <a
+        href="https://jooble.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-block text-xs text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+      >
+        via Jooble
+      </a>
+    );
+  return null;
 }
 
 /** The employer's Savant rating in one line, linking to its full breakdown. */
