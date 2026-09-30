@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Savant Apply",
-  "version": "0.2.0",
-  "description": "Fills ATS application forms from your Savant talent profile. You review and submit.",
+  "version": "0.3.0",
+  "description": "Fills job application forms from your Savant talent profile. You review and submit.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA+BNpJpJSWNd7JcezCNSgxuEkHBx46FDjXFR3ecCpWX/M/mf/u+JkIf62xY56wNWqWQajJiWCYkEPwriR7B6tG/XEXr1IdXBq9RFesTEbUG6fnKJKSIsh7Ng5kvptzQ3FtXLS/aCKzgNVeiwVS0LuZLnZbqRBNlWfzOvbL//zu+aSYOMaPKMpabjYC9llU2EMYlvInZIlWTd3nvMaS6cACnWLczI7lZm1Int8OAh/z/O5EoTVQSd6TGrX+XLDVoYh79C7k164lpHhsmyOATeCJ3jcuR4lp5o8xmSsSq9MFPVly+IAnnCfteA5yA2EFZbgmYovPEOPRlFqd10b53EgxwIDAQAB",
   "permissions": [
     "storage"
   ],
   "host_permissions": [
-    "https://savantstaffing.com/*",
+    "https://savantalent.com/*",
+    "https://www.savantalent.com/*",
     "https://*.supabase.co/*"
   ],
   "background": {
@@ -29,7 +31,8 @@
   ],
   "externally_connectable": {
     "matches": [
-      "https://savantstaffing.com/*",
+      "https://savantalent.com/*",
+      "https://www.savantalent.com/*",
       "http://localhost/*"
     ]
   }

@@ -183,3 +183,14 @@ btn.addEventListener("click", async () => {
   btn.textContent = `Review ${review} amber · answer ${missing} red · then submit`;
   btn.disabled = false;
 });
+
+// Opened from Savant with "Autofill & continue" (the site adds #savant-autofill):
+// fill as soon as the form has rendered. Still never submits.
+if (location.hash.includes("savant-autofill")) {
+  (async () => {
+    for (let i = 0; i < 20; i++) {
+      if (extractFields().length) return btn.click();
+      await sleep(500);
+    }
+  })();
+}

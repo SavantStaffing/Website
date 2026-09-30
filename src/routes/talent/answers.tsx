@@ -1,16 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Empty,
   SectionHeading,
+  Toggle,
+  card,
   label,
   linkButton,
   list,
   mutedButton,
   timeAgo,
 } from "@/components/site/ui";
+import { getAlwaysAutofill, setAlwaysAutofill, useSavantApply } from "@/lib/autofill/extension";
 
 export const Route = createFileRoute("/talent/answers")({
   head: () => ({
@@ -102,6 +105,8 @@ function SavedAnswers() {
         answers (gender, race, veteran or disability status) are never saved.
       </p>
 
+      <AutofillSettings />
+
       {!rows ? (
         <Empty>Loading…</Empty>
       ) : rows.length === 0 ? (
@@ -166,5 +171,53 @@ function SavedAnswers() {
         </ul>
       )}
     </section>
+  );
+}
+
+/** Savant Apply on this browser: installed or not, and "always autofill". */
+function AutofillSettings() {
+  const { status, recheck } = useSavantApply();
+  const [always, setAlways] = useState(false);
+  useEffect(() => setAlways(getAlwaysAutofill()), []);
+
+  return (
+    <div className={`mt-8 max-w-2xl ${card}`}>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className={label}>Savant Apply on this browser</div>
+          <p className="mt-2 text-sm">
+            {status.state === "checking" && "Checking…"}
+            {status.state === "installed" &&
+              (status.connected
+                ? `Installed and connected (version ${status.version}).`
+                : "Installed, but not connected — reload this page to connect it.")}
+            {status.state === "missing" && "Not installed."}
+            {status.state === "unsupported" && "Autofill works in Chrome or Edge on a computer."}
+          </p>
+        </div>
+        <div className="flex items-center gap-5">
+          {status.state === "missing" && (
+            <button onClick={recheck} className={mutedButton}>
+              Check again
+            </button>
+          )}
+          <Link to="/autofill" className={linkButton}>
+            {status.state === "missing" ? "Install →" : "How it works →"}
+          </Link>
+        </div>
+      </div>
+      <div className="mt-4 border-t border-[color:var(--color-hairline)] pt-3">
+        <Toggle
+          checked={always}
+          disabled={status.state !== "installed"}
+          onChange={(on) => {
+            setAlways(on);
+            setAlwaysAutofill(on);
+          }}
+          label="Always autofill when available"
+          description="Skip the autofill step when you apply and fill supported applications straight away. You still review and submit every one."
+        />
+      </div>
+    </div>
   );
 }

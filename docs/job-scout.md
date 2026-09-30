@@ -166,14 +166,25 @@ in-memory store — no database needed. Pass a careers URL to try one company:
 | `RESEND_FROM` | optional; sender, e.g. `Savant Staffing <noreply@savantalent.com>` once the domain is verified in Resend |
 | `ANTHROPIC_API_KEY` (optional `DRAFT_MODEL`, default `claude-sonnet-5`) | autofill drafting answers to open-ended questions from the resume |
 | `JOBSPY_URL`, `JOBSPY_TOKEN` | job-board scraping — read `services/jobspy/README.md` first |
-| `VITE_SAVANT_APPLY_EXTENSION_ID` | lets the site hand the talent's session to the extension |
+| `VITE_SAVANT_APPLY_EXTENSION_ID` | optional; only if the extension is published under a different ID (e.g. Chrome Web Store) |
 
 ## Savant Apply extension (`extension/`)
 
-Ported from the Autofill prototype. Its backend is now the site itself
-(`/api/autofill/plan`, `/api/autofill/answers`), so the separate FastAPI
-service isn't needed. Set `API` in `extension/background.js` to the site
-URL, load the folder unpacked in Chrome, and put its extension ID in
-`VITE_SAVANT_APPLY_EXTENSION_ID`. It never submits a form — it fills,
-highlights what needs review, and remembers answers when the talent submits.
-Resume *file* upload isn't wired yet (profiles store resume text only).
+Ported from the Autofill prototype. Its backend is the site itself
+(`/api/autofill/plan`, `/api/autofill/answers`, `API` in
+`extension/background.js`). It never submits a form — it fills, highlights
+what needs review, and remembers answers when the talent submits.
+
+- **Fixed ID.** The public `key` in `manifest.json` gives every unpacked copy
+  the ID `pagkblcgfhpdjohmlcmalhcpnlkpbhao`, which the site uses by default
+  (`src/lib/autofill/extension.ts`). The site pings it to show whether it's
+  installed and connected.
+- **Download.** Talents install it from `/autofill`, which serves
+  `public/downloads/savant-apply.zip`. After changing anything in
+  `extension/`, bump `version` in the manifest and run
+  `node scripts/pack-extension.mjs` to rebuild the zip.
+- **Apply flow.** On the talent feed, jobs whose apply URL is a Greenhouse,
+  Lever or Ashby form show "Autofill ready"; Apply opens a dialog offering
+  autofill (or install steps). "Autofill & continue" opens the form with
+  `#savant-autofill`, and the extension fills it as soon as it loads.
+  "Always autofill" is a per-browser setting (also on Saved Answers).
