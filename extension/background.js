@@ -32,10 +32,26 @@ function toBase64(buf) {
   return btoa(s);
 }
 
+// The only files the extension downloads: the talent's résumé, served from
+// Savant's file storage through a short-lived signed link.
+function isResumeLink(url) {
+  try {
+    const u = new URL(url);
+    return (
+      u.protocol === "https:" &&
+      u.hostname.endsWith(".supabase.co") &&
+      u.pathname.startsWith("/storage/v1/object/sign/")
+    );
+  } catch {
+    return false;
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, send) => {
   (async () => {
     try {
       if (msg.type === "file") {
+        if (!isResumeLink(msg.url)) return send({ error: "Not a Savant résumé link" });
         const r = await fetch(msg.url);
         if (!r.ok) return send({ error: `File ${r.status}` });
         return send({ b64: toBase64(await r.arrayBuffer()), mime: r.headers.get("content-type") });

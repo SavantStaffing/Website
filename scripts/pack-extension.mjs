@@ -10,7 +10,9 @@
 //     -> <out-dir>/savant-apply-<version>-chrome-web-store.zip (default
 //        out-dir: dist-extension/), for upload to the Chrome Web Store:
 //        manifest.json at the zip root, without the "key" field (the store
-//        rejects it and assigns its own ID) or the localhost dev origin.
+//        rejects it and assigns its own ID) or the localhost dev origin, and
+//        with file-storage access narrowed from every *.supabase.co project
+//        to the live one (STORAGE_HOST), which keeps the review quick.
 //
 // Uses only Node built-ins (zlib.crc32 needs Node 22+).
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -36,11 +38,17 @@ function walk(dir) {
   );
 }
 
+// Supabase project behind savantalent.com (Lovable Cloud), where résumés live.
+const STORAGE_HOST = "https://bncdlyvvdhsbtafxhiya.supabase.co/*";
+
 function storeManifest() {
   const m = structuredClone(manifest);
   delete m.key;
   m.externally_connectable.matches = m.externally_connectable.matches.filter(
     (u) => !u.startsWith("http://localhost"),
+  );
+  m.host_permissions = m.host_permissions.map((h) =>
+    h === "https://*.supabase.co/*" ? STORAGE_HOST : h,
   );
   return Buffer.from(JSON.stringify(m, null, 2) + "\n", "utf8");
 }
