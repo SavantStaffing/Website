@@ -22,6 +22,9 @@ chrome.runtime.onMessageExternal.addListener((msg, _sender, send) => {
   }
 });
 
+// Toolbar icon: open the Savant Apply page (status, how it works, help).
+chrome.action.onClicked.addListener(() => chrome.tabs.create({ url: `${API}/autofill` }));
+
 function toBase64(buf) {
   const bytes = new Uint8Array(buf);
   let s = "";

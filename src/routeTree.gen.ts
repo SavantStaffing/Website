@@ -45,6 +45,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminTalentRouteImport } from './routes/admin/talent'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AutofillPrivacyRouteImport } from './routes/autofill_.privacy'
 import { Route as CoachIndexRouteImport } from './routes/coach/index'
 import { Route as CoachInboxRouteImport } from './routes/coach/inbox'
 import { Route as CoachRecruitersRouteImport } from './routes/coach/recruiters'
@@ -256,6 +257,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const AutofillPrivacyRoute = AutofillPrivacyRouteImport.update({
+  id: '/autofill_/privacy',
+  path: '/autofill/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoachIndexRoute = CoachIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -444,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/autofill/privacy': typeof AutofillPrivacyRoute
   '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
   '/coach/schedule': typeof CoachScheduleRoute
@@ -508,6 +515,7 @@ export interface FileRoutesByTo {
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/autofill/privacy': typeof AutofillPrivacyRoute
   '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
   '/coach/schedule': typeof CoachScheduleRoute
@@ -577,6 +585,7 @@ export interface FileRoutesById {
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/autofill_/privacy': typeof AutofillPrivacyRoute
   '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
   '/coach/schedule': typeof CoachScheduleRoute
@@ -647,6 +656,7 @@ export interface FileRouteTypes {
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/autofill/privacy'
     | '/coach/inbox'
     | '/coach/recruiters'
     | '/coach/schedule'
@@ -711,6 +721,7 @@ export interface FileRouteTypes {
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/autofill/privacy'
     | '/coach/inbox'
     | '/coach/recruiters'
     | '/coach/schedule'
@@ -779,6 +790,7 @@ export interface FileRouteTypes {
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/autofill_/privacy'
     | '/coach/inbox'
     | '/coach/recruiters'
     | '/coach/schedule'
@@ -833,6 +845,7 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   TemporaryStaffingRoute: typeof TemporaryStaffingRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  AutofillPrivacyRoute: typeof AutofillPrivacyRoute
   JoinCoachRoute: typeof JoinCoachRoute
   ApiAutofillAnswersRoute: typeof ApiAutofillAnswersRoute
   ApiAutofillPlanRoute: typeof ApiAutofillPlanRoute
@@ -1093,6 +1106,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/autofill_/privacy': {
+      id: '/autofill_/privacy'
+      path: '/autofill/privacy'
+      fullPath: '/autofill/privacy'
+      preLoaderRoute: typeof AutofillPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/coach/': {
       id: '/coach/'
@@ -1458,6 +1478,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   TemporaryStaffingRoute: TemporaryStaffingRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  AutofillPrivacyRoute: AutofillPrivacyRoute,
   JoinCoachRoute: JoinCoachRoute,
   ApiAutofillAnswersRoute: ApiAutofillAnswersRoute,
   ApiAutofillPlanRoute: ApiAutofillPlanRoute,

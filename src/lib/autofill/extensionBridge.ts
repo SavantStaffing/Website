@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { SAVANT_APPLY_EXTENSION_ID } from "./extension";
+import { SAVANT_APPLY_EXTENSION_IDS } from "./extension";
 
 /**
  * Hands the signed-in talent's session token to the Savant Apply browser
@@ -19,16 +19,16 @@ export function connectSavantApplyExtension(): () => void {
   ).chrome?.runtime;
   if (!runtime?.sendMessage) return () => {};
 
+  // Sent to every known ID (store listing and download); only the installed
+  // copy answers.
   const push = (token: string | null) => {
-    try {
-      // Reading lastError keeps Chrome from logging "no such extension".
-      runtime.sendMessage!(
-        SAVANT_APPLY_EXTENSION_ID,
-        { type: "session", token },
-        () => void runtime.lastError,
-      );
-    } catch {
-      // Extension not installed — nothing to do.
+    for (const id of SAVANT_APPLY_EXTENSION_IDS) {
+      try {
+        // Reading lastError keeps Chrome from logging "no such extension".
+        runtime.sendMessage!(id, { type: "session", token }, () => void runtime.lastError);
+      } catch {
+        // Not installed under this ID — nothing to do.
+      }
     }
   };
 

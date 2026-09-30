@@ -184,6 +184,9 @@ function AutofillGuide() {
               so the next form can reuse them. You can edit or delete them any time.
             </Point>
           </ul>
+          <Link to="/autofill/privacy" className={`mt-6 inline-block ${mutedButton}`}>
+            Privacy policy →
+          </Link>
         </div>
       </section>
 

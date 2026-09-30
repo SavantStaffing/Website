@@ -8,14 +8,23 @@ import { detectJob } from "./mapper";
  */
 
 /**
- * Fixed by the public "key" in extension/manifest.json, so every copy loaded
- * from the /autofill download gets the same ID. Override with
- * VITE_SAVANT_APPLY_EXTENSION_ID if it's ever published under another ID
- * (e.g. the Chrome Web Store assigns its own).
+ * Every ID Savant Apply can have, most preferred first:
+ * - the Chrome Web Store listing, which assigns its own ID (add it to
+ *   STORE_ID once published, or set VITE_SAVANT_APPLY_EXTENSION_ID);
+ * - the /autofill download, whose ID is fixed by the public "key" in
+ *   extension/manifest.json.
  */
-export const SAVANT_APPLY_EXTENSION_ID =
-  (import.meta.env.VITE_SAVANT_APPLY_EXTENSION_ID as string | undefined) ||
-  "pagkblcgfhpdjohmlcmalhcpnlkpbhao";
+const STORE_ID = "";
+const DOWNLOAD_ID = "pagkblcgfhpdjohmlcmalhcpnlkpbhao";
+export const SAVANT_APPLY_EXTENSION_IDS = [
+  ...new Set(
+    [
+      import.meta.env.VITE_SAVANT_APPLY_EXTENSION_ID as string | undefined,
+      STORE_ID,
+      DOWNLOAD_ID,
+    ].filter((id): id is string => !!id),
+  ),
+];
 
 export const SAVANT_APPLY_DOWNLOAD = "/downloads/savant-apply.zip";
 
@@ -50,16 +59,11 @@ export type ExtensionStatus =
   | { state: "missing" }
   | { state: "installed"; version: string; connected: boolean };
 
-/** Asks the extension whether it's there. Chrome only exposes chrome.runtime to
- *  pages an installed extension lists in externally_connectable. */
-export function pingExtension(timeoutMs = 1500): Promise<ExtensionStatus> {
-  if (!isSupportedBrowser()) return Promise.resolve({ state: "unsupported" });
-  const rt = runtime();
-  if (!rt?.sendMessage) return Promise.resolve({ state: "missing" });
+function pingOne(rt: ChromeRuntime, id: string, timeoutMs: number): Promise<ExtensionStatus> {
   return new Promise((resolve) => {
     const timer = setTimeout(() => resolve({ state: "missing" }), timeoutMs);
     try {
-      rt.sendMessage!(SAVANT_APPLY_EXTENSION_ID, { type: "ping" }, (res) => {
+      rt.sendMessage!(id, { type: "ping" }, (res) => {
         clearTimeout(timer);
         const r = res as { ok?: boolean; version?: string; connected?: boolean } | undefined;
         // Reading lastError tells Chrome we handled "no such extension".
@@ -71,6 +75,18 @@ export function pingExtension(timeoutMs = 1500): Promise<ExtensionStatus> {
       resolve({ state: "missing" });
     }
   });
+}
+
+/** Asks each known Savant Apply ID whether it's installed. Chrome only exposes
+ *  chrome.runtime to pages an installed extension lists in externally_connectable. */
+export async function pingExtension(timeoutMs = 1500): Promise<ExtensionStatus> {
+  if (!isSupportedBrowser()) return { state: "unsupported" };
+  const rt = runtime();
+  if (!rt?.sendMessage) return { state: "missing" };
+  const results = await Promise.all(
+    SAVANT_APPLY_EXTENSION_IDS.map((id) => pingOne(rt, id, timeoutMs)),
+  );
+  return results.find((r) => r.state === "installed") ?? { state: "missing" };
 }
 
 /** Live extension status, with a `recheck` for "I've installed it". */

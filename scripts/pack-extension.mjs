@@ -1,23 +1,52 @@
-// Packs extension/ into public/downloads/savant-apply.zip, the download on
-// the /autofill install guide. Run after changing anything in extension/:
+// Packs extension/ into a zip. Run after changing anything in extension/
+// (and bump "version" in extension/manifest.json first):
 //
 //   node scripts/pack-extension.mjs
+//     -> public/downloads/savant-apply.zip, the download on the /autofill
+//        install guide. Files sit under a "savant-apply/" folder, so
+//        unzipping gives the folder to pick in Chrome's "Load unpacked".
 //
-// Files go under a "savant-apply/" folder, so unzipping gives the folder to
-// pick in Chrome's "Load unpacked". Uses only Node built-ins (zlib.crc32
-// needs Node 22+).
+//   node scripts/pack-extension.mjs --store [out-dir]
+//     -> <out-dir>/savant-apply-<version>-chrome-web-store.zip (default
+//        out-dir: dist-extension/), for upload to the Chrome Web Store:
+//        manifest.json at the zip root, without the "key" field (the store
+//        rejects it and assigns its own ID) or the localhost dev origin.
+//
+// Uses only Node built-ins (zlib.crc32 needs Node 22+).
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, sep } from "node:path";
 import { crc32, deflateRawSync } from "node:zlib";
 
 const SRC = "extension";
-const OUT_DIR = join("public", "downloads");
-const OUT = join(OUT_DIR, "savant-apply.zip");
-const ROOT = "savant-apply/";
+const store = process.argv.includes("--store");
+const manifest = JSON.parse(readFileSync(join(SRC, "manifest.json"), "utf8"));
 
-const files = readdirSync(SRC, { withFileTypes: true })
-  .filter((e) => e.isFile())
-  .map((e) => e.name)
+const outDir = store
+  ? (process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "dist-extension")
+  : join("public", "downloads");
+const out = join(
+  outDir,
+  store ? `savant-apply-${manifest.version}-chrome-web-store.zip` : "savant-apply.zip",
+);
+const root = store ? "" : "savant-apply/";
+
+function walk(dir) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? walk(join(dir, e.name)) : e.isFile() ? [join(dir, e.name)] : [],
+  );
+}
+
+function storeManifest() {
+  const m = structuredClone(manifest);
+  delete m.key;
+  m.externally_connectable.matches = m.externally_connectable.matches.filter(
+    (u) => !u.startsWith("http://localhost"),
+  );
+  return Buffer.from(JSON.stringify(m, null, 2) + "\n", "utf8");
+}
+
+const files = walk(SRC)
+  .map((p) => relative(SRC, p).split(sep).join("/"))
   .sort();
 
 // Fixed timestamp (2026-01-01 00:00) so the zip only changes when the files do.
@@ -28,9 +57,9 @@ const locals = [];
 const centrals = [];
 let offset = 0;
 for (const name of files) {
-  const data = readFileSync(join(SRC, name));
+  const data = store && name === "manifest.json" ? storeManifest() : readFileSync(join(SRC, name));
   const packed = deflateRawSync(data, { level: 9 });
-  const path = Buffer.from(ROOT + name, "utf8");
+  const path = Buffer.from(root + name, "utf8");
   const crc = crc32(data);
 
   const local = Buffer.alloc(30);
@@ -73,7 +102,6 @@ end.writeUInt16LE(files.length, 10);
 end.writeUInt32LE(centralSize, 12);
 end.writeUInt32LE(offset, 16);
 
-mkdirSync(OUT_DIR, { recursive: true });
-writeFileSync(OUT, Buffer.concat([...locals, ...centrals, end]));
-const version = JSON.parse(readFileSync(join(SRC, "manifest.json"), "utf8")).version;
-console.log(`Wrote ${OUT} (Savant Apply ${version}, ${files.length} files)`);
+mkdirSync(outDir, { recursive: true });
+writeFileSync(out, Buffer.concat([...locals, ...centrals, end]));
+console.log(`Wrote ${out} (Savant Apply ${manifest.version}, ${files.length} files)`);
