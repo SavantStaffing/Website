@@ -19,6 +19,24 @@ import {
  * every query below filters on the verified user id.
  */
 
+/**
+ * The job's apply_url for a URL the extension reports. It sends the page it
+ * ran on, which can be the form step (Lever /apply, Ashby /application) or
+ * carry a hash, rather than the posting URL stored on the job.
+ */
+function postingUrls(url: string): string[] {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return [url];
+  }
+  u.hash = "";
+  const exact = u.toString();
+  u.pathname = u.pathname.replace(/\/(apply|application)\/?$/, "");
+  return [...new Set([url, exact, u.toString()])];
+}
+
 export class AutofillError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -94,7 +112,8 @@ export async function createPlan(
   const { data: job } = await supabaseAdmin
     .from("jobs")
     .select("id")
-    .eq("apply_url", req.job_url)
+    .in("apply_url", postingUrls(req.job_url))
+    .limit(1)
     .maybeSingle();
   await supabaseAdmin.from("autofill_plans").insert({
     user_id: uid,
@@ -140,7 +159,8 @@ export async function saveAnswers(
   const { data: job } = await supabaseAdmin
     .from("jobs")
     .select("id")
-    .eq("apply_url", req.job_url)
+    .in("apply_url", postingUrls(req.job_url))
+    .limit(1)
     .maybeSingle();
   if (job) {
     // "started" (opened from the feed) → "submitted"; never touch a status a recruiter already moved on.

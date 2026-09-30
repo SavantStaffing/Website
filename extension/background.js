@@ -1,10 +1,19 @@
 // All network calls go through the service worker: host_permissions let it skip page CORS.
 // Point this at the deployed Savant site (no trailing slash).
-const API = "https://savantstaffing.com";
+const API = "https://savantalent.com";
 
-// The Savant site pushes the signed-in talent's Supabase access token here on
-// sign-in and on every refresh (see src/lib/autofill/extensionBridge.ts).
+// Messages from the Savant site (see src/lib/autofill/extension.ts):
+// - "ping": lets the site show whether Savant Apply is installed, and whether
+//   it's connected to the talent's account.
+// - "session": the signed-in talent's Supabase access token, pushed on sign-in
+//   and on every refresh.
 chrome.runtime.onMessageExternal.addListener((msg, _sender, send) => {
+  if (msg?.type === "ping") {
+    chrome.storage.local.get("token").then(({ token }) =>
+      send({ ok: true, version: chrome.runtime.getManifest().version, connected: !!token }),
+    );
+    return true;
+  }
   if (msg?.type === "session") {
     const done = () => send({ ok: true });
     if (msg.token) chrome.storage.local.set({ token: msg.token }).then(done);
@@ -12,6 +21,9 @@ chrome.runtime.onMessageExternal.addListener((msg, _sender, send) => {
     return true;
   }
 });
+
+// Toolbar icon: open the Savant Apply page (status, how it works, help).
+chrome.action.onClicked.addListener(() => chrome.tabs.create({ url: `${API}/autofill` }));
 
 function toBase64(buf) {
   const bytes = new Uint8Array(buf);

@@ -4,7 +4,14 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { getAutofillReadiness } from "@/lib/autofill/autofill.functions";
+import {
+  autofillAtsFor,
+  autofillUrl,
+  getAlwaysAutofill,
+  useSavantApply,
+} from "@/lib/autofill/extension";
 import { detectJob } from "@/lib/autofill/mapper";
+import { ApplyDialog } from "@/components/jobs/ApplyDialog";
 import {
   applyFilters,
   effectiveTrack,
@@ -177,6 +184,8 @@ export function JobFeed({
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [shown, setShown] = useState(PAGE);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [applying, setApplying] = useState<FeedJob | null>(null);
+  const savantApply = useSavantApply();
 
   useEffect(() => {
     loadActiveJobs(mode === "talent" ? 1000 : 200)
@@ -245,12 +254,30 @@ export function JobFeed({
     }
   }
 
-  async function apply(job: FeedJob) {
+  function apply(job: FeedJob) {
     if (!userId) return;
+    // Forms Savant Apply can fill get the autofill step first, unless the
+    // talent chose "always autofill" and the extension is ready.
+    if (canAutofill(job)) {
+      if (getAlwaysAutofill() && savantApply.status.state === "installed")
+        return void startApplication(job, true);
+      return setApplying(job);
+    }
+    void startApplication(job, false);
+  }
+
+  async function startApplication(job: FeedJob, autofill: boolean) {
+    if (!userId) return;
+    setApplying(null);
     // Scouted jobs are applied to on the company's own ATS; we record that the
     // talent started, and the Savant Apply extension upgrades it on submit.
     const external = !!job.apply_url && job.source !== "manual";
-    if (external) window.open(job.apply_url!, "_blank", "noopener,noreferrer");
+    if (external)
+      window.open(
+        autofill ? autofillUrl(job.apply_url!) : job.apply_url!,
+        "_blank",
+        "noopener,noreferrer",
+      );
     const status = external ? "started" : "submitted";
     const { error } = await supabase
       .from("job_applications")
@@ -261,9 +288,11 @@ export function JobFeed({
     toast.success(
       partner
         ? `Opened ${partner}. Sign up or log in there to book the shift; we've added it to your dashboard.`
-        : external
-          ? "Opened the company's application. We've added it to your dashboard."
-          : "Application submitted.",
+        : autofill
+          ? "Opened the application. Savant Apply is filling it in — review it, then submit."
+          : external
+            ? "Opened the company's application. We've added it to your dashboard."
+            : "Application submitted.",
     );
   }
 
@@ -279,6 +308,23 @@ export function JobFeed({
 
   return (
     <div>
+      {mode === "talent" && (
+        <ApplyDialog
+          target={
+            applying
+              ? {
+                  title: applying.title,
+                  company: companyOf(applying),
+                  applyUrl: applying.apply_url!,
+                }
+              : null
+          }
+          status={savantApply.status}
+          onRecheck={savantApply.recheck}
+          onClose={() => setApplying(null)}
+          onContinue={(autofill) => applying && startApplication(applying, autofill)}
+        />
+      )}
       <TrackTabs
         value={filters.track}
         counts={trackCounts}
@@ -625,6 +671,7 @@ function JobRow({
             ))}
             <Badge>{JOB_TRACK_LABELS[effectiveTrack(job)]}</Badge>
             {partnerOf(job) && <Badge>via {partnerOf(job)}</Badge>}
+            {mode === "talent" && canAutofill(job) && <Badge tone="good">Autofill ready</Badge>}
           </div>
           <div className="mt-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             {meta.join(" · ")}
@@ -709,6 +756,14 @@ function JobRow({
 }
 
 const AGGREGATOR_NAMES: Record<string, string> = { adzuna: "Adzuna", jooble: "Jooble" };
+
+/** Applications Savant Apply can fill: the employer's own Greenhouse, Lever or
+ *  Ashby form (not temp-partner bookings or job-board redirects). */
+function canAutofill(job: FeedJob): boolean {
+  if (!job.apply_url || job.source === "manual") return false;
+  if (partnerOf(job) || AGGREGATOR_NAMES[job.source]) return false;
+  return !!autofillAtsFor(job.apply_url);
+}
 
 /**
  * Credit for listings from a job-search API. Adzuna's API terms require

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as CoachRouteRouteImport } from './routes/coach/route'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -44,6 +45,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminTalentRouteImport } from './routes/admin/talent'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AutofillPrivacyRouteImport } from './routes/autofill_.privacy'
 import { Route as CoachIndexRouteImport } from './routes/coach/index'
 import { Route as CoachInboxRouteImport } from './routes/coach/inbox'
 import { Route as CoachRecruitersRouteImport } from './routes/coach/recruiters'
@@ -93,6 +95,11 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutofillRoute = AutofillRouteImport.update({
+  id: '/autofill',
+  path: '/autofill',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoachRouteRoute = CoachRouteRouteImport.update({
@@ -249,6 +256,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/callback',
   path: '/callback',
   getParentRoute: () => AuthRoute,
+} as any)
+const AutofillPrivacyRoute = AutofillPrivacyRouteImport.update({
+  id: '/autofill_/privacy',
+  path: '/autofill/privacy',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CoachIndexRoute = CoachIndexRouteImport.update({
   id: '/',
@@ -410,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/talent': typeof TalentRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/autofill': typeof AutofillRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/employer-ratings': typeof EmployerRatingsRoute
@@ -437,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/autofill/privacy': typeof AutofillPrivacyRoute
   '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
   '/coach/schedule': typeof CoachScheduleRoute
@@ -473,6 +487,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/autofill': typeof AutofillRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/employer-ratings': typeof EmployerRatingsRoute
@@ -500,6 +515,7 @@ export interface FileRoutesByTo {
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/autofill/privacy': typeof AutofillPrivacyRoute
   '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
   '/coach/schedule': typeof CoachScheduleRoute
@@ -541,6 +557,7 @@ export interface FileRoutesById {
   '/talent': typeof TalentRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/autofill': typeof AutofillRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/employer-ratings': typeof EmployerRatingsRoute
@@ -568,6 +585,7 @@ export interface FileRoutesById {
   '/admin/talent': typeof AdminTalentRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/autofill_/privacy': typeof AutofillPrivacyRoute
   '/coach/inbox': typeof CoachInboxRoute
   '/coach/recruiters': typeof CoachRecruitersRoute
   '/coach/schedule': typeof CoachScheduleRoute
@@ -610,6 +628,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/about'
     | '/auth'
+    | '/autofill'
     | '/contact'
     | '/dashboard'
     | '/employer-ratings'
@@ -637,6 +656,7 @@ export interface FileRouteTypes {
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/autofill/privacy'
     | '/coach/inbox'
     | '/coach/recruiters'
     | '/coach/schedule'
@@ -673,6 +693,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/autofill'
     | '/contact'
     | '/dashboard'
     | '/employer-ratings'
@@ -700,6 +721,7 @@ export interface FileRouteTypes {
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/autofill/privacy'
     | '/coach/inbox'
     | '/coach/recruiters'
     | '/coach/schedule'
@@ -740,6 +762,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/about'
     | '/auth'
+    | '/autofill'
     | '/contact'
     | '/dashboard'
     | '/employer-ratings'
@@ -767,6 +790,7 @@ export interface FileRouteTypes {
     | '/admin/talent'
     | '/admin/users'
     | '/auth/callback'
+    | '/autofill_/privacy'
     | '/coach/inbox'
     | '/coach/recruiters'
     | '/coach/schedule'
@@ -808,6 +832,7 @@ export interface RootRouteChildren {
   TalentRouteRoute: typeof TalentRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
+  AutofillRoute: typeof AutofillRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   EmployerRatingsRoute: typeof EmployerRatingsRoute
@@ -820,6 +845,7 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   TemporaryStaffingRoute: typeof TemporaryStaffingRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  AutofillPrivacyRoute: typeof AutofillPrivacyRoute
   JoinCoachRoute: typeof JoinCoachRoute
   ApiAutofillAnswersRoute: typeof ApiAutofillAnswersRoute
   ApiAutofillPlanRoute: typeof ApiAutofillPlanRoute
@@ -855,6 +881,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/autofill': {
+      id: '/autofill'
+      path: '/autofill'
+      fullPath: '/autofill'
+      preLoaderRoute: typeof AutofillRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/coach': {
@@ -1073,6 +1106,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/autofill_/privacy': {
+      id: '/autofill_/privacy'
+      path: '/autofill/privacy'
+      fullPath: '/autofill/privacy'
+      preLoaderRoute: typeof AutofillPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/coach/': {
       id: '/coach/'
@@ -1425,6 +1465,7 @@ const rootRouteChildren: RootRouteChildren = {
   TalentRouteRoute: TalentRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
+  AutofillRoute: AutofillRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   EmployerRatingsRoute: EmployerRatingsRoute,
@@ -1437,6 +1478,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   TemporaryStaffingRoute: TemporaryStaffingRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  AutofillPrivacyRoute: AutofillPrivacyRoute,
   JoinCoachRoute: JoinCoachRoute,
   ApiAutofillAnswersRoute: ApiAutofillAnswersRoute,
   ApiAutofillPlanRoute: ApiAutofillPlanRoute,

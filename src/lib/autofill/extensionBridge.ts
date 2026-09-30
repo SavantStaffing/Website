@@ -1,25 +1,34 @@
 import { supabase } from "@/integrations/supabase/client";
+import { SAVANT_APPLY_EXTENSION_IDS } from "./extension";
 
 /**
  * Hands the signed-in talent's session token to the Savant Apply browser
  * extension (extension/background.js), so it can call /api/autofill/* as
- * them. No-op unless VITE_SAVANT_APPLY_EXTENSION_ID is set and the browser
- * exposes chrome.runtime (Chrome/Edge with the extension installed).
+ * them. No-op unless the browser exposes chrome.runtime, which Chrome/Edge
+ * only do on this site when the extension is installed.
  *
  * Returns an unsubscribe function.
  */
 export function connectSavantApplyExtension(): () => void {
-  const extensionId = import.meta.env.VITE_SAVANT_APPLY_EXTENSION_ID as string | undefined;
   const runtime = (
-    globalThis as { chrome?: { runtime?: { sendMessage?: (...args: unknown[]) => void } } }
+    globalThis as {
+      chrome?: {
+        runtime?: { sendMessage?: (...args: unknown[]) => void; lastError?: unknown };
+      };
+    }
   ).chrome?.runtime;
-  if (!extensionId || !runtime?.sendMessage) return () => {};
+  if (!runtime?.sendMessage) return () => {};
 
+  // Sent to every known ID (store listing and download); only the installed
+  // copy answers.
   const push = (token: string | null) => {
-    try {
-      runtime.sendMessage!(extensionId, { type: "session", token }, () => void 0);
-    } catch {
-      // Extension not installed — nothing to do.
+    for (const id of SAVANT_APPLY_EXTENSION_IDS) {
+      try {
+        // Reading lastError keeps Chrome from logging "no such extension".
+        runtime.sendMessage!(id, { type: "session", token }, () => void runtime.lastError);
+      } catch {
+        // Not installed under this ID — nothing to do.
+      }
     }
   };
 
