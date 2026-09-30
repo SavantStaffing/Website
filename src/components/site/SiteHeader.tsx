@@ -9,7 +9,6 @@ const NAV = [
   { to: "/about", label: "About" },
   { to: "/jobs", label: "Jobs" },
   { to: "/employer-ratings", label: "Employer Ratings" },
-  { to: "/preparation", label: "Preparation" },
   { to: "/services", label: "Services" },
   { to: "/insights", label: "Insights" },
   { to: "/contact", label: "Contact" },
