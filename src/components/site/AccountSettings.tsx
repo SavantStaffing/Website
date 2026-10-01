@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteAccount } from "./DeleteAccount";
 import { Field, Toggle, primaryButton } from "./ui";
 
-/** "Account Settings" for talent and recruiters: notifications + password. */
+/** "Account Settings" for talent, recruiters and coaches: notifications,
+ *  password, and self-service account deletion. */
 export function AccountSettings({ userId, children }: { userId: string; children?: ReactNode }) {
   const [emailNotifications, setEmailNotifications] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
@@ -79,6 +81,8 @@ export function AccountSettings({ userId, children }: { userId: string; children
           </button>
         </form>
       </div>
+
+      <DeleteAccount />
     </section>
   );
 }

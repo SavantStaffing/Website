@@ -51,8 +51,12 @@ function SavantApplyPrivacy() {
       <p className="mt-10 text-base leading-relaxed">
         Savant Apply is a browser extension from Savant Staffing that fills in job applications from
         your Savant talent profile. This policy explains what it reads, what it sends to Savant,
-        what is stored, what it never collects, and the rights you have over your data. Your use of
-        savantalent.com is also governed by our{" "}
+        what is stored, what it never collects, and the rights you have over your data. The rest of
+        savantalent.com is covered by our{" "}
+        <Link to="/privacy" className="underline underline-offset-4">
+          Privacy Policy
+        </Link>{" "}
+        and{" "}
         <Link to="/terms" className="underline underline-offset-4">
           Terms of Use
         </Link>
