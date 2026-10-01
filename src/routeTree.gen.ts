@@ -28,6 +28,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as TalentRouteRouteImport } from './routes/talent/route'
 import { Route as TemporaryStaffingRouteImport } from './routes/temporary-staffing'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminCoachInvitesRouteImport } from './routes/admin/coach-invites'
@@ -170,6 +171,11 @@ const TalentRouteRoute = TalentRouteRouteImport.update({
 const TemporaryStaffingRoute = TemporaryStaffingRouteImport.update({
   id: '/temporary-staffing',
   path: '/temporary-staffing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -434,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/temporary-staffing': typeof TemporaryStaffingRoute
+  '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
@@ -499,6 +506,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/temporary-staffing': typeof TemporaryStaffingRoute
+  '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
@@ -569,6 +577,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
   '/temporary-staffing': typeof TemporaryStaffingRoute
+  '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
@@ -640,6 +649,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/services'
     | '/temporary-staffing'
+    | '/terms'
     | '/verify-email'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
@@ -705,6 +715,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/services'
     | '/temporary-staffing'
+    | '/terms'
     | '/verify-email'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
@@ -774,6 +785,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/services'
     | '/temporary-staffing'
+    | '/terms'
     | '/verify-email'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
@@ -844,6 +856,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ServicesRoute: typeof ServicesRoute
   TemporaryStaffingRoute: typeof TemporaryStaffingRoute
+  TermsRoute: typeof TermsRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   AutofillPrivacyRoute: typeof AutofillPrivacyRoute
   JoinCoachRoute: typeof JoinCoachRoute
@@ -986,6 +999,13 @@ declare module '@tanstack/react-router' {
       path: '/temporary-staffing'
       fullPath: '/temporary-staffing'
       preLoaderRoute: typeof TemporaryStaffingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify-email': {
@@ -1477,6 +1497,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ServicesRoute: ServicesRoute,
   TemporaryStaffingRoute: TemporaryStaffingRoute,
+  TermsRoute: TermsRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   AutofillPrivacyRoute: AutofillPrivacyRoute,
   JoinCoachRoute: JoinCoachRoute,
