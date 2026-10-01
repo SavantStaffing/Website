@@ -8,6 +8,27 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_deletions: {
+        Row: {
+          deleted_at: string;
+          id: string;
+          resume_files_removed: number;
+          roles: string[];
+        };
+        Insert: {
+          deleted_at?: string;
+          id?: string;
+          resume_files_removed?: number;
+          roles?: string[];
+        };
+        Update: {
+          deleted_at?: string;
+          id?: string;
+          resume_files_removed?: number;
+          roles?: string[];
+        };
+        Relationships: [];
+      };
       organizations: {
         Row: {
           created_at: string;

@@ -22,6 +22,7 @@ import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as PreparationRouteImport } from './routes/preparation'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as RecruiterRouteRouteImport } from './routes/recruiter/route'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -141,6 +142,11 @@ const JobsRoute = JobsRouteImport.update({
 const PreparationRoute = PreparationRouteImport.update({
   id: '/preparation',
   path: '/preparation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramsRoute = ProgramsRouteImport.update({
@@ -436,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
   '/preparation': typeof PreparationRoute
+  '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
@@ -502,6 +509,7 @@ export interface FileRoutesByTo {
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
   '/preparation': typeof PreparationRoute
+  '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
@@ -573,6 +581,7 @@ export interface FileRoutesById {
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
   '/preparation': typeof PreparationRoute
+  '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/services': typeof ServicesRoute
@@ -645,6 +654,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/jobs'
     | '/preparation'
+    | '/privacy'
     | '/programs'
     | '/reset-password'
     | '/services'
@@ -711,6 +721,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/jobs'
     | '/preparation'
+    | '/privacy'
     | '/programs'
     | '/reset-password'
     | '/services'
@@ -781,6 +792,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/jobs'
     | '/preparation'
+    | '/privacy'
     | '/programs'
     | '/reset-password'
     | '/services'
@@ -852,6 +864,7 @@ export interface RootRouteChildren {
   InsightsRoute: typeof InsightsRoute
   JobsRoute: typeof JobsRoute
   PreparationRoute: typeof PreparationRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProgramsRoute: typeof ProgramsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ServicesRoute: typeof ServicesRoute
@@ -957,6 +970,13 @@ declare module '@tanstack/react-router' {
       path: '/preparation'
       fullPath: '/preparation'
       preLoaderRoute: typeof PreparationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs': {
@@ -1493,6 +1513,7 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsRoute: InsightsRoute,
   JobsRoute: JobsRoute,
   PreparationRoute: PreparationRoute,
+  PrivacyRoute: PrivacyRoute,
   ProgramsRoute: ProgramsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ServicesRoute: ServicesRoute,

@@ -93,7 +93,7 @@ export function SiteFooter() {
             <Link to="/terms" className="[@media(hover:hover)]:hover:text-foreground">
               Terms of Use
             </Link>
-            <Link to="/autofill/privacy" className="[@media(hover:hover)]:hover:text-foreground">
+            <Link to="/privacy" className="[@media(hover:hover)]:hover:text-foreground">
               Privacy
             </Link>
           </div>

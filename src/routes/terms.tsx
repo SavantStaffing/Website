@@ -288,7 +288,11 @@ function Terms() {
 
         <Section id="privacy">
           <p>
-            Our handling of personal information is described in our privacy policies, including the{" "}
+            Our handling of personal information is described in our{" "}
+            <Link to="/privacy" className="underline underline-offset-4">
+              Privacy Policy
+            </Link>{" "}
+            and, for the browser extension, the{" "}
             <Link to="/autofill/privacy" className="underline underline-offset-4">
               Savant Apply privacy policy
             </Link>
