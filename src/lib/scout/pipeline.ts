@@ -8,7 +8,7 @@ import {
 } from "./ethics.ts";
 import { scoreGhost, GHOST_FLAG_THRESHOLD } from "./ghost.ts";
 import { HttpError, MetricsRecorder, mapLimit } from "./http.ts";
-import { BAY_AREA, classifyLocation } from "./location.ts";
+import { classifyLocation, inActiveMetro } from "./location.ts";
 import { positionType } from "./position.ts";
 import {
   cleanTitle,
@@ -625,7 +625,7 @@ async function ingest(
   const cutoff = ctx.now.getTime() - ctx.settings.max_age_days * 86_400_000;
   const fresh = domestic.filter((j) => !j.posted_at || Date.parse(j.posted_at) >= cutoff);
   // 3. At most max_per_position postings of each position type per employer
-  //    (position.ts), Bay Area first, then newest. Staffing agencies post for
+  //    (position.ts), active metros first, then newest. Staffing agencies post for
   //    many clients, so they aren't capped.
   const unique =
     ctx.company?.company_type === "staffing_agency"
@@ -760,15 +760,14 @@ async function ingest(
 }
 
 /**
- * Keep at most `max` postings per (employer, position type): Bay Area
- * postings first, then the most recently posted.
+ * Keep at most `max` postings per (employer, position type): postings in
+ * an active metro (location.ts) first, then the most recently posted.
  */
 export function capPerPosition(jobs: RawJob[], max: number): RawJob[] {
   const time = (j: RawJob) => (j.posted_at ? Date.parse(j.posted_at) : 0);
   const ordered = [...jobs].sort(
     (a, b) =>
-      Number(BAY_AREA.test(b.location ?? "")) - Number(BAY_AREA.test(a.location ?? "")) ||
-      time(b) - time(a),
+      Number(inActiveMetro(b.location)) - Number(inActiveMetro(a.location)) || time(b) - time(a),
   );
   const counts = new Map<string, number>();
   return ordered.filter((j) => {

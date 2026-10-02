@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge, ChipGroup, list, mutedButton, timeAgo } from "@/components/site/ui";
+import { PageBar } from "@/components/site/PageBar";
 import { effectiveTrack } from "@/lib/scout/rank";
 import { JOB_TRACK_LABELS, JOB_TRACKS, type JobTrack } from "@/lib/scout/track";
 
@@ -43,12 +44,17 @@ const ORIGIN_OPTIONS: { value: Origin; label: string }[] = [
 
 const TRACK_OPTIONS = JOB_TRACKS.map((t) => ({ value: t, label: JOB_TRACK_LABELS[t] }));
 
+const PAGE_SIZE = 50;
+
 function AdminJobs() {
   const [jobs, setJobs] = useState<JobRow[] | null>(null);
   const [status, setStatus] = useState<Status[]>(["active"]);
   const [origin, setOrigin] = useState<Origin[]>([]);
   const [tracks, setTracks] = useState<JobTrack[]>([]);
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const top = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setJobs(null);
@@ -56,9 +62,11 @@ function AdminJobs() {
       .from("jobs")
       .select(
         "id, title, location, company_name, source, status, ghost_score, apply_url, posted_at, created_at, track, track_override, track_reasons",
+        { count: "exact" },
       )
       .order("posted_at", { ascending: false, nullsFirst: false })
-      .limit(300);
+      .order("id")
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
     if (status.length) query = query.in("status", status);
     if (origin.length === 1)
       query = origin[0] === "manual" ? query.eq("source", "manual") : query.neq("source", "manual");
@@ -68,9 +76,21 @@ function AdminJobs() {
         `track_override.eq.${tracks[0]},and(track_override.is.null,track.eq.${tracks[0]})`,
       );
     if (q.trim()) query = query.ilike("title", `%${q.trim().replace(/[%_]/g, "")}%`);
-    const t = setTimeout(() => query.then(({ data }) => setJobs((data as JobRow[]) ?? [])), 250);
+    const t = setTimeout(
+      () =>
+        query.then(({ data, count }) => {
+          setJobs((data as JobRow[]) ?? []);
+          setTotal(count ?? 0);
+        }),
+      250,
+    );
     return () => clearTimeout(t);
-  }, [status, origin, tracks, q]);
+  }, [status, origin, tracks, q, page]);
+
+  /** Any filter change starts again from page 1. */
+  function filtered<T>(set: (v: T) => void) {
+    return (v: T) => (set(v), setPage(1));
+  }
 
   /** Move a posting to the other feed; moving it back to the classifier's choice clears the override. */
   async function moveTrack(j: JobRow) {
@@ -95,18 +115,19 @@ function AdminJobs() {
     const { error } = await supabase.from("jobs").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setJobs((prev) => prev?.filter((j) => j.id !== id) ?? null);
+    setTotal((n) => n - 1);
   }
 
   return (
-    <section>
+    <section ref={top} className="scroll-mt-28">
       <h2 className="text-2xl font-semibold">Job postings</h2>
       <div className="mt-6 flex flex-wrap items-center gap-6">
-        <ChipGroup options={STATUS_OPTIONS} value={status} onChange={setStatus} />
-        <ChipGroup options={ORIGIN_OPTIONS} value={origin} onChange={setOrigin} />
-        <ChipGroup options={TRACK_OPTIONS} value={tracks} onChange={setTracks} />
+        <ChipGroup options={STATUS_OPTIONS} value={status} onChange={filtered(setStatus)} />
+        <ChipGroup options={ORIGIN_OPTIONS} value={origin} onChange={filtered(setOrigin)} />
+        <ChipGroup options={TRACK_OPTIONS} value={tracks} onChange={filtered(setTracks)} />
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => (setQ(e.target.value), setPage(1))}
           placeholder="Search titles"
           className="min-w-[12rem] flex-1 border-b border-[color:var(--color-hairline)] bg-transparent py-2 text-sm outline-none focus:border-foreground"
         />
@@ -187,6 +208,14 @@ function AdminJobs() {
             </li>
           ))}
         </ul>
+      )}
+      {jobs && (
+        <PageBar
+          page={page}
+          pageSize={PAGE_SIZE}
+          total={total}
+          onPage={(p) => (setPage(p), top.current?.scrollIntoView({ behavior: "smooth" }))}
+        />
       )}
     </section>
   );
