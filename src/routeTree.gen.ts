@@ -32,6 +32,7 @@ import { Route as TemporaryStaffingRouteImport } from './routes/temporary-staffi
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminArchitectureRouteImport } from './routes/admin/architecture'
 import { Route as AdminAssignmentsRouteImport } from './routes/admin/assignments'
 import { Route as AdminCoachInvitesRouteImport } from './routes/admin/coach-invites'
 import { Route as AdminDiagnosticsRouteImport } from './routes/admin/diagnostics'
@@ -194,6 +195,11 @@ const VerifyEmailRoute = VerifyEmailRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminArchitectureRoute = AdminArchitectureRouteImport.update({
+  id: '/architecture',
+  path: '/architecture',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminAssignmentsRoute = AdminAssignmentsRouteImport.update({
@@ -461,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/temporary-staffing': typeof TemporaryStaffingRoute
   '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/architecture': typeof AdminArchitectureRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
@@ -530,6 +537,7 @@ export interface FileRoutesByTo {
   '/temporary-staffing': typeof TemporaryStaffingRoute
   '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/architecture': typeof AdminArchitectureRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
@@ -604,6 +612,7 @@ export interface FileRoutesById {
   '/temporary-staffing': typeof TemporaryStaffingRoute
   '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/architecture': typeof AdminArchitectureRoute
   '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
@@ -679,6 +688,7 @@ export interface FileRouteTypes {
     | '/temporary-staffing'
     | '/terms'
     | '/verify-email'
+    | '/admin/architecture'
     | '/admin/assignments'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
@@ -748,6 +758,7 @@ export interface FileRouteTypes {
     | '/temporary-staffing'
     | '/terms'
     | '/verify-email'
+    | '/admin/architecture'
     | '/admin/assignments'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
@@ -821,6 +832,7 @@ export interface FileRouteTypes {
     | '/temporary-staffing'
     | '/terms'
     | '/verify-email'
+    | '/admin/architecture'
     | '/admin/assignments'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
@@ -1065,6 +1077,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/architecture': {
+      id: '/admin/architecture'
+      path: '/architecture'
+      fullPath: '/admin/architecture'
+      preLoaderRoute: typeof AdminArchitectureRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/assignments': {
@@ -1407,6 +1426,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminArchitectureRoute: typeof AdminArchitectureRoute
   AdminAssignmentsRoute: typeof AdminAssignmentsRoute
   AdminCoachInvitesRoute: typeof AdminCoachInvitesRoute
   AdminDiagnosticsRoute: typeof AdminDiagnosticsRoute
@@ -1426,6 +1446,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminArchitectureRoute: AdminArchitectureRoute,
   AdminAssignmentsRoute: AdminAssignmentsRoute,
   AdminCoachInvitesRoute: AdminCoachInvitesRoute,
   AdminDiagnosticsRoute: AdminDiagnosticsRoute,

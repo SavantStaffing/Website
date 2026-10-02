@@ -18,6 +18,7 @@ const NAV = [
   { to: "/admin/scout", label: "Job Scout" },
   { to: "/admin/ratings", label: "Ratings" },
   { to: "/admin/diagnostics", label: "Diagnostics" },
+  { to: "/admin/architecture", label: "Architecture" },
   { to: "/admin/jobs", label: "Jobs" },
   { to: "/admin/scanners", label: "Unique scanners" },
   { to: "/admin/organizations", label: "Organizations" },
