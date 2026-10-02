@@ -25,6 +25,8 @@ import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
 import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS, JOB_TRACKS } from "@/lib/scout/track";
 import { PARTNER_IDS, PARTNER_NAMES, type PartnerId } from "@/data/temp-listings";
 import { RatingBadge } from "@/components/ratings/RatingBadge";
+import { ScoreInfo } from "@/components/ratings/ScoreInfo";
+import { badgeInfo, type ScoreKey } from "@/lib/ratings/score-info";
 import { employerAnchor, type RatedEmployer } from "@/lib/ratings/employer-rating";
 import { useEmployerRatings } from "@/lib/ratings/use-employer-ratings";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPES } from "@/lib/scout/types";
@@ -662,13 +664,32 @@ function JobRow({
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             {companyOf(job)}
             {employer?.rating && (
-              <RatingBadge tier={employer.rating.tier} score={employer.rating.score} />
+              <RatingBadge
+                tier={employer.rating.tier}
+                score={employer.rating.score}
+                rating={employer.rating}
+              />
             )}
-            {job.employer_badges?.map((b) => (
-              <Badge key={b} tone="good">
-                {b}
-              </Badge>
-            ))}
+            {job.employer_badges?.map((b) => {
+              const info = badgeInfo(b);
+              const badge = (
+                <Badge key={b} tone="good">
+                  {b}
+                </Badge>
+              );
+              return info ? (
+                <ScoreInfo
+                  key={b}
+                  info={info}
+                  value={b.replace(/^(JUST Capital|As You Sow DEI)\s*/i, "")}
+                  underline={false}
+                >
+                  {badge}
+                </ScoreInfo>
+              ) : (
+                badge
+              );
+            })}
             <Badge>{JOB_TRACK_LABELS[effectiveTrack(job)]}</Badge>
             {partnerOf(job) && <Badge>via {partnerOf(job)}</Badge>}
             {mode === "talent" && canAutofill(job) && <Badge tone="good">Autofill ready</Badge>}
@@ -803,7 +824,7 @@ function EmployerRatingLine({ employer }: { employer: RatedEmployer }) {
       <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
         Employer rating
       </span>
-      <RatingBadge tier={r.tier} score={r.score} />
+      <RatingBadge tier={r.tier} score={r.score} rating={r} />
       <span className="text-xs text-muted-foreground">
         {employer.hiringRank ? `#${employer.hiringRank} among employers hiring on Savant · ` : ""}
         {r.confidence} confidence
@@ -824,21 +845,23 @@ const scoreTone = (n: number) =>
 
 /** The employer's three ethics scores, 0–100, when WBA benchmarks it. */
 function EthicsLine({ job }: { job: FeedJob }) {
-  const scores: [string, number | null][] = [
-    ["Fair pay", job.fair_pay_score],
-    ["Communities", job.cultures_score],
-    ["Honest business", job.honest_score],
+  const scores: [string, number | null, ScoreKey][] = [
+    ["Fair pay", job.fair_pay_score, "fair_pay"],
+    ["Communities", job.cultures_score, "cultures"],
+    ["Honest business", job.honest_score, "honest"],
   ];
   if (scores.every(([, v]) => v === null)) return null;
   return (
     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-      {scores.map(([label, v]) =>
+      {scores.map(([label, v, info]) =>
         v === null ? null : (
-          <span key={label}>
-            {label}{" "}
-            <span className={`font-medium ${scoreTone(Number(v))}`}>{Math.round(Number(v))}</span>
-            /100
-          </span>
+          <ScoreInfo key={label} info={info} value={`${Math.round(Number(v))}/100`}>
+            <span>
+              {label}{" "}
+              <span className={`font-medium ${scoreTone(Number(v))}`}>{Math.round(Number(v))}</span>
+              /100
+            </span>
+          </ScoreInfo>
         ),
       )}
     </div>
