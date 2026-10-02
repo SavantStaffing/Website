@@ -44,6 +44,12 @@ const JOB_PATTERNS: [string, RegExp][] = [
   ["greenhouse", /(?:boards|job-boards)\.greenhouse\.io\/([\w-]+)\/jobs\/(\d+)/],
   ["lever", /jobs\.lever\.co\/([\w.-]+)\/([0-9a-f-]{36})/],
   ["ashby", /jobs\.ashbyhq\.com\/([\w.%-]+)\/([0-9a-f-]{36})/],
+  // acme.wd5.myworkdayjobs.com/[en-US/]Site/job/Location/Title_JR123 (requisition ID last)
+  ["workday", /([\w-]+)\.wd\d+\.myworkdayjobs\.com\/.*\/job\/.*_([\w-]+)(?:[/?#]|$)/],
+  [
+    "workday",
+    /myworkdaysite\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?recruiting\/([\w-]+)\/.*\/job\/.*_([\w-]+)(?:[/?#]|$)/,
+  ],
 ];
 
 /** (ats, company_token, job_id) for a specific job posting URL, or null. */

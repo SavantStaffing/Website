@@ -6,9 +6,14 @@ const bodySchema = z.object({
   answers: z
     .array(z.object({ label: z.string().max(1000), answer: z.string().max(10000) }))
     .max(300),
+  // False for one step of a multi-step form. Older extension versions leave it out.
+  submitted: z.boolean().optional(),
 });
 
-/** POST /api/autofill/answers — on submit, remember the candidate's answers for next time. */
+/**
+ * POST /api/autofill/answers — remember the candidate's answers for next time.
+ * Sent on submit, and after each step of a multi-step form (Workday).
+ */
 export const Route = createFileRoute("/api/autofill/answers")({
   server: {
     handlers: {

@@ -93,16 +93,23 @@ function SavantApplyPrivacy() {
         <Section id="reads">
           <List>
             <li>
-              <strong>Application forms, only on supported sites.</strong> On job application pages
-              hosted by Greenhouse (boards.greenhouse.io, job-boards.greenhouse.io), Lever
-              (jobs.lever.co) and Ashby (jobs.ashbyhq.com), and only when you click “Autofill with
-              Savant” or choose “Autofill &amp; continue” on Savant, it reads the form's question
-              labels, answer options and the job description on that page.
+              <strong>Application forms on supported sites.</strong> On job application pages hosted
+              by Greenhouse (boards.greenhouse.io, job-boards.greenhouse.io), Lever (jobs.lever.co),
+              Ashby (jobs.ashbyhq.com) and Workday (myworkdayjobs.com, myworkdaysite.com), and only
+              when you click “Autofill with Savant” or choose “Autofill &amp; continue” on Savant,
+              it reads the form's question labels, answer options and the job description on that
+              page. On a multi-step form, it reads each new step as it appears.
             </li>
             <li>
-              <strong>Your answers, when you submit.</strong> When you submit an application on one
-              of those sites, it reads the answers you entered so they can be saved for next time
-              (see “What is stored”).
+              <strong>Any other page, only when you click the Savant icon.</strong> Clicking the
+              Savant Apply icon in your browser's toolbar lets it read the form on that one page, in
+              that tab, the same way. Your browser grants this one click at a time; the extension
+              can't read other pages on that site, or the page again later, unless you click again.
+            </li>
+            <li>
+              <strong>Your answers, as you apply.</strong> When you move to the next step of, or
+              submit, an application it filled, it reads the answers you entered so they can be
+              saved for next time (see “What is stored”).
             </li>
             <li>
               <strong>Your Savant sign-in.</strong> When you're signed in on savantalent.com, the
@@ -110,8 +117,8 @@ function SavantApplyPrivacy() {
             </li>
           </List>
           <p>
-            It does not run on any other website, and it does not read your browsing history, other
-            tabs or other pages you visit.
+            It does not run on any other website unless you click its icon there, and it does not
+            read your browsing history, other tabs or other pages you visit.
           </p>
         </Section>
 
@@ -119,8 +126,8 @@ function SavantApplyPrivacy() {
           <List>
             <li>
               <strong>To Savant (savantalent.com):</strong> the form questions and job description,
-              to work out which answers from your profile fit each question; and, on submit, your
-              answers and the application's web address.
+              to work out which answers from your profile fit each question; and, as you move
+              through or submit the form, your answers and the application's web address.
             </li>
             <li>
               <strong>Back to the form, from Savant:</strong> details from your Savant profile —
@@ -166,7 +173,8 @@ function SavantApplyPrivacy() {
               are never saved, even when a form asks for them.
             </li>
             <li>
-              Passwords, payment details or anything from websites other than those listed above.
+              Passwords (password fields are always skipped), payment details, or anything from a
+              website other than those listed above, unless you click the Savant icon on it.
             </li>
             <li>Browsing history, analytics, advertising identifiers or tracking cookies.</li>
           </List>

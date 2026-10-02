@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Savant Apply",
-  "version": "0.3.2",
-  "description": "Fills job application forms from your Savant talent profile. You review and submit.",
+  "version": "0.4.0",
+  "description": "Fills job applications from your Savant talent profile, on company career sites too. You review and submit.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA+BNpJpJSWNd7JcezCNSgxuEkHBx46FDjXFR3ecCpWX/M/mf/u+JkIf62xY56wNWqWQajJiWCYkEPwriR7B6tG/XEXr1IdXBq9RFesTEbUG6fnKJKSIsh7Ng5kvptzQ3FtXLS/aCKzgNVeiwVS0LuZLnZbqRBNlWfzOvbL//zu+aSYOMaPKMpabjYC9llU2EMYlvInZIlWTd3nvMaS6cACnWLczI7lZm1Int8OAh/z/O5EoTVQSd6TGrX+XLDVoYh79C7k164lpHhsmyOATeCJ3jcuR4lp5o8xmSsSq9MFPVly+IAnnCfteA5yA2EFZbgmYovPEOPRlFqd10b53EgxwIDAQAB",
   "icons": {
     "16": "icons/icon16.png",
@@ -11,7 +11,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Savant Apply",
+    "default_title": "Savant Apply: click to autofill this application",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -20,7 +20,9 @@
     }
   },
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "https://savantalent.com/*",
@@ -36,7 +38,9 @@
         "https://boards.greenhouse.io/*",
         "https://job-boards.greenhouse.io/*",
         "https://jobs.lever.co/*",
-        "https://jobs.ashbyhq.com/*"
+        "https://jobs.ashbyhq.com/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://*.myworkdaysite.com/*"
       ],
       "js": [
         "content.js"

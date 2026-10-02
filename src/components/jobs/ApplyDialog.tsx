@@ -24,7 +24,7 @@ type Readiness = Awaited<ReturnType<typeof getAutofillReadiness>>;
 
 /**
  * Shown when a talent clicks Apply on a job whose application form Savant
- * Apply can fill (Greenhouse, Lever, Ashby). Offers autofill at the moment
+ * Apply can fill (Greenhouse, Lever, Ashby, Workday). Offers autofill at the moment
  * it's useful, walks them through installing the extension if they don't
  * have it, and always leaves a plain "apply without autofill" path.
  */
@@ -100,6 +100,12 @@ export function ApplyDialog({
                 </strong>
                 . Savant never submits for you.
               </p>
+              {ats === "workday" && (
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                  Workday asks you to sign in or create an account with {target.company} first. Once
+                  you're in, Savant Apply fills each step of the form as you go.
+                </p>
+              )}
 
               {readiness === "loading" && (
                 <p className="mt-4 text-xs text-muted-foreground">Reading the application form…</p>
