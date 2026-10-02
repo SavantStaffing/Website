@@ -1,4 +1,5 @@
 import type { JobTrack } from "./track.ts";
+import { locationMatches, textMatches } from "./search.ts";
 
 /**
  * "User Feed Ranking" — orders jobs for one talent from their saved
@@ -230,13 +231,10 @@ export function applyFilters<J extends RankableJob & { company_name?: string | n
   f: FeedFilters,
   now = Date.now(),
 ): J[] {
-  const q = f.q.trim().toLowerCase();
-  const loc = f.location.trim().toLowerCase();
   return jobs.filter((j) => {
     if (f.track !== "all" && effectiveTrack(j) !== f.track) return false;
-    if (q && !`${j.title} ${j.company_name ?? ""}`.toLowerCase().includes(q)) return false;
-    if (loc && !(j.location ?? "").toLowerCase().includes(loc) && !(loc === "remote" && j.remote))
-      return false;
+    if (!textMatches(`${j.title} ${j.company_name ?? ""}`, f.q)) return false;
+    if (!locationMatches(j.location, f.location, !!j.remote)) return false;
     if (f.employmentTypes.length && !f.employmentTypes.includes(j.employment_type ?? ""))
       return false;
     if (f.naics && !(j.naics_code ?? "").startsWith(f.naics)) return false;

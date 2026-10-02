@@ -9,6 +9,7 @@ import {
 } from "@/components/recruiter/TalentCard";
 import { useRecruiterTalentState } from "@/components/recruiter/useRecruiterTalentState";
 import { label, list, mutedButton } from "@/components/site/ui";
+import { locationMatches } from "@/lib/scout/search";
 
 export const Route = createFileRoute("/recruiter/talent")({
   head: () => ({
@@ -40,13 +41,12 @@ function TalentFeed() {
   const filtered = useMemo(() => {
     if (!talent) return null;
     const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const where = loc.trim().toLowerCase();
     return talent.filter((t) => {
       const hay = [talentName(t), t.headline, t.current_title, t.current_company, ...t.skills]
         .join(" ")
         .toLowerCase();
       if (terms.some((term) => !hay.includes(term))) return false;
-      if (where && !(t.location ?? "").toLowerCase().includes(where)) return false;
+      if (!locationMatches(t.location, loc)) return false;
       return true;
     });
   }, [talent, q, loc]);

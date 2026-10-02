@@ -2,6 +2,7 @@ import { HttpError, scoutJson, type MetricsRecorder } from "./http.ts";
 import { parsePayText } from "./staffing-boards.ts";
 import { htmlToText, iso } from "./text.ts";
 import type { AggregatorSource, RawJob } from "./types.ts";
+import { ACTIVE_METROS } from "./location.ts";
 
 /**
  * Job-aggregator APIs: Adzuna and Jooble. Both are official, keyed search
@@ -84,8 +85,7 @@ export function requestAllowance(budget: ApiBudget, usage: ApiUsage, now: Date):
   );
 }
 
-/** Searches used when the admin hasn't set any: common roles, Bay Area. */
-export const DEFAULT_AGGREGATOR_QUERIES: { search_term: string; location?: string }[] = [
+const DEFAULT_SEARCH_TERMS = [
   "software engineer",
   "accountant",
   "administrative assistant",
@@ -102,9 +102,19 @@ export const DEFAULT_AGGREGATOR_QUERIES: { search_term: string; location?: strin
   "office manager",
   "electrician",
   "financial analyst",
-].map((search_term) => ({ search_term, location: "San Francisco, CA" }));
+];
 
-const DEFAULT_LOCATION = "San Francisco, CA";
+/**
+ * Searches used when the admin hasn't set any: common roles in every active
+ * metro (location.ts). Ordered role by role, so each scan's run of searches
+ * covers every active metro for a role or two rather than one city.
+ */
+export const DEFAULT_AGGREGATOR_QUERIES: { search_term: string; location?: string }[] =
+  DEFAULT_SEARCH_TERMS.flatMap((search_term) =>
+    ACTIVE_METROS.flatMap((m) => m.anchors.map((location) => ({ search_term, location }))),
+  );
+
+const DEFAULT_LOCATION = ACTIVE_METROS[0]?.anchors[0] ?? "New York, NY";
 
 /**
  * Both APIs carry the key in the URL, and HttpError messages include the URL —

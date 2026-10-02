@@ -147,8 +147,8 @@ function Settings() {
           <SectionHeading title="What gets ingested" />
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             U.S. postings only. Per employer, the scout keeps this many postings of each position
-            type (software engineering, accounting, admin…), Bay Area first, then newest. Staffing
-            agencies aren't capped.
+            type (software engineering, accounting, admin…), New York, Portland–Eugene and
+            California first, then newest. Staffing agencies aren't capped.
           </p>
           <div className="mt-6 grid max-w-xl gap-6 sm:grid-cols-2">
             <Field

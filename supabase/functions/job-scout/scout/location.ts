@@ -23,7 +23,7 @@ const US_COUNTRY = /\b(united states( of america)?|usa)\b/i;
 // Upper-case only, so the word "us" in prose doesn't count.
 const US_TOKEN = /(^|[^A-Za-z])US([^A-Za-z]|$)/;
 
-const STATES: Record<string, string> = {
+export const STATES: Record<string, string> = {
   AL: "alabama",
   AK: "alaska",
   AZ: "arizona",
@@ -337,6 +337,158 @@ export function classifyLocation(location: string | null | undefined): LocationV
 export const isUnitedStates = (location: string | null | undefined) =>
   classifyLocation(location) === "us";
 
-/** Bay Area cities and counties, for preferring local postings when capping. */
-export const BAY_AREA =
-  /\b(san francisco|south san francisco|oakland|berkeley|emeryville|alameda|richmond|san leandro|hayward|fremont|newark|union city|san jose|santa clara|sunnyvale|mountain view|palo alto|menlo park|redwood city|san mateo|burlingame|foster city|san carlos|belmont|brisbane|daly city|san bruno|milpitas|cupertino|campbell|los gatos|walnut creek|concord|pleasanton|livermore|dublin|san ramon|danville|pleasant hill|novato|san rafael|petaluma|santa rosa|napa|vallejo|benicia|gilroy|morgan hill|marin|contra costa|bay area)\b/i;
+/**
+ * Metro areas the Job Scout targets. Active metros are where the job-search
+ * APIs look (searching within about 50 miles of each anchor city) and which
+ * postings win when an employer's postings are capped. Dormant metros are
+ * listed so they can be switched on later by flipping `active`.
+ */
+export type Metro = {
+  name: string;
+  /** Search locations, each covering about 50 miles around it. */
+  anchors: string[];
+  /** Cities and counties in the metro, to recognise a posting's location. */
+  match: RegExp;
+  active: boolean;
+};
+
+export const METROS: Metro[] = [
+  {
+    name: "New York–Newark–Jersey City",
+    anchors: ["New York, NY"],
+    match:
+      /\b(new york|nyc|manhattan|brooklyn|queens|bronx|staten island|newark|jersey city|hoboken|yonkers|white plains|stamford|long island)\b/i,
+    active: true,
+  },
+  {
+    name: "Portland–Eugene",
+    anchors: ["Portland, OR", "Eugene, OR"],
+    match:
+      /\b(portland(?!,? *(me|maine)\b)|beaverton|hillsboro|gresham|tigard|lake oswego|tualatin|wilsonville|salem|corvallis|albany|eugene|springfield, or|vancouver, wa)\b/i,
+    active: true,
+  },
+  {
+    name: "Los Angeles–Long Beach–Anaheim",
+    anchors: ["Los Angeles, CA"],
+    match:
+      /\b(los angeles|long beach|anaheim|santa monica|pasadena|glendale|burbank|torrance|irvine|santa ana|costa mesa|culver city|el segundo|orange county)\b/i,
+    active: true,
+  },
+  {
+    name: "San Francisco–Oakland–Berkeley",
+    anchors: ["San Francisco, CA"],
+    match:
+      /\b(san francisco|south san francisco|oakland|berkeley|emeryville|alameda|richmond|san leandro|hayward|fremont|newark, ca|union city|san jose|santa clara|sunnyvale|mountain view|palo alto|menlo park|redwood city|san mateo|burlingame|foster city|san carlos|belmont|brisbane|daly city|san bruno|milpitas|cupertino|campbell|los gatos|walnut creek|concord|pleasanton|livermore|dublin|san ramon|danville|pleasant hill|novato|san rafael|marin|contra costa|bay area)\b/i,
+    active: true,
+  },
+  {
+    name: "Riverside–San Bernardino–Ontario",
+    anchors: ["Riverside, CA"],
+    match:
+      /\b(riverside|san bernardino|ontario, ca|rancho cucamonga|fontana|corona|moreno valley|temecula|murrieta|redlands|inland empire)\b/i,
+    active: true,
+  },
+  {
+    name: "San Diego–Chula Vista–Carlsbad",
+    anchors: ["San Diego, CA"],
+    match: /\b(san diego|chula vista|carlsbad|oceanside|escondido|la jolla|el cajon|san marcos)\b/i,
+    active: true,
+  },
+  {
+    name: "Chicago–Naperville–Elgin",
+    anchors: ["Chicago, IL"],
+    match: /\b(chicago|naperville|elgin|evanston|schaumburg|aurora, il)\b/i,
+    active: false,
+  },
+  {
+    name: "Dallas–Fort Worth–Arlington",
+    anchors: ["Dallas, TX"],
+    match: /\b(dallas|fort worth|arlington, tx|plano|irving|frisco)\b/i,
+    active: false,
+  },
+  {
+    name: "Houston–Pasadena–The Woodlands",
+    anchors: ["Houston, TX"],
+    match: /\b(houston|pasadena, tx|the woodlands|sugar land|katy)\b/i,
+    active: false,
+  },
+  {
+    name: "Washington–Arlington–Alexandria",
+    anchors: ["Washington, DC"],
+    match:
+      /\b(washington,? dc|district of columbia|arlington, va|alexandria|bethesda|reston|tysons)\b/i,
+    active: false,
+  },
+  {
+    name: "Miami–Fort Lauderdale–West Palm Beach",
+    anchors: ["Fort Lauderdale, FL"],
+    match: /\b(miami|fort lauderdale|west palm beach|boca raton|hollywood, fl)\b/i,
+    active: false,
+  },
+  {
+    name: "Philadelphia–Camden–Wilmington",
+    anchors: ["Philadelphia, PA"],
+    match: /\b(philadelphia|camden|wilmington, de|king of prussia)\b/i,
+    active: false,
+  },
+  {
+    name: "Atlanta–Sandy Springs–Roswell",
+    anchors: ["Atlanta, GA"],
+    match: /\b(atlanta|sandy springs|roswell|alpharetta|marietta)\b/i,
+    active: false,
+  },
+  {
+    name: "Boston–Cambridge–Newton",
+    anchors: ["Boston, MA"],
+    match: /\b(boston|cambridge, ma|newton|waltham|somerville)\b/i,
+    active: false,
+  },
+  {
+    name: "Phoenix–Mesa–Chandler",
+    anchors: ["Phoenix, AZ"],
+    match: /\b(phoenix|mesa|chandler|scottsdale|tempe|gilbert)\b/i,
+    active: false,
+  },
+  {
+    name: "Detroit–Warren–Dearborn",
+    anchors: ["Detroit, MI"],
+    match: /\b(detroit|warren|dearborn|troy, mi|southfield)\b/i,
+    active: false,
+  },
+  {
+    name: "Seattle–Tacoma–Bellevue",
+    anchors: ["Seattle, WA"],
+    match: /\b(seattle|tacoma|bellevue|redmond|kirkland|everett)\b/i,
+    active: false,
+  },
+  {
+    name: "Minneapolis–St. Paul–Bloomington",
+    anchors: ["Minneapolis, MN"],
+    match: /\b(minneapolis|st paul|saint paul|bloomington, mn|eden prairie)\b/i,
+    active: false,
+  },
+  {
+    name: "Tampa–St. Petersburg–Clearwater",
+    anchors: ["Tampa, FL"],
+    match: /\b(tampa|st petersburg|saint petersburg|clearwater)\b/i,
+    active: false,
+  },
+  {
+    name: "Denver–Aurora–Lakewood",
+    anchors: ["Denver, CO"],
+    match: /\b(denver|aurora, co|lakewood|boulder|englewood)\b/i,
+    active: false,
+  },
+  {
+    name: "Orlando–Kissimmee–Sanford",
+    anchors: ["Orlando, FL"],
+    match: /\b(orlando|kissimmee|sanford|lake mary)\b/i,
+    active: false,
+  },
+];
+
+export const ACTIVE_METROS = METROS.filter((m) => m.active);
+
+/** Is a posting in one of the active metros? Used to prefer local postings when capping. */
+export const inActiveMetro = (location: string | null | undefined) =>
+  !!location && ACTIVE_METROS.some((m) => m.match.test(location.replace(/\./g, "")));
