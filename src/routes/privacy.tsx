@@ -15,7 +15,7 @@ export const Route = createFileRoute("/privacy")({
   component: PrivacyPolicy,
 });
 
-const UPDATED = "September 30, 2026";
+const UPDATED = "October 2, 2026";
 const EMAIL = "info@savantalent.com";
 
 const SECTIONS = [
@@ -64,9 +64,9 @@ function PrivacyPolicy() {
         <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
           On this page
         </p>
-        <ol className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+        <ol className="mt-4 text-sm sm:columns-2 sm:gap-x-8">
           {SECTIONS.map(([id, title], i) => (
-            <li key={id}>
+            <li key={id} className="mb-2 break-inside-avoid">
               <a href={`#${id}`} className="[@media(hover:hover)]:hover:underline">
                 {i + 1}. {title}
               </a>
@@ -78,7 +78,7 @@ function PrivacyPolicy() {
       <div className="mt-12 space-y-12 text-sm leading-relaxed">
         <Section id="who">
           <p>
-            Savant Staffing (“Savant”, “we”, “us”) operates savantalent.com, the Savant job feed,
+            Savant Staffing (“Savant,” “we” or “us”) operates savantalent.com, the Savant job feed,
             Employer Ratings, Insights, the talent, recruiter and coach hubs, and the Savant Apply
             browser extension (together, the “Services”). Savant is responsible for the personal
             information described here. Contact us at <Mail />. Use of the Services is also governed
@@ -95,7 +95,7 @@ function PrivacyPolicy() {
           <List>
             <li>
               <strong>Account details:</strong> your name or username, email address, phone number
-              (optional), password, and account type (talent, recruiter or coach). Passwords are
+              (optional), password and account type (talent, recruiter or coach). Passwords are
               handled by our sign-in provider; we never see them.
             </li>
             <li>
@@ -157,7 +157,7 @@ function PrivacyPolicy() {
               status changes and interview scheduling.
             </li>
             <li>
-              <strong>Public sources:</strong> job listings and employer data (for example company
+              <strong>Public sources:</strong> job listings and employer data (for example, company
               career sites, the U.S. Department of Labor and published employer rankings). These
               describe employers and jobs, not you.
             </li>
@@ -176,13 +176,13 @@ function PrivacyPolicy() {
             <li>connect talent with recruiters and coaches, as described below;</li>
             <li>respond to messages and provide the career services you request;</li>
             <li>
-              send service messages about your account and applications, and notifications you can
-              turn off;
+              send service messages about your account and applications, and send notifications you
+              can turn off;
             </li>
             <li>
-              keep the Services safe — detecting fraud, ghost or scam listings, abuse and scraping;
+              keep the Services safe by detecting fraud, ghost or scam listings, abuse and scraping;
             </li>
-            <li>improve the Services, and meet our legal obligations.</li>
+            <li>improve the Services and meet our legal obligations.</li>
           </List>
           <p>
             Work authorization and sponsorship answers are used only to match you with jobs you can
@@ -194,10 +194,10 @@ function PrivacyPolicy() {
           <List>
             <li>
               <strong>Recruiters on Savant:</strong> recruiters can find talent profiles (including
-              résumés) in their talent feed and invite you to apply. Your email and phone stay
-              private until you accept an invitation.{" "}
-              <strong>Your profile is visible to recruiters unless you turn this off</strong> with
-              “Visible to recruiters” on your profile page.
+              résumés) in their talent feed and invite you to apply. Your email address and phone
+              number stay private until you accept an invitation.{" "}
+              <strong>Your profile is visible to recruiters unless you turn this off</strong> using
+              the “Visible to recruiters” setting on your profile page.
             </li>
             <li>
               <strong>Recruiters and coaches a Savant admin assigns to you:</strong> while the
@@ -221,7 +221,7 @@ function PrivacyPolicy() {
               <strong>Service providers</strong> who process data for us: Lovable (website hosting),
               Supabase (database, sign-in and file storage), Google (optional sign-in), Resend
               (email delivery) and Anthropic (drafting suggested answers in Savant Apply). They may
-              only use it to provide their services to us.
+              use it only to provide their services to us.
             </li>
             <li>
               <strong>Legal and safety:</strong> when required by law or legal process, or to
@@ -240,8 +240,8 @@ function PrivacyPolicy() {
 
         <Section id="storage">
           <p>
-            We use your browser's storage only for things the Services need: keeping you signed in,
-            and remembering settings such as “Always autofill”. We don't use advertising or
+            We use your browser's storage only for things the Services need: keeping you signed in
+            and remembering settings such as “Always autofill.” We don't use advertising or
             cross-site tracking cookies. Because we don't sell or share personal information, we
             treat Global Privacy Control signals as already honored.
           </p>
@@ -263,11 +263,11 @@ function PrivacyPolicy() {
             your account is open. When you delete your account (Settings → Delete account), your
             account, profile, résumé files, preferences, applications, saved answers, messages and
             the contact-form messages you sent us are deleted immediately. We keep only a record
-            that an account was deleted, with the date and account type and nothing that identifies
-            you, as privacy laws require. Copies in our providers' backups are overwritten on their
+            that an account was deleted (the date and the account type, with nothing that identifies
+            you), as privacy laws require. Copies in our providers' backups are overwritten on their
             regular backup schedule. Contact-form messages from people without an account are kept
-            as long as needed to respond and follow up. Technical logs are kept for the periods our
-            providers set, typically a few weeks.
+            for as long as needed to respond and follow up. Technical logs are kept for the periods
+            our providers set, typically a few weeks.
           </p>
         </Section>
 
@@ -315,7 +315,7 @@ function PrivacyPolicy() {
               opt out of the sale or sharing of personal information — we don't sell or share it;
             </li>
             <li>
-              limit the use of sensitive personal information — we only use it as described above;
+              limit the use of sensitive personal information — we use it only as described above;
             </li>
             <li>not be discriminated against for using these rights.</li>
           </List>
@@ -330,11 +330,12 @@ function PrivacyPolicy() {
           <p>
             Under the California Consumer Privacy Act, in the past 12 months we have collected these
             categories of personal information, from the sources and for the purposes described in
-            sections 2 and 3:
+            Sections 2 and 3:
           </p>
           <List>
             <li>
-              <strong>Identifiers:</strong> name, email, phone, account ID, IP address.
+              <strong>Identifiers:</strong> name, email address, phone number, account ID and IP
+              address.
             </li>
             <li>
               <strong>Professional or employment information:</strong> résumé, work history, current
@@ -344,14 +345,14 @@ function PrivacyPolicy() {
               <strong>Internet activity:</strong> technical logs and activity within the Services.
             </li>
             <li>
-              <strong>Sensitive personal information:</strong> account sign-in credentials, and work
+              <strong>Sensitive personal information:</strong> account sign-in credentials and work
               authorization or visa sponsorship status. We use these only to provide the Services,
               not to infer characteristics about you.
             </li>
           </List>
           <p>
             We disclose these categories for business purposes to the service providers, recruiters,
-            employers and coaches described in section 4. We have not sold or shared personal
+            employers and coaches described in Section 4. We have not sold or shared personal
             information, including that of consumers under 16.
           </p>
         </Section>

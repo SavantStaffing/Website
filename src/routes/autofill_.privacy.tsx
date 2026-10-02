@@ -15,7 +15,7 @@ export const Route = createFileRoute("/autofill_/privacy")({
   component: SavantApplyPrivacy,
 });
 
-const UPDATED = "September 30, 2026";
+const UPDATED = "October 2, 2026";
 const EMAIL = "info@savantalent.com";
 
 const SECTIONS = [
@@ -70,9 +70,9 @@ function SavantApplyPrivacy() {
         <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
           On this page
         </p>
-        <ol className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+        <ol className="mt-4 text-sm sm:columns-2 sm:gap-x-8">
           {SECTIONS.map(([id, title], i) => (
-            <li key={id}>
+            <li key={id} className="mb-2 break-inside-avoid">
               <a href={`#${id}`} className="[@media(hover:hover)]:hover:underline">
                 {i + 1}. {title}
               </a>
@@ -84,7 +84,7 @@ function SavantApplyPrivacy() {
       <div className="mt-12 space-y-12 text-sm leading-relaxed">
         <Section id="who">
           <p>
-            Savant Apply is provided by Savant Staffing (“Savant”, “we”, “us”), which operates
+            Savant Apply is provided by Savant Staffing (“Savant,” “we” or “us”), which operates
             savantalent.com. Savant is responsible for the personal information described in this
             policy. You can reach us at <Mail />.
           </p>
@@ -111,7 +111,7 @@ function SavantApplyPrivacy() {
           </List>
           <p>
             It does not run on any other website, and it does not read your browsing history, other
-            tabs, or other pages you visit.
+            tabs or other pages you visit.
           </p>
         </Section>
 
@@ -129,7 +129,7 @@ function SavantApplyPrivacy() {
             </li>
             <li>
               <strong>To Anthropic (optional):</strong> for open-ended questions your profile
-              doesn't answer (for example “Why do you want to work here?”), Savant may send the
+              doesn't answer (for example, “Why do you want to work here?”), Savant may send the
               question, the job description and your résumé text to Anthropic's Claude AI to draft
               an answer. Drafts are always marked for your review.
             </li>
@@ -166,7 +166,7 @@ function SavantApplyPrivacy() {
               are never saved, even when a form asks for them.
             </li>
             <li>
-              Passwords, payment details, or anything from websites other than those listed above.
+              Passwords, payment details or anything from websites other than those listed above.
             </li>
             <li>Browsing history, analytics, advertising identifiers or tracking cookies.</li>
           </List>
@@ -174,8 +174,8 @@ function SavantApplyPrivacy() {
 
         <Section id="use">
           <p>
-            Only to fill in and track your job applications and to reuse your answers on later
-            applications. We do not sell this data, share it for cross-context behavioral
+            We use it only to fill in and track your job applications and to reuse your answers on
+            later applications. We do not sell this data, share it for cross-context behavioral
             advertising, or use it for anything unrelated to applying for jobs. We don't use it to
             make automated decisions about you. Our use of information received through the
             extension complies with the Chrome Web Store User Data Policy, including its Limited Use
@@ -185,7 +185,7 @@ function SavantApplyPrivacy() {
 
         <Section id="providers">
           <p>
-            We rely on a small number of service providers, who process data only on our behalf:
+            We rely on a small number of service providers, which process data only on our behalf:
           </p>
           <List>
             <li>
@@ -229,8 +229,8 @@ function SavantApplyPrivacy() {
           <List>
             <li>All data travels over encrypted connections (HTTPS).</li>
             <li>
-              The extension only talks to savantalent.com and Savant's file storage, and only
-              downloads your own résumé, through a signed link that expires after 10 minutes.
+              The extension talks only to savantalent.com and Savant's file storage, and it
+              downloads only your own résumé, through a signed link that expires after 10 minutes.
             </li>
             <li>
               In Savant's database, your data is readable only by your account and by authorized
@@ -252,7 +252,7 @@ function SavantApplyPrivacy() {
             <li>Edit or delete saved answers on the Saved Answers page.</li>
             <li>
               Turn autofill off for any application (“Apply without autofill”), or switch off
-              “Always autofill”.
+              “Always autofill.”
             </li>
             <li>
               Remove the extension at any time from your browser's extensions page. This deletes the
@@ -276,7 +276,7 @@ function SavantApplyPrivacy() {
           <p>
             California residents have these rights under the California Consumer Privacy Act. To use
             any of them, email <Mail /> from the address on your Savant account. We'll confirm it's
-            you before acting, and reply within 45 days. You can also ask someone to make a request
+            you before acting and reply within 45 days. You can also ask someone to make a request
             on your behalf with your written permission.
           </p>
         </Section>
