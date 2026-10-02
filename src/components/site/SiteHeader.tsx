@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import savantEmblem from "@/assets/savant-emblem.png";
 import savantLogo from "@/assets/savant-logo.png";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { getDashboardPath } from "@/lib/auth/session";
@@ -21,8 +22,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--color-hairline)] bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center gap-2.5">
           <img src={savantLogo} alt="Savant" className="h-6 w-auto" />
+          <img src={savantEmblem} alt="" aria-hidden className="h-7 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-9 md:flex">
