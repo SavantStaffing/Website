@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordInput } from "@/components/site/PasswordInput";
 
 /**
  * Career coach sign-up. Not linked from anywhere on the site: admins create
@@ -172,14 +173,26 @@ function Field({
   return (
     <label className="block">
       <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        required
-        className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
-      />
+      {type === "password" ? (
+        <span className="mt-2 block">
+          <PasswordInput
+            value={value}
+            onChange={onChange}
+            autoComplete={autoComplete}
+            required
+            className="block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+          />
+        </span>
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          required
+          className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+        />
+      )}
     </label>
   );
 }

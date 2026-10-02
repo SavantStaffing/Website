@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { PasswordInput } from "./PasswordInput";
 
 /**
  * Small shared building blocks in the site's existing style (hairline
@@ -39,13 +40,24 @@ export function Field({
   return (
     <label className="block">
       <span className={label}>{text}</span>
-      <input
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
-      />
+      {type === "password" ? (
+        <span className="mt-2 block">
+          <PasswordInput
+            value={value}
+            onChange={onChange}
+            autoComplete="new-password"
+            className="block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+          />
+        </span>
+      ) : (
+        <input
+          type={type}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+        />
+      )}
       {hint && <span className="mt-1 block text-xs text-muted-foreground">{hint}</span>}
     </label>
   );

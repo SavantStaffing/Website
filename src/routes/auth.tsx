@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordInput } from "@/components/site/PasswordInput";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
@@ -324,7 +325,19 @@ function GoogleButton() {
     });
     if (result.error) {
       setLoading(false);
-      toast.error("Google sign-in failed");
+      const message = result.error.message || "";
+      toast.error(
+        /not supported|not enabled/i.test(message)
+          ? "Google sign-in isn't turned on yet. Please use your email and password."
+          : `Google sign-in failed${message ? `: ${message}` : ""}`,
+      );
+      return;
+    }
+    // Most of the time the page has already redirected to Google. In a popup
+    // (e.g. Lovable's preview) the session is set here instead: finish the
+    // sign-in the same way the callback page does.
+    if (!("redirected" in result && result.redirected)) {
+      window.location.assign("/auth/callback" + (next ? `?next=${encodeURIComponent(next)}` : ""));
     }
   }
   return (
@@ -355,14 +368,26 @@ function Field({
   return (
     <label className="block">
       <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        required
-        className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
-      />
+      {type === "password" ? (
+        <span className="mt-2 block">
+          <PasswordInput
+            value={value}
+            onChange={onChange}
+            autoComplete={autoComplete}
+            required
+            className="block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+          />
+        </span>
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          required
+          className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+        />
+      )}
     </label>
   );
 }
