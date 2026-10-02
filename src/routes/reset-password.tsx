@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordInput } from "@/components/site/PasswordInput";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -71,27 +72,29 @@ function ResetPassword() {
               <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
                 New password
               </span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-                className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
-              />
+              <span className="mt-2 block">
+                <PasswordInput
+                  value={password}
+                  onChange={setPassword}
+                  required
+                  autoComplete="new-password"
+                  className="block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+                />
+              </span>
             </label>
             <label className="block">
               <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
                 Confirm password
               </span>
-              <input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                autoComplete="new-password"
-                className="mt-2 block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
-              />
+              <span className="mt-2 block">
+                <PasswordInput
+                  value={confirm}
+                  onChange={setConfirm}
+                  required
+                  autoComplete="new-password"
+                  className="block w-full border-b border-[color:var(--color-hairline)] bg-transparent py-3 text-base outline-none focus:border-foreground"
+                />
+              </span>
             </label>
             <button
               type="submit"
