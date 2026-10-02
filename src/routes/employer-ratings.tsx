@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { ChipGroup, label, list, mutedButton, primaryButton } from "@/components/site/ui";
 import { RatingBadge } from "@/components/ratings/RatingBadge";
+import { ScoreInfo } from "@/components/ratings/ScoreInfo";
+import { COMPONENT_INFO, CONFIDENCE_INFO } from "@/lib/ratings/score-info";
 import {
   TIERS,
   employerAnchor,
@@ -214,9 +216,23 @@ function EmployerRow({
       >
         <span className="w-8 text-sm tabular-nums text-muted-foreground">{position}</span>
         <span className="min-w-0 flex-1 text-lg font-medium">{e.name}</span>
-        <RatingBadge tier={r.tier} score={r.score} />
+        <RatingBadge tier={r.tier} score={r.score} rating={r} />
         <span className="w-36 whitespace-nowrap text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-          {r.confidence} confidence
+          <ScoreInfo
+            label={`${r.confidence} confidence`}
+            body={
+              <>
+                <p className="text-sm font-semibold normal-case">{r.confidence} confidence</p>
+                <p className="mt-2 text-muted-foreground">{CONFIDENCE_INFO[r.confidence]}</p>
+                <p className="mt-2 text-muted-foreground">
+                  Confidence reflects how many of our sources cover this employer, not how good it
+                  is.
+                </p>
+              </>
+            }
+          >
+            {r.confidence} confidence
+          </ScoreInfo>
         </span>
         <span className="w-28 whitespace-nowrap text-right text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
           {e.openJobs ? `${e.openJobs} open job${e.openJobs === 1 ? "" : "s"}` : "—"}
@@ -231,7 +247,13 @@ function EmployerRow({
               {r.components.map((c) => (
                 <li key={c.key}>
                   <div className="flex justify-between text-sm">
-                    <span>{c.label}</span>
+                    {COMPONENT_INFO[c.key] ? (
+                      <ScoreInfo info={COMPONENT_INFO[c.key]} value={c.detail}>
+                        {c.label}
+                      </ScoreInfo>
+                    ) : (
+                      <span>{c.label}</span>
+                    )}
                     <span className="tabular-nums">{Math.round(c.value)}</span>
                   </div>
                   <div className="mt-1 h-1.5 rounded-full bg-[color:var(--color-hairline)]">
@@ -248,7 +270,13 @@ function EmployerRow({
             </ul>
             {r.penalties.length > 0 && (
               <p className="mt-4 text-sm text-red-700 dark:text-red-400">
-                Labor record: {r.penalties.map((p) => `${p.label} (−${p.points})`).join(", ")}
+                <ScoreInfo
+                  info="labor_record"
+                  value={`−${r.penalties.reduce((s, p) => s + p.points, 0)}`}
+                >
+                  Labor record
+                </ScoreInfo>
+                : {r.penalties.map((p) => `${p.label} (−${p.points})`).join(", ")}
               </p>
             )}
           </div>
