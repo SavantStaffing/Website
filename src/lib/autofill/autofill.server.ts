@@ -33,8 +33,12 @@ function postingUrls(url: string): string[] {
   }
   u.hash = "";
   const exact = u.toString();
-  u.pathname = u.pathname.replace(/\/(apply|application)\/?$/, "");
-  return [...new Set([url, exact, u.toString()])];
+  // Lever's /apply, Ashby's /application, Workday's /apply/applyManually.
+  u.pathname = u.pathname.replace(/\/(apply|application)(\/[\w-]*)?\/?$/, "");
+  const posting = u.toString();
+  // Workday serves the same posting with or without a locale ("/en-US/").
+  u.pathname = u.pathname.replace(/^\/[a-z]{2}-[A-Z]{2}\//, "/");
+  return [...new Set([url, exact, posting, u.toString()])];
 }
 
 export class AutofillError extends Error {
@@ -132,22 +136,39 @@ export async function createPlan(
   return plan;
 }
 
-/** Called on submit: remember what the candidate actually answered. */
+/**
+ * Remember what the candidate actually answered. Called on submit, and on
+ * each step of a multi-step form (Workday) with submitted: false, which saves
+ * the answers without marking the application as sent.
+ */
 export async function saveAnswers(
   uid: string,
-  req: { job_url: string; answers: { label: string; answer: string }[] },
+  req: {
+    job_url: string;
+    answers: { label: string; answer: string }[];
+    submitted?: boolean;
+  },
 ) {
-  const rows = req.answers
-    .filter((a) => a.answer.trim() && !EEO_RE.test(a.label))
-    .map((a) => ({
-      user_id: uid,
-      question_key: norm(a.label),
-      question_label: a.label.trim().slice(0, 500),
-      answer: a.answer.trim(),
-    }));
+  // One row per question: the same question twice would make the upsert fail.
+  const rows = [
+    ...new Map(
+      req.answers
+        .filter((a) => a.answer.trim() && !EEO_RE.test(a.label))
+        .map((a) => [
+          norm(a.label),
+          {
+            user_id: uid,
+            question_key: norm(a.label),
+            question_label: a.label.trim().slice(0, 500),
+            answer: a.answer.trim(),
+          },
+        ]),
+    ).values(),
+  ];
   if (rows.length) {
     await supabaseAdmin.from("saved_answers").upsert(rows, { onConflict: "user_id,question_key" });
   }
+  if (req.submitted === false) return { saved: rows.length };
   await supabaseAdmin
     .from("autofill_plans")
     .update({ status: "submitted" })

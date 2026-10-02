@@ -343,7 +343,9 @@ export function JobFeed({
         : autofill
           ? "Opened the application. Savant Apply is filling it in — review it, then submit."
           : external
-            ? "Opened the company's application. We've added it to your dashboard."
+            ? savantApply.status.state === "installed"
+              ? "Opened the company's application. To autofill it, click the Savant icon in your browser's toolbar on the form. We've added it to your dashboard."
+              : "Opened the company's application. We've added it to your dashboard."
             : "Application submitted.",
     );
   }

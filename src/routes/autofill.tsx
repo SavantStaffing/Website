@@ -154,11 +154,20 @@ function AutofillGuide() {
               On any supported application page you can also click the{" "}
               <strong>Autofill with Savant</strong> button in the bottom-right corner.
             </Point>
+            <Point>
+              Applying on a company's own careers site? Open the application form and click the{" "}
+              <strong>Savant icon</strong> in your browser's toolbar to fill that page.
+            </Point>
+            <Point>
+              On Workday, sign in or create an account with the employer first. Savant Apply then
+              fills each step of the form as you go.
+            </Point>
             <Point>Check everything, answer what's left, and submit.</Point>
           </ul>
           <p className="mt-6 text-xs text-muted-foreground">
-            Works on application forms hosted by {sites.slice(0, -1).join(", ")} and {sites.at(-1)},
-            which many employers on Savant use. More are coming.
+            Fills itself in on application forms hosted by {sites.slice(0, -1).join(", ")} and{" "}
+            {sites.at(-1)}, which many employers on Savant use. On other sites, the toolbar icon
+            fills what it can recognize; unusual forms may need more of your own typing.
           </p>
         </div>
         <div>
@@ -173,8 +182,8 @@ function AutofillGuide() {
               disability status.
             </Point>
             <Point>
-              <strong>Only runs on application forms</strong> on the sites above and on Savant — not
-              on the rest of your browsing.
+              <strong>Only runs where you apply:</strong> on the sites above, on Savant, and on a
+              page where you click its icon — not on the rest of your browsing.
             </Point>
             <Point>
               When you submit, the answers you typed are kept in your{" "}
@@ -203,8 +212,10 @@ function AutofillGuide() {
           </Faq>
           <Faq q="Nothing happens on the application page">
             Some employers split the form over several steps — open the step with the form fields,
-            then click <strong>Autofill with Savant</strong>. If the page isn't on one of the
-            supported sites, fill it in the usual way.
+            then click <strong>Autofill with Savant</strong>. On a company's own site there's no
+            button: click the Savant icon in your toolbar instead (pin it from the puzzle-piece menu
+            if you don't see it). Pages inside a frame, or forms that need you to sign in first, may
+            not fill until you're on the form itself.
           </Faq>
           <Faq q="How do I update it?">
             Download the zip again, replace your <strong>savant-apply</strong> folder with the new

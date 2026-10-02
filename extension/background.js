@@ -22,8 +22,31 @@ chrome.runtime.onMessageExternal.addListener((msg, _sender, send) => {
   }
 });
 
-// Toolbar icon: open the Savant Apply page (status, how it works, help).
-chrome.action.onClicked.addListener(() => chrome.tabs.create({ url: `${API}/autofill` }));
+// Toolbar icon. On an application page, fill it: clicking grants this tab
+// to the extension (activeTab) for this one page, so Savant Apply can fill
+// forms on any company's own site without reading any site in the background.
+// On Savant itself, or a page it can't fill, open the Savant Apply page.
+chrome.action.onClicked.addListener(async (tab) => {
+  let page = null;
+  try {
+    page = new URL(tab?.url || "");
+  } catch {}
+  const web = page && (page.protocol === "https:" || page.protocol === "http:");
+  const own = page && new URL(API).hostname === page.hostname.replace(/^www\./, "");
+  if (tab?.id !== undefined && web && !own) {
+    try {
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["content.js"] });
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => window.__savantApply?.fill(),
+      });
+      return;
+    } catch {
+      // Pages the browser protects (the Chrome Web Store, PDFs…) can't be filled.
+    }
+  }
+  chrome.tabs.create({ url: `${API}/autofill` });
+});
 
 function toBase64(buf) {
   const bytes = new Uint8Array(buf);

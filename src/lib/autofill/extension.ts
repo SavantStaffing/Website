@@ -33,6 +33,7 @@ export const AUTOFILL_ATS_LABEL: Record<string, string> = {
   greenhouse: "Greenhouse",
   lever: "Lever",
   ashby: "Ashby",
+  workday: "Workday",
 };
 
 type ChromeRuntime = {
