@@ -8,6 +8,45 @@ export type Database = {
   };
   public: {
     Tables: {
+      talent_assignments: {
+        Row: {
+          created_at: string;
+          decided_at: string | null;
+          decided_by: string | null;
+          id: string;
+          note: string | null;
+          requested_by: string | null;
+          staff_id: string;
+          staff_role: string;
+          status: string;
+          talent_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          id?: string;
+          note?: string | null;
+          requested_by?: string | null;
+          staff_id: string;
+          staff_role: string;
+          status?: string;
+          talent_id: string;
+        };
+        Update: {
+          created_at?: string;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          id?: string;
+          note?: string | null;
+          requested_by?: string | null;
+          staff_id?: string;
+          staff_role?: string;
+          status?: string;
+          talent_id?: string;
+        };
+        Relationships: [];
+      };
       account_deletions: {
         Row: {
           deleted_at: string;
@@ -1087,6 +1126,23 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      coach_talent_directory: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          talent_id: string;
+          display_name: string;
+          headline: string | null;
+          current_title: string | null;
+          location: string | null;
+          skills: string[];
+          joined_at: string;
+          assignment_status: string | null;
+        }[];
+      };
+      is_assigned: {
+        Args: { _staff: string; _talent: string };
+        Returns: boolean;
+      };
       admin_scout_diagnostics: {
         Args: {
           p_hours?: number;

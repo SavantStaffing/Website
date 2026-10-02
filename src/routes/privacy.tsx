@@ -200,14 +200,22 @@ function PrivacyPolicy() {
               “Visible to recruiters” on your profile page.
             </li>
             <li>
+              <strong>Recruiters and coaches a Savant admin assigns to you:</strong> while the
+              assignment is active, they can see your full profile, contact details, job preferences
+              and résumé so they can work with you. Access ends when the assignment ends. You can
+              ask us who is assigned to you, or to end an assignment, at any time.
+            </li>
+            <li>
               <strong>Employers you apply to:</strong> recruiters for a job's organization can see
               your application to that job and update its status. When you apply on an employer's or
               staffing partner's own site, you share your application with them directly, under
               their privacy policy.
             </li>
             <li>
-              <strong>Career coaches:</strong> coaches see the details of services you sign up for
-              so they can help you.
+              <strong>Career coaches:</strong> when you sign up for a career service, our admins
+              review it and assign a coach, who then sees the details you shared. To ask to coach
+              someone, coaches can browse a limited list showing first name and last initial,
+              headline, location and skills — never contact details or résumés.
             </li>
             <li>
               <strong>Service providers</strong> who process data for us: Lovable (website hosting),

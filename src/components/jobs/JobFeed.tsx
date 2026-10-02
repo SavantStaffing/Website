@@ -48,7 +48,8 @@ export type FeedJob = {
   location: string | null;
   type: string | null;
   employment_type: string | null;
-  description: string | null;
+  /** Not in the feed load; fetched when the job is opened (JobDescription). */
+  description?: string | null;
   apply_url: string | null;
   source: string;
   remote: boolean;
@@ -70,8 +71,10 @@ export type FeedJob = {
   organizations: { name: string } | null;
 };
 
+// Everything the feed ranks, filters and shows on the card. Descriptions are
+// left out (they're most of the payload) and fetched when a job is opened.
 const JOB_COLUMNS =
-  "id, title, company_name, location, type, employment_type, description, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, track, track_override, pay_min, pay_max, pay_unit, fair_pay_score, cultures_score, honest_score, ethics_summary, organizations (name)";
+  "id, title, company_name, location, type, employment_type, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, track, track_override, pay_min, pay_max, pay_unit, fair_pay_score, cultures_score, honest_score, ethics_summary, organizations (name)";
 
 type EthicsSummary = {
   wba_year?: number | null;
@@ -115,17 +118,62 @@ function previewMix<J extends FeedJob>(ranked: J[], n: number): J[] {
   return [...first, ...rest].slice(0, n);
 }
 
-async function loadActiveJobs(limit: number): Promise<FeedJob[]> {
-  const { data, error } = await supabase
-    .from("jobs")
-    .select(JOB_COLUMNS)
-    .eq("status", "active")
-    // Partner-app listings are snapshots; hide them once they lapse.
-    .or(`valid_through.is.null,valid_through.gt.${new Date().toISOString()}`)
-    .order("posted_at", { ascending: false, nullsFirst: false })
-    .limit(limit);
-  if (error) throw error;
-  return (data as unknown as FeedJob[]) ?? [];
+// The API returns at most 1,000 rows per request, so the feed pages through.
+const LOAD_PAGE = 1000;
+const MAX_LOAD_PAGES = 20;
+
+/**
+ * Every live listing: active, not expired, and with a posting date. Listings
+ * with no posting date (e.g. boards that don't publish one) are left out —
+ * there's no way to tell how fresh they are, and they'd sort below everything.
+ */
+async function loadActiveJobs(): Promise<FeedJob[]> {
+  const now = new Date().toISOString();
+  const all: FeedJob[] = [];
+  for (let page = 0; page < MAX_LOAD_PAGES; page++) {
+    const from = page * LOAD_PAGE;
+    const { data, error } = await supabase
+      .from("jobs")
+      .select(JOB_COLUMNS)
+      .eq("status", "active")
+      .not("posted_at", "is", null)
+      // Partner-app listings are snapshots; hide them once they lapse.
+      .or(`valid_through.is.null,valid_through.gt.${now}`)
+      // A stable order so pages don't overlap or skip rows.
+      .order("posted_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(from, from + LOAD_PAGE - 1);
+    if (error) throw error;
+    const rows = (data as unknown as FeedJob[]) ?? [];
+    all.push(...rows);
+    if (rows.length < LOAD_PAGE) break;
+  }
+  return all;
+}
+
+const descriptions = new Map<string, string | null>();
+
+/** A job's description, fetched once when it's first opened. */
+function useJobDescription(jobId: string, open: boolean) {
+  const [text, setText] = useState<string | null | undefined>(descriptions.get(jobId));
+  useEffect(() => {
+    if (!open || descriptions.has(jobId)) return;
+    let live = true;
+    supabase
+      .from("jobs")
+      .select("description")
+      .eq("id", jobId)
+      .maybeSingle()
+      .then(({ data }) => {
+        const d = data?.description ?? null;
+        descriptions.set(jobId, d);
+        if (live) setText(d);
+      });
+    return () => {
+      live = false;
+    };
+  }, [jobId, open]);
+  return text;
 }
 
 const companyOf = (j: FeedJob) => j.company_name ?? j.organizations?.name ?? "Savant client";
@@ -190,7 +238,7 @@ export function JobFeed({
   const savantApply = useSavantApply();
 
   useEffect(() => {
-    loadActiveJobs(mode === "talent" ? 1000 : 200)
+    loadActiveJobs()
       .then(setJobs)
       .catch((e) => {
         console.error(e);
@@ -644,6 +692,7 @@ function JobRow({
 }) {
   const external = !!job.apply_url && job.source !== "manual";
   const employer = useEmployerRatings().lookup(companyOf(job));
+  const description = useJobDescription(job.id, open);
   const meta = [
     job.location ?? (job.remote ? null : "Location not listed"),
     job.remote ? "Remote" : null,
@@ -746,11 +795,11 @@ function JobRow({
       <AggregatorCredit source={job.source} />
       {open && (
         <div className="mt-5 space-y-4">
-          {job.description ? (
+          {description === undefined ? (
+            <p className="text-sm text-muted-foreground">Loading description…</p>
+          ) : description ? (
             <p className="max-w-3xl whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-              {job.description.length > 1800
-                ? `${job.description.slice(0, 1800)}…`
-                : job.description}
+              {description.length > 1800 ? `${description.slice(0, 1800)}…` : description}
             </p>
           ) : (
             <p className="text-sm text-muted-foreground">
