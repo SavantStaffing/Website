@@ -13,6 +13,7 @@ const NAV = [
   { to: "/recruiter/inbox", label: "Inbox" },
   { to: "/recruiter/schedule", label: "Talent & Schedule" },
   { to: "/recruiter/talent", label: "Talent Feed" },
+  { to: "/recruiter/assigned", label: "Assigned Talent" },
   { to: "/recruiter/saved", label: "Saved Talent" },
   { to: "/recruiter/jobs", label: "Jobs" },
   { to: "/recruiter/applications", label: "Applications" },

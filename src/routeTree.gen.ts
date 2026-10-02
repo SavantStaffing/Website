@@ -32,6 +32,7 @@ import { Route as TemporaryStaffingRouteImport } from './routes/temporary-staffi
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAssignmentsRouteImport } from './routes/admin/assignments'
 import { Route as AdminCoachInvitesRouteImport } from './routes/admin/coach-invites'
 import { Route as AdminDiagnosticsRouteImport } from './routes/admin/diagnostics'
 import { Route as AdminInboxRouteImport } from './routes/admin/inbox'
@@ -58,6 +59,7 @@ import { Route as JoinCoachRouteImport } from './routes/join.coach'
 import { Route as RecruiterIndexRouteImport } from './routes/recruiter/index'
 import { Route as RecruiterAccountRouteImport } from './routes/recruiter/account'
 import { Route as RecruiterApplicationsRouteImport } from './routes/recruiter/applications'
+import { Route as RecruiterAssignedRouteImport } from './routes/recruiter/assigned'
 import { Route as RecruiterCandidatesRouteImport } from './routes/recruiter/candidates'
 import { Route as RecruiterCompanyRouteImport } from './routes/recruiter/company'
 import { Route as RecruiterInboxRouteImport } from './routes/recruiter/inbox'
@@ -194,6 +196,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminAssignmentsRoute = AdminAssignmentsRouteImport.update({
+  id: '/assignments',
+  path: '/assignments',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminCoachInvitesRoute = AdminCoachInvitesRouteImport.update({
   id: '/coach-invites',
   path: '/coach-invites',
@@ -324,6 +331,11 @@ const RecruiterApplicationsRoute = RecruiterApplicationsRouteImport.update({
   path: '/applications',
   getParentRoute: () => RecruiterRouteRoute,
 } as any)
+const RecruiterAssignedRoute = RecruiterAssignedRouteImport.update({
+  id: '/assigned',
+  path: '/assigned',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
 const RecruiterCandidatesRoute = RecruiterCandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
@@ -449,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/temporary-staffing': typeof TemporaryStaffingRoute
   '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/inbox': typeof AdminInboxRoute
@@ -473,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
+  '/recruiter/assigned': typeof RecruiterAssignedRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/inbox': typeof RecruiterInboxRoute
@@ -516,6 +530,7 @@ export interface FileRoutesByTo {
   '/temporary-staffing': typeof TemporaryStaffingRoute
   '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/inbox': typeof AdminInboxRoute
@@ -540,6 +555,7 @@ export interface FileRoutesByTo {
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
+  '/recruiter/assigned': typeof RecruiterAssignedRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/inbox': typeof RecruiterInboxRoute
@@ -588,6 +604,7 @@ export interface FileRoutesById {
   '/temporary-staffing': typeof TemporaryStaffingRoute
   '/terms': typeof TermsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/assignments': typeof AdminAssignmentsRoute
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/inbox': typeof AdminInboxRoute
@@ -612,6 +629,7 @@ export interface FileRoutesById {
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
+  '/recruiter/assigned': typeof RecruiterAssignedRoute
   '/recruiter/candidates': typeof RecruiterCandidatesRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/inbox': typeof RecruiterInboxRoute
@@ -661,6 +679,7 @@ export interface FileRouteTypes {
     | '/temporary-staffing'
     | '/terms'
     | '/verify-email'
+    | '/admin/assignments'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
     | '/admin/inbox'
@@ -685,6 +704,7 @@ export interface FileRouteTypes {
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
+    | '/recruiter/assigned'
     | '/recruiter/candidates'
     | '/recruiter/company'
     | '/recruiter/inbox'
@@ -728,6 +748,7 @@ export interface FileRouteTypes {
     | '/temporary-staffing'
     | '/terms'
     | '/verify-email'
+    | '/admin/assignments'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
     | '/admin/inbox'
@@ -752,6 +773,7 @@ export interface FileRouteTypes {
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
+    | '/recruiter/assigned'
     | '/recruiter/candidates'
     | '/recruiter/company'
     | '/recruiter/inbox'
@@ -799,6 +821,7 @@ export interface FileRouteTypes {
     | '/temporary-staffing'
     | '/terms'
     | '/verify-email'
+    | '/admin/assignments'
     | '/admin/coach-invites'
     | '/admin/diagnostics'
     | '/admin/inbox'
@@ -823,6 +846,7 @@ export interface FileRouteTypes {
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
+    | '/recruiter/assigned'
     | '/recruiter/candidates'
     | '/recruiter/company'
     | '/recruiter/inbox'
@@ -1042,6 +1066,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/assignments': {
+      id: '/admin/assignments'
+      path: '/assignments'
+      fullPath: '/admin/assignments'
+      preLoaderRoute: typeof AdminAssignmentsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/coach-invites': {
       id: '/admin/coach-invites'
       path: '/coach-invites'
@@ -1224,6 +1255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecruiterApplicationsRouteImport
       parentRoute: typeof RecruiterRouteRoute
     }
+    '/recruiter/assigned': {
+      id: '/recruiter/assigned'
+      path: '/assigned'
+      fullPath: '/recruiter/assigned'
+      preLoaderRoute: typeof RecruiterAssignedRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
     '/recruiter/candidates': {
       id: '/recruiter/candidates'
       path: '/candidates'
@@ -1368,6 +1406,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminAssignmentsRoute: typeof AdminAssignmentsRoute
   AdminCoachInvitesRoute: typeof AdminCoachInvitesRoute
   AdminDiagnosticsRoute: typeof AdminDiagnosticsRoute
   AdminInboxRoute: typeof AdminInboxRoute
@@ -1386,6 +1425,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminAssignmentsRoute: AdminAssignmentsRoute,
   AdminCoachInvitesRoute: AdminCoachInvitesRoute,
   AdminDiagnosticsRoute: AdminDiagnosticsRoute,
   AdminInboxRoute: AdminInboxRoute,
@@ -1432,6 +1472,7 @@ const CoachRouteRouteWithChildren = CoachRouteRoute._addFileChildren(
 interface RecruiterRouteRouteChildren {
   RecruiterAccountRoute: typeof RecruiterAccountRoute
   RecruiterApplicationsRoute: typeof RecruiterApplicationsRoute
+  RecruiterAssignedRoute: typeof RecruiterAssignedRoute
   RecruiterCandidatesRoute: typeof RecruiterCandidatesRoute
   RecruiterCompanyRoute: typeof RecruiterCompanyRoute
   RecruiterInboxRoute: typeof RecruiterInboxRoute
@@ -1445,6 +1486,7 @@ interface RecruiterRouteRouteChildren {
 const RecruiterRouteRouteChildren: RecruiterRouteRouteChildren = {
   RecruiterAccountRoute: RecruiterAccountRoute,
   RecruiterApplicationsRoute: RecruiterApplicationsRoute,
+  RecruiterAssignedRoute: RecruiterAssignedRoute,
   RecruiterCandidatesRoute: RecruiterCandidatesRoute,
   RecruiterCompanyRoute: RecruiterCompanyRoute,
   RecruiterInboxRoute: RecruiterInboxRoute,

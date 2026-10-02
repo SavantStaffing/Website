@@ -41,14 +41,14 @@ type Person = { name: string; email: string | null; phone: string | null };
 const STATUSES = ["new", "in_progress", "completed", "cancelled"] as const;
 type Status = (typeof STATUSES)[number];
 
-/** Preparation-service sign-ups from talent, for career coaches to pick up and work. */
+/** Coaching requests an admin has assigned to this coach (row-level security
+ *  returns only those), to schedule and work through. */
 function ServiceRequests() {
   const { userId } = Route.useRouteContext();
   const [rows, setRows] = useState<Request[] | null>(null);
   const [people, setPeople] = useState<Map<string, Person>>(new Map());
   const [statusFilter, setStatusFilter] = useState<Status[]>(["new", "in_progress"]);
   const [serviceFilter, setServiceFilter] = useState<ServiceId[]>([]);
-  const [mineOnly, setMineOnly] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -94,10 +94,9 @@ function ServiceRequests() {
       (rows ?? []).filter(
         (r) =>
           (!statusFilter.length || statusFilter.includes(r.status as Status)) &&
-          (!serviceFilter.length || serviceFilter.includes(r.service as ServiceId)) &&
-          (!mineOnly || r.assigned_coach_id === userId),
+          (!serviceFilter.length || serviceFilter.includes(r.service as ServiceId)),
       ),
-    [rows, statusFilter, serviceFilter, mineOnly, userId],
+    [rows, statusFilter, serviceFilter],
   );
 
   async function update(r: Request, patch: Partial<Pick<Request, "status" | "assigned_coach_id">>) {
@@ -111,18 +110,16 @@ function ServiceRequests() {
   return (
     <section className="space-y-12">
       <div className="grid gap-6 sm:grid-cols-3">
-        <Stat label="New sign-ups" value={count("new")} />
+        <Stat label="Not started" value={count("new")} />
         <Stat label="In progress" value={count("in_progress")} />
-        <Stat
-          label="Assigned to you"
-          value={
-            rows?.filter((r) => r.assigned_coach_id === userId && r.status === "in_progress").length
-          }
-        />
+        <Stat label="Completed" value={count("completed")} />
       </div>
 
       <div>
-        <SectionHeading title="Service requests" />
+        <SectionHeading title="Your coaching requests" />
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          Requests a Savant admin has assigned to you. New sign-ups go to admins first.
+        </p>
         <div className="mt-6 flex flex-wrap items-center gap-6">
           <ChipGroup
             options={STATUSES.map((s) => ({ value: s, label: SERVICE_STATUS_LABEL[s] }))}
@@ -134,21 +131,12 @@ function ServiceRequests() {
             value={serviceFilter}
             onChange={setServiceFilter}
           />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="accent-foreground"
-              checked={mineOnly}
-              onChange={(e) => setMineOnly(e.target.checked)}
-            />
-            Mine only
-          </label>
         </div>
 
         {!rows ? (
           <Empty>Loading…</Empty>
         ) : visible.length === 0 ? (
-          <Empty>No sign-ups match.</Empty>
+          <Empty>No requests assigned to you match.</Empty>
         ) : (
           <ul className={`mt-6 ${list}`}>
             {visible.map((r) => {
@@ -173,12 +161,10 @@ function ServiceRequests() {
                     <div className="flex items-center gap-4">
                       {r.status === "new" && (
                         <button
-                          onClick={() =>
-                            update(r, { status: "in_progress", assigned_coach_id: userId })
-                          }
+                          onClick={() => update(r, { status: "in_progress" })}
                           className={linkButton}
                         >
-                          Take it →
+                          Start →
                         </button>
                       )}
                       <select
