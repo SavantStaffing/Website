@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { PageBar } from "@/components/site/PageBar";
 import { supabase } from "@/integrations/supabase/client";
 import { getAutofillReadiness } from "@/lib/autofill/autofill.functions";
 import {
@@ -232,7 +233,8 @@ export function JobFeed({
   });
   const [applied, setApplied] = useState<Map<string, string>>(new Map());
   const [saved, setSaved] = useState<Set<string>>(new Set());
-  const [shown, setShown] = useState(PAGE);
+  const [page, setPage] = useState(1);
+  const listTop = useRef<HTMLDivElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [applying, setApplying] = useState<FeedJob | null>(null);
   const savantApply = useSavantApply();
@@ -348,7 +350,12 @@ export function JobFeed({
 
   if (!ranked) return <p className="mt-10 text-sm text-muted-foreground">Loading roles…</p>;
 
-  const visible = mode === "guest" ? previewMix(ranked, GUEST_PREVIEW) : ranked.slice(0, shown);
+  // Signed-out visitors get a short preview; talent and signed-in staff page through everything.
+  const browseAll = mode === "talent" || signedIn;
+  const current = Math.min(page, Math.max(1, Math.ceil(ranked.length / PAGE)));
+  const visible = browseAll
+    ? ranked.slice((current - 1) * PAGE, current * PAGE)
+    : previewMix(ranked, GUEST_PREVIEW);
 
   const trackCounts = {
     all: jobs?.length ?? 0,
@@ -378,17 +385,18 @@ export function JobFeed({
       <TrackTabs
         value={filters.track}
         counts={trackCounts}
-        onChange={(track) => (setFilters((f) => ({ ...f, track })), setShown(PAGE))}
+        onChange={(track) => (setFilters((f) => ({ ...f, track })), setPage(1))}
       />
       {mode === "talent" && (
         <Filters
           filters={filters}
-          onChange={(f) => (setFilters(f), setShown(PAGE))}
+          onChange={(f) => (setFilters(f), setPage(1))}
           count={ranked.length}
           hasPrefs={!!prefs}
         />
       )}
 
+      <div ref={listTop} className="scroll-mt-28" />
       {ranked.length === 0 ? (
         <p className="mt-10 text-sm text-muted-foreground">
           {mode === "talent"
@@ -414,12 +422,17 @@ export function JobFeed({
         </ul>
       )}
 
-      {mode === "talent" && ranked.length > shown && (
-        <div className="mt-8 text-center">
-          <button onClick={() => setShown((n) => n + PAGE)} className={mutedButton}>
-            Show more ({ranked.length - shown} left)
-          </button>
-        </div>
+      {browseAll && (
+        <PageBar
+          page={current}
+          pageSize={PAGE}
+          total={ranked.length}
+          onPage={(p) => (
+            setPage(p),
+            setOpenId(null),
+            listTop.current?.scrollIntoView({ behavior: "smooth" })
+          )}
+        />
       )}
 
       {mode === "guest" && !signedIn && (
