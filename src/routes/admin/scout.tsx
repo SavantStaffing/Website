@@ -123,6 +123,11 @@ const ATS_LABEL: Record<string, string> = {
   successfactors: "SAP SuccessFactors",
   phenom: "Phenom",
   dayforce: "Dayforce",
+  eightfold: "Eightfold",
+  oracle: "Oracle Recruiting",
+  ultipro: "UKG Pro",
+  amazon: "Amazon Jobs",
+  avature: "Avature",
 };
 
 function JobScout() {

@@ -191,5 +191,17 @@ export function boardUrl(ats: AtsPlatform, token: string): string {
       return token;
     case "dayforce":
       return `https://jobs.dayforcehcm.com/en-US/${token}`;
+    case "eightfold":
+      return `https://${token.split("|")[0]}/careers`;
+    case "oracle": {
+      const [host, site] = token.split("/");
+      return `https://${host}/hcmUI/CandidateExperience/en/sites/${site}/requisitions`;
+    }
+    case "ultipro":
+      return `https://recruiting2.ultipro.com/${token.split("/")[0]}/JobBoard/${token.split("/")[1]}/`;
+    case "avature":
+      return token;
+    case "amazon":
+      return "https://www.amazon.jobs/en/search";
   }
 }

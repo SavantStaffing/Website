@@ -403,6 +403,39 @@ export async function jsonld(
   return crawled.length ? crawled : onPage;
 }
 
+/**
+ * Avature careers sites (e.g. apply.deloitte.com, traderjoes.avature.net).
+ * Token = the site's SearchJobs URL. Same shape as iCIMS: page the list
+ * (jobOffset) for JobDetail links, then read each posting's JobPosting markup.
+ */
+export async function avature(
+  rec: MetricsRecorder,
+  token: string,
+  company: string,
+): Promise<RawJob[]> {
+  const list = new URL(token);
+  const links = new Set<string>();
+  for (let page = 0; page < ICIMS_MAX_LIST_PAGES * 2 && links.size < MAX_JOB_PAGES; page++) {
+    list.searchParams.set("jobOffset", String(links.size));
+    const html = await fetchHtml(rec, "avature", list.toString());
+    if (!html) break;
+    const before = links.size;
+    for (const m of html.matchAll(/href=["']([^"']*\/JobDetail\/[^"'?#]+\/\d+)["']/gi)) {
+      const url = new URL(decodeEntities(m[1]), list);
+      if (url.host === list.host) links.add(url.toString());
+    }
+    if (links.size === before) break;
+  }
+  return postingsFromPages(rec, "avature", [...links], company, (job, _html) => {
+    const m = /\/JobDetail\/([^/]+)\/(\d+)$/.exec(job.apply_url ?? "");
+    // Some tenants put internal requisition codes in the markup title
+    // ("US E - GPS ... - 736055 - KR"); the URL slug carries the public title.
+    const coded = /\d{5,}/.test(job.title) && job.title.split(" - ").length >= 3;
+    const slug = m ? decodeURIComponent(m[1]).replace(/-+/g, " ").trim() : null;
+    return { ...job, external_id: m?.[2] ?? job.external_id, title: coded && slug ? slug : job.title };
+  });
+}
+
 /** iCIMS portal. Token = the portal subdomain, e.g. "careers-acme". */
 export async function icims(
   rec: MetricsRecorder,

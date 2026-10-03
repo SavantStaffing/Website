@@ -81,13 +81,15 @@ export async function successfactors(
   company: string,
 ): Promise<RawJob[]> {
   const origin = new URL(token).origin;
+  // Multi-brand RMK hosts scope each brand under a path ("/PRH_US").
+  const base = origin + new URL(token).pathname.replace(/\/$/, "");
   const rows = new Map<string, SfRow>();
   let total = Infinity;
   for (let page = 0; page < SF_MAX_PAGES && page * SF_PAGE < total; page++) {
     const res = await scoutFetch(
       rec,
       "successfactors",
-      `${origin}/search/?q=&sortColumn=referencedate&sortDirection=desc&startrow=${page * SF_PAGE}`,
+      `${base}/search/?q=&sortColumn=referencedate&sortDirection=desc&startrow=${page * SF_PAGE}`,
       HTML,
     );
     const html = await res.text();
@@ -166,7 +168,10 @@ export async function phenom(
   token: string,
   company: string,
 ): Promise<RawJob[]> {
-  const ep = phenomEndpoint(token);
+  // Optional "#keyword" scopes a multi-brand site to one brand
+  // (e.g. careers.marsh.com/global/en/#Oliver Wyman).
+  const [siteUrl, keyword = ""] = token.split("#");
+  const ep = phenomEndpoint(siteUrl);
   const jobs: PhenomJob[] = [];
   let total = Infinity;
   for (let from = 0; from < Math.min(total, PHENOM_MAX); from += PHENOM_PAGE) {
@@ -186,7 +191,7 @@ export async function phenom(
         jobs: true,
         counts: false,
         all_fields: [],
-        keywords: "",
+        keywords: decodeURIComponent(keyword),
         global: true,
         selected_fields: {},
         siteType: "external",
