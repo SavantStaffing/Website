@@ -21,6 +21,10 @@ export const ATS_PLATFORMS = [
   "avionte",
   "smpl",
   "partners",
+  // Enterprise ATS platforms whose lists load in the browser (enterprise-ats.ts).
+  "successfactors",
+  "phenom",
+  "dayforce",
 ] as const;
 export type AtsPlatform = (typeof ATS_PLATFORMS)[number];
 

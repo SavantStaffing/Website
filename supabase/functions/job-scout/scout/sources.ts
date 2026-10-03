@@ -2,6 +2,7 @@
 import { scoutJson, type MetricsRecorder } from "./http.ts";
 import { icims, jsonld } from "./jobposting.ts";
 import { avionte, partners, smpl } from "./staffing-boards.ts";
+import { dayforce, phenom, successfactors } from "./enterprise-ats.ts";
 import { htmlToText, iso } from "./text.ts";
 import { workday } from "./workday.ts";
 import type { AtsPlatform, BoardSource, RawJob } from "./types.ts";
@@ -243,6 +244,9 @@ export const ATS_ADAPTERS: Record<
   avionte,
   smpl,
   partners,
+  successfactors,
+  phenom,
+  dayforce,
 };
 
 // ---------------------------------------------------------------- JobSpy (job boards)

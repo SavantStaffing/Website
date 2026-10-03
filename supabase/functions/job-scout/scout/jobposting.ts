@@ -261,13 +261,23 @@ async function postingsFromPages(
     }
     return jobs.map((j) => (enrich ? enrich(j, html) : j));
   });
+  // Some sites put one company-wide "identifier" on every posting; when an id
+  // repeats across different job pages, key those jobs by their page URL.
+  const all = pages.flat();
+  const urlsById = new Map<string, Set<string>>();
+  for (const j of all)
+    urlsById.set(j.external_id, (urlsById.get(j.external_id) ?? new Set()).add(j.apply_url ?? ""));
   const byId = new Map<string, RawJob>();
-  for (const j of pages.flat()) if (!byId.has(j.external_id)) byId.set(j.external_id, j);
+  for (const raw of all) {
+    const shared = (urlsById.get(raw.external_id)?.size ?? 0) > 1 && raw.apply_url;
+    const j = shared ? { ...raw, external_id: raw.apply_url! } : raw;
+    if (!byId.has(j.external_id)) byId.set(j.external_id, j);
+  }
   return [...byId.values()];
 }
 
 const JOB_PATH =
-  /\/(jobs?|careers?|positions?|openings?|vacanc(?:y|ies)|requisitions?|opportunit(?:y|ies)|job-details?)\/[^/?#]+/i;
+  /\/(jobs?|careers?|positions?|openings?|vacanc(?:y|ies)|requisitions?|opportunit(?:y|ies)|job-details?|jobdetails?)\/[^/?#]+/i;
 
 /** Links on a page that look like individual job pages on the same site. */
 export function jobLinks(html: string, pageUrl: string): string[] {
