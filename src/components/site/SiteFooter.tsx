@@ -50,6 +50,14 @@ export function SiteFooter() {
                 </li>
                 <li>
                   <Link
+                    to="/careers"
+                    className="text-muted-foreground active:text-foreground [@media(hover:hover)]:hover:text-foreground"
+                  >
+                    Careers
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/services"
                     className="text-muted-foreground active:text-foreground [@media(hover:hover)]:hover:text-foreground"
                   >
