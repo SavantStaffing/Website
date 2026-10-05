@@ -57,7 +57,7 @@ function CompanyDashboard() {
           ])
         : [{ data: [] }, { data: [] }];
 
-      const count = (rows: { job_id: string }[] | null, id: string) =>
+      const count = (rows: { job_id: string | null }[] | null, id: string) =>
         (rows ?? []).filter((r) => r.job_id === id).length;
       setListings(
         (jobs ?? []).map((j) => ({
@@ -82,7 +82,7 @@ function CompanyDashboard() {
           hired.map((h) => ({
             id: h.id,
             name: names.get(h.applicant_id) ?? "—",
-            jobTitle: titles.get(h.job_id) ?? "—",
+            jobTitle: titles.get(h.job_id ?? "") ?? "—",
             created_at: h.created_at,
           })),
         );

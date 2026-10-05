@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MyServiceRequests } from "@/components/preparation/MyServiceRequests";
-import { APPLICATION_STATUS_LABEL } from "@/lib/applications";
+import { TALENT_STATUS_LABEL } from "@/lib/applications";
 import {
   Badge,
   Empty,
@@ -31,7 +31,14 @@ type JobLite = {
   apply_url: string | null;
 };
 type SavedJobRow = { id: string; job_id: string; jobs: JobLite | null };
-type ApplicationRow = { id: string; status: string; created_at: string; jobs: JobLite | null };
+type ApplicationRow = {
+  id: string;
+  status: string;
+  created_at: string;
+  external_title: string | null;
+  external_company: string | null;
+  jobs: JobLite | null;
+};
 type RequestRow = {
   id: string;
   status: string;
@@ -54,8 +61,9 @@ function TalentDashboard() {
         [
           supabase
             .from("job_applications")
-            .select(`id, status, created_at, ${job}`)
+            .select(`id, status, created_at, external_title, external_company, ${job}`)
             .eq("applicant_id", userId)
+            .is("archived_at", null)
             .order("created_at", { ascending: false }),
           supabase
             .from("saved_jobs")
@@ -182,13 +190,15 @@ function TalentDashboard() {
               {applications.slice(0, 6).map((a) => (
                 <li key={a.id} className="flex items-baseline justify-between gap-4 py-4">
                   <div className="min-w-0">
-                    <div className="truncate">{a.jobs?.title ?? "Untitled role"}</div>
+                    <div className="truncate">
+                      {a.jobs?.title ?? a.external_title ?? "Untitled role"}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {a.jobs?.company_name ?? "—"}
+                      {a.jobs?.company_name ?? a.external_company ?? "—"}
                     </div>
                   </div>
                   <span className="shrink-0 text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-                    {APPLICATION_STATUS_LABEL[a.status] ?? a.status}
+                    {TALENT_STATUS_LABEL[a.status] ?? a.status}
                   </span>
                 </li>
               ))}

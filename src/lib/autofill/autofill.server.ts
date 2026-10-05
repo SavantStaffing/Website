@@ -24,7 +24,7 @@ import {
  * ran on, which can be the form step (Lever /apply, Ashby /application) or
  * carry a hash, rather than the posting URL stored on the job.
  */
-function postingUrls(url: string): string[] {
+export function postingUrls(url: string): string[] {
   let u: URL;
   try {
     u = new URL(url);

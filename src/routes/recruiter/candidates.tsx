@@ -49,7 +49,7 @@ function Candidates() {
       const byApplicant = new Map<string, string[]>();
       (applications ?? []).forEach((a) => {
         const titles = byApplicant.get(a.applicant_id) ?? [];
-        titles.push(jobMap.get(a.job_id) ?? "Untitled role");
+        titles.push(jobMap.get(a.job_id ?? "") ?? "Untitled role");
         byApplicant.set(a.applicant_id, titles);
       });
       const applicantIds = [...byApplicant.keys()];
