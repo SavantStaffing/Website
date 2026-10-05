@@ -292,27 +292,42 @@ export type Database = {
           interview_at: string | null;
           interview_note: string | null;
           applicant_id: string;
+          archived_at: string | null;
+          external_company: string | null;
+          external_location: string | null;
+          external_title: string | null;
+          external_url: string | null;
           created_at: string;
           id: string;
-          job_id: string;
+          job_id: string | null;
           status: string;
         };
         Insert: {
           interview_at?: string | null;
           interview_note?: string | null;
           applicant_id: string;
+          archived_at?: string | null;
+          external_company?: string | null;
+          external_location?: string | null;
+          external_title?: string | null;
+          external_url?: string | null;
           created_at?: string;
           id?: string;
-          job_id: string;
+          job_id?: string | null;
           status?: string;
         };
         Update: {
           interview_at?: string | null;
           interview_note?: string | null;
           applicant_id?: string;
+          archived_at?: string | null;
+          external_company?: string | null;
+          external_location?: string | null;
+          external_title?: string | null;
+          external_url?: string | null;
           created_at?: string;
           id?: string;
-          job_id?: string;
+          job_id?: string | null;
           status?: string;
         };
         Relationships: [];
@@ -1126,6 +1141,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      mark_application_completed: {
+        Args: { application_id: string };
+        Returns: undefined;
+      };
+      set_application_archived: {
+        Args: { application_id: string; archived: boolean };
+        Returns: undefined;
+      };
       coach_talent_directory: {
         Args: Record<PropertyKey, never>;
         Returns: {

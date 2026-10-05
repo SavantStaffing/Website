@@ -50,7 +50,7 @@ function AdminSchedule() {
         .or("status.eq.interviewing,interview_at.not.is.null")
         .order("created_at", { ascending: false })
         .limit(500);
-      const jobIds = [...new Set((rows ?? []).map((a) => a.job_id))];
+      const jobIds = [...new Set((rows ?? []).flatMap((a) => (a.job_id ? [a.job_id] : [])))];
       const { data: jobs } = jobIds.length
         ? await supabase
             .from("jobs")
@@ -67,9 +67,10 @@ function AdminSchedule() {
       const jobMap = new Map((jobs ?? []).map((j) => [j.id, j]));
       setApps(
         (rows ?? []).map((a) => {
-          const j = jobMap.get(a.job_id);
+          const j = jobMap.get(a.job_id ?? "");
           return {
             ...a,
+            job_id: a.job_id ?? "",
             jobTitle: j?.title ?? "Untitled role",
             company:
               (j?.organization_id && orgName.get(j.organization_id)) || j?.company_name || null,

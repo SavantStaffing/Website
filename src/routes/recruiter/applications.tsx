@@ -58,9 +58,9 @@ function RecruiterApplications() {
       (apps ?? []).map((a) => ({
         id: a.id,
         status: a.status,
-        job_id: a.job_id,
+        job_id: a.job_id ?? "",
         applicant_id: a.applicant_id,
-        jobTitle: jobMap.get(a.job_id) ?? "Untitled role",
+        jobTitle: jobMap.get(a.job_id ?? "") ?? "Untitled role",
         applicantName: nameMap.get(a.applicant_id) ?? "—",
       })),
     );

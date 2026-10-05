@@ -82,8 +82,9 @@ function RecruiterSchedule() {
       setApps(
         (rows ?? []).map((a) => ({
           ...a,
-          jobTitle: jobMap.get(a.job_id)?.title ?? "Untitled role",
-          company: jobMap.get(a.job_id)?.company_name ?? null,
+          job_id: a.job_id ?? "",
+          jobTitle: jobMap.get(a.job_id ?? "")?.title ?? "Untitled role",
+          company: jobMap.get(a.job_id ?? "")?.company_name ?? null,
         })),
       );
     })();

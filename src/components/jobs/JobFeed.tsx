@@ -266,7 +266,10 @@ export function JobFeed({
           tempApps: p.temp_apps ?? [],
         }));
       }
-      setApplied(new Map((apps ?? []).map((a) => [a.job_id, a.status])));
+      // Applications added by link have no job in the feed.
+      setApplied(
+        new Map((apps ?? []).flatMap((a) => (a.job_id ? [[a.job_id, a.status] as const] : []))),
+      );
       setSaved(new Set((savedRows ?? []).map((r) => r.job_id)));
     })();
     // initialTrack only seeds the first render.
