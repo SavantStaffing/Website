@@ -14,6 +14,7 @@ const NAV = [
   { to: "/coach/schedule", label: "Talent & Schedule" },
   { to: "/coach/talent", label: "Talent" },
   { to: "/coach/recruiters", label: "Recruiters" },
+  { to: "/jobs", label: "Jobs" },
   { to: "/temporary-staffing", label: "Temp Partners" },
   { to: "/coach/settings", label: "Settings" },
 ] as const;

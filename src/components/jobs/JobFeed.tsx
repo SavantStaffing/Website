@@ -279,11 +279,11 @@ export function JobFeed({
   const ranked = useMemo(() => {
     if (!jobs) return null;
     const filtered =
-      mode === "talent"
+      mode === "talent" || signedIn
         ? applyFilters(jobs, filters)
         : applyFilters(jobs, { ...EMPTY_FILTERS, track: filters.track });
     return rankJobs(filtered, prefs);
-  }, [jobs, filters, prefs, mode]);
+  }, [jobs, filters, prefs, mode, signedIn]);
 
   async function toggleSave(jobId: string) {
     if (!userId) return;
@@ -392,19 +392,21 @@ export function JobFeed({
         counts={trackCounts}
         onChange={(track) => (setFilters((f) => ({ ...f, track })), setPage(1))}
       />
-      {mode === "talent" && (
+      {/* Coaches, recruiters and admins on /jobs get the same refine filters as talent. */}
+      {browseAll && (
         <Filters
           filters={filters}
           onChange={(f) => (setFilters(f), setPage(1))}
           count={ranked.length}
           hasPrefs={!!prefs}
+          canSetPrefs={mode === "talent"}
         />
       )}
 
       <div ref={listTop} className="scroll-mt-28" />
       {ranked.length === 0 ? (
         <p className="mt-10 text-sm text-muted-foreground">
-          {mode === "talent"
+          {browseAll
             ? "No roles match these filters. Try widening them."
             : "New roles are on the way — check back soon."}
         </p>
@@ -523,11 +525,14 @@ function Filters({
   onChange,
   count,
   hasPrefs,
+  canSetPrefs,
 }: {
   filters: FeedFilters;
   onChange: (f: FeedFilters) => void;
   count: number;
   hasPrefs: boolean;
+  /** Only talent have preferences to rank by. */
+  canSetPrefs: boolean;
 }) {
   const set = <K extends keyof FeedFilters>(k: K, v: FeedFilters[K]) =>
     onChange({ ...filters, [k]: v });
@@ -662,7 +667,7 @@ function Filters({
         <span>
           {count} role{count === 1 ? "" : "s"} ·{" "}
           {hasPrefs ? "ranked by your preferences" : "newest first"}
-          {!hasPrefs && (
+          {!hasPrefs && canSetPrefs && (
             <>
               {" "}
               ·{" "}
