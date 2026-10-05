@@ -928,8 +928,12 @@ function EmployerRatingLine({ employer }: { employer: RatedEmployer }) {
         {employer.hiringRank ? `#${employer.hiringRank} among employers hiring on Savant · ` : ""}
         {r.confidence} confidence
       </span>
-      <Link to="/employer-ratings" hash={employerAnchor(employer.key)} className={mutedButton}>
-        How it's rated →
+      <Link
+        to="/employer-ratings/$employer"
+        params={{ employer: employerAnchor(employer.key) }}
+        className={mutedButton}
+      >
+        Full rating breakdown →
       </Link>
     </div>
   );

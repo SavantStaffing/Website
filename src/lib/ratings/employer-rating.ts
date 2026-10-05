@@ -50,6 +50,16 @@ export type EmployerRating = {
   /** Short, human reasons for the tier — best first, then concerns. */
   highlights: string[];
   concerns: string[];
+  /** Weighted average of the components, before the labor-record penalties. */
+  base: number;
+  /** Share of the rating's total weight backed by data, 0–1. */
+  coverage: number;
+  /** Measures this employer has no data for (left out of the average). */
+  missing: { key: string; label: string; weight: number }[];
+  /** Whether the Job Scout has looked up this employer's Department of Labor record. */
+  laborChecked: boolean;
+  /** True when Low confidence held an Exemplary-range score at Strong. */
+  capped: boolean;
 };
 
 /** JUST Capital ranks roughly the Russell 1000; rank 1 → 100, rank 1,000 → 0. */
@@ -65,6 +75,15 @@ const WEIGHTS = {
   as_you_sow: 25,
 } as const;
 const TOTAL_WEIGHT = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
+
+/** Every measure the rating can use, in display order. */
+const MEASURES: { key: keyof typeof WEIGHTS; label: string }[] = [
+  { key: "fair_pay", label: "Fair pay & worker respect" },
+  { key: "cultures", label: "Cultures & communities" },
+  { key: "honest", label: "Honest & fair business" },
+  { key: "just_capital", label: "Corporate conduct" },
+  { key: "as_you_sow", label: "Diversity & inclusion" },
+];
 
 export const TIERS: { tier: Tier; min: number; blurb: string }[] = [
   {
@@ -152,9 +171,29 @@ export function rateEmployer(i: RatingInputs): EmployerRating | null {
   ];
 
   // One source isn't enough to call an employer Exemplary.
-  const tier = confidence === "Low" && score >= 80 ? "Strong" : tierFor(score);
+  const capped = confidence === "Low" && score >= 80;
+  const tier = capped ? "Strong" : tierFor(score);
 
-  return { score, tier, confidence, components, penalties, highlights, concerns };
+  const have = new Set(components.map((c) => c.key));
+  const missing = MEASURES.filter((m) => !have.has(m.key)).map((m) => ({
+    ...m,
+    weight: WEIGHTS[m.key],
+  }));
+
+  return {
+    score,
+    tier,
+    confidence,
+    components,
+    penalties,
+    highlights,
+    concerns,
+    base,
+    coverage,
+    missing,
+    laborChecked: i.dol_checked,
+    capped,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -192,6 +231,10 @@ export type RatedEmployer = {
   rating: EmployerRating | null;
   /** Position among rated employers hiring on Savant, 1 = best; null otherwise. */
   hiringRank: number | null;
+  /** Position among every rated employer, 1 = best; null when unrated. */
+  overallRank: number | null;
+  /** Year of the World Benchmarking Alliance assessment behind the WBA measures, if any. */
+  wbaYear: number | null;
 };
 
 const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
@@ -248,6 +291,8 @@ export function buildEmployerIndex(b: RatingBundle): Map<string, RatedEmployer> 
       openJobs: jobs.get(key)?.n ?? 0,
       rating,
       hiringRank: null,
+      overallRank: null,
+      wbaYear: num(e?.wba_year),
     });
   }
 
@@ -262,11 +307,22 @@ export function buildEmployerIndex(b: RatingBundle): Map<string, RatedEmployer> 
       a.name.localeCompare(b.name),
   );
   let rank = 0;
-  for (const e of out) if (e.rating && e.openJobs > 0) e.hiringRank = ++rank;
+  let overall = 0;
+  for (const e of out) {
+    if (!e.rating) continue;
+    e.overallRank = ++overall;
+    if (e.openJobs > 0) e.hiringRank = ++rank;
+  }
   return new Map(out.map((e) => [e.key, e]));
 }
 
 export const employerKey = (name: string) => normalizeCompanyName(name);
 
-/** URL fragment for an employer on /employer-ratings. */
+/** URL slug for an employer: its page is /employer-ratings/<slug>. */
 export const employerAnchor = (key: string) => key.replace(/\s+/g, "-");
+
+/** The employer whose page slug this is, if we know it. */
+export const employerBySlug = (index: Map<string, RatedEmployer>, slug: string) =>
+  index.get(slug.replace(/-/g, " ")) ??
+  [...index.values()].find((e) => employerAnchor(e.key) === slug) ??
+  null;
