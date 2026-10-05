@@ -200,6 +200,8 @@ export type Database = {
           cultures_score: number | null;
           honest_score: number | null;
           ethics_summary: Json | null;
+          fair_chance: boolean;
+          fair_chance_override: boolean | null;
         };
         Insert: {
           apply_url?: string | null;
@@ -242,6 +244,8 @@ export type Database = {
           cultures_score?: number | null;
           honest_score?: number | null;
           ethics_summary?: Json | null;
+          fair_chance?: boolean;
+          fair_chance_override?: boolean | null;
         };
         Update: {
           apply_url?: string | null;
@@ -284,6 +288,8 @@ export type Database = {
           cultures_score?: number | null;
           honest_score?: number | null;
           ethics_summary?: Json | null;
+          fair_chance?: boolean;
+          fair_chance_override?: boolean | null;
         };
         Relationships: [];
       };
@@ -863,6 +869,51 @@ export type Database = {
           user_id?: string;
           visible_to_recruiters?: boolean;
           work_authorized?: boolean | null;
+        };
+        Relationships: [];
+      };
+      fair_chance_employers: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          id: string;
+          kind: string;
+          match_key: string;
+          note: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          display_name: string;
+          id?: string;
+          kind: string;
+          match_key: string;
+          note?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          kind?: string;
+          match_key?: string;
+          note?: string | null;
+        };
+        Relationships: [];
+      };
+      talent_private_preferences: {
+        Row: {
+          fair_chance_only: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          fair_chance_only?: boolean;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          fair_chance_only?: boolean;
+          updated_at?: string;
+          user_id?: string;
         };
         Relationships: [];
       };
