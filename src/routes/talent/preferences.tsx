@@ -52,8 +52,16 @@ function Preferences() {
   const [feed, setFeed] = useState<TrackFilter>("all");
   const [minPay, setMinPay] = useState<number | null>(null);
   const [tempApps, setTempApps] = useState<PartnerId[]>([]);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [fairChanceOnly, setFairChanceOnly] = useState(false);
 
   useEffect(() => {
+    supabase
+      .from("talent_private_preferences")
+      .select("fair_chance_only")
+      .eq("user_id", userId)
+      .maybeSingle()
+      .then(({ data }) => setFairChanceOnly(!!data?.fair_chance_only));
     supabase
       .from("talent_preferences")
       .select("*")
@@ -92,8 +100,15 @@ function Preferences() {
       min_hourly_pay: minPay,
       temp_apps: tempApps,
     });
+    // Kept in its own table that only the talent can read.
+    const { error: privateError } = error
+      ? { error: null }
+      : await supabase
+          .from("talent_private_preferences")
+          .upsert({ user_id: userId, fair_chance_only: fairChanceOnly });
     setSaving(false);
     if (error) return toast.error(error.message);
+    if (privateError) return toast.error(privateError.message);
     toast.success("Preferences saved — your feed is re-ranked.");
   }
 
@@ -108,7 +123,7 @@ function Preferences() {
           job feed
         </Link>{" "}
         ranks roles by how well they match these. Nothing here hides a role — use the feed's filters
-        for that.
+        for that. (The one exception is under Advanced preferences.)
       </p>
 
       <form onSubmit={save} className="mt-10 max-w-2xl space-y-8">
@@ -233,6 +248,29 @@ function Preferences() {
             ))}
           </select>
         </label>
+        <div className="border-t border-[color:var(--color-hairline)] pt-6">
+          <button
+            type="button"
+            onClick={() => setAdvancedOpen((o) => !o)}
+            aria-expanded={advancedOpen}
+            className="text-[12px] uppercase tracking-[0.2em] text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+          >
+            {advancedOpen ? "− Hide" : "+ Show"} advanced preferences
+          </button>
+          {advancedOpen && (
+            <div className="mt-5">
+              <span className={label}>Background</span>
+              <div className="mt-2">
+                <Toggle
+                  checked={fairChanceOnly}
+                  onChange={setFairChanceOnly}
+                  label="Felony conviction — only show me fair-chance roles"
+                  description="Your feed will only show roles from employers and apps on our fair-chance list. This is private: only you can see it — not recruiters, coaches or Savant staff."
+                />
+              </div>
+            </div>
+          )}
+        </div>
         <button type="submit" disabled={saving} className={primaryButton}>
           {saving ? "…" : "Save preferences"}
         </button>

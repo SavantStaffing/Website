@@ -55,6 +55,7 @@ export type FeedJob = {
   source: string;
   remote: boolean;
   industry: string | null;
+  fair_chance?: boolean;
   naics_code: string | null;
   posted_at: string | null;
   created_at: string;
@@ -75,7 +76,7 @@ export type FeedJob = {
 // Everything the feed ranks, filters and shows on the card. Descriptions are
 // left out (they're most of the payload) and fetched when a job is opened.
 const JOB_COLUMNS =
-  "id, title, company_name, location, type, employment_type, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, track, track_override, pay_min, pay_max, pay_unit, fair_pay_score, cultures_score, honest_score, ethics_summary, organizations (name)";
+  "id, title, company_name, location, type, employment_type, apply_url, source, remote, industry, naics_code, posted_at, created_at, ghost_score, employer_badges, track, track_override, pay_min, pay_max, pay_unit, fair_pay_score, cultures_score, honest_score, ethics_summary, fair_chance, organizations (name)";
 
 type EthicsSummary = {
   wba_year?: number | null;
@@ -251,11 +252,17 @@ export function JobFeed({
   useEffect(() => {
     if (mode !== "talent" || !userId) return;
     (async () => {
-      const [{ data: p }, { data: apps }, { data: savedRows }] = await Promise.all([
+      const [{ data: p }, { data: apps }, { data: savedRows }, { data: priv }] = await Promise.all([
         supabase.from("talent_preferences").select("*").eq("user_id", userId).maybeSingle(),
         supabase.from("job_applications").select("job_id, status").eq("applicant_id", userId),
         supabase.from("saved_jobs").select("job_id").eq("user_id", userId),
+        supabase
+          .from("talent_private_preferences")
+          .select("fair_chance_only")
+          .eq("user_id", userId)
+          .maybeSingle(),
       ]);
+      if (priv?.fair_chance_only) setFilters((f) => ({ ...f, fairChanceOnly: true }));
       if (p) {
         setPrefs(p);
         setFilters((f) => ({
@@ -665,6 +672,18 @@ function Filters({
       </div>
       <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
         <span>
+          {filters.fairChanceOnly && (
+            <>
+              Fair-chance roles only (
+              <Link
+                to="/talent/preferences"
+                className="text-foreground underline underline-offset-4"
+              >
+                change
+              </Link>
+              ) ·{" "}
+            </>
+          )}
           {count} role{count === 1 ? "" : "s"} ·{" "}
           {hasPrefs ? "ranked by your preferences" : "newest first"}
           {!hasPrefs && canSetPrefs && (
@@ -682,7 +701,14 @@ function Filters({
           )}
         </span>
         <button
-          onClick={() => onChange({ ...EMPTY_FILTERS, track: filters.track })}
+          onClick={() =>
+            onChange({
+              ...EMPTY_FILTERS,
+              track: filters.track,
+              // Not a feed filter: it's switched in advanced preferences.
+              fairChanceOnly: filters.fairChanceOnly,
+            })
+          }
           className={mutedButton}
         >
           Clear filters
@@ -764,6 +790,7 @@ function JobRow({
             })}
             <Badge>{JOB_TRACK_LABELS[effectiveTrack(job)]}</Badge>
             {partnerOf(job) && <Badge>via {partnerOf(job)}</Badge>}
+            {job.fair_chance && <Badge tone="good">Fair chance</Badge>}
             {mode === "talent" && canAutofill(job) && <Badge tone="good">Autofill ready</Badge>}
           </div>
           <div className="mt-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">

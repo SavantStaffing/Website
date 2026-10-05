@@ -49,6 +49,8 @@ export type RankableJob = {
   fair_pay_score?: number | null;
   cultures_score?: number | null;
   honest_score?: number | null;
+  /** Open to people with a felony conviction (fair_chance_employers list). */
+  fair_chance?: boolean;
 };
 
 const PER_HOUR: Record<string, number> = { hour: 1, day: 8, week: 40, month: 173, year: 2080 };
@@ -211,6 +213,8 @@ export type FeedFilters = {
   tempApps: string[];
   /** Minimum employer Fair Pay & Worker Respect score (0–100); unscored employers hidden while set. */
   minFairPay: number | null;
+  /** Only fair-chance roles. Set from the talent's advanced preferences, not the feed. */
+  fairChanceOnly: boolean;
 };
 
 export const EMPTY_FILTERS: FeedFilters = {
@@ -224,6 +228,7 @@ export const EMPTY_FILTERS: FeedFilters = {
   minPay: null,
   tempApps: [],
   minFairPay: null,
+  fairChanceOnly: false,
 };
 
 export function applyFilters<J extends RankableJob & { company_name?: string | null }>(
@@ -240,6 +245,7 @@ export function applyFilters<J extends RankableJob & { company_name?: string | n
     if (f.naics && !(j.naics_code ?? "").startsWith(f.naics)) return false;
     if (f.postedWithinDays !== null && jobAgeDays(j, now) > f.postedWithinDays) return false;
     if (f.remoteOnly && !j.remote) return false;
+    if (f.fairChanceOnly && !j.fair_chance) return false;
     if (
       f.minFairPay !== null &&
       (j.fair_pay_score === null ||
