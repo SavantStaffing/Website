@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AutofillRouteImport } from './routes/autofill'
+import { Route as CareersRouteImport } from './routes/careers'
 import { Route as CoachRouteRouteImport } from './routes/coach/route'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -105,6 +106,11 @@ const AuthRoute = AuthRouteImport.update({
 const AutofillRoute = AutofillRouteImport.update({
   id: '/autofill',
   path: '/autofill',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoachRouteRoute = CoachRouteRouteImport.update({
@@ -453,6 +459,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/autofill': typeof AutofillRoute
+  '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/employer-ratings': typeof EmployerRatingsRoute
@@ -523,6 +530,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/autofill': typeof AutofillRoute
+  '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/employer-ratings': typeof EmployerRatingsRoute
@@ -598,6 +606,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/autofill': typeof AutofillRoute
+  '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/employer-ratings': typeof EmployerRatingsRoute
@@ -674,6 +683,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/autofill'
+    | '/careers'
     | '/contact'
     | '/dashboard'
     | '/employer-ratings'
@@ -744,6 +754,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/autofill'
+    | '/careers'
     | '/contact'
     | '/dashboard'
     | '/employer-ratings'
@@ -818,6 +829,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/autofill'
+    | '/careers'
     | '/contact'
     | '/dashboard'
     | '/employer-ratings'
@@ -893,6 +905,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   AutofillRoute: typeof AutofillRoute
+  CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   EmployerRatingsRoute: typeof EmployerRatingsRoute
@@ -951,6 +964,13 @@ declare module '@tanstack/react-router' {
       path: '/autofill'
       fullPath: '/autofill'
       preLoaderRoute: typeof AutofillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/coach': {
@@ -1560,6 +1580,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   AutofillRoute: AutofillRoute,
+  CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   EmployerRatingsRoute: EmployerRatingsRoute,
