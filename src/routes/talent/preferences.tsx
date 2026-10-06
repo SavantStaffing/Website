@@ -163,7 +163,7 @@ function Preferences() {
           placeholder="e.g. Warehouse associate, CNA, Software engineer"
         />
         <div>
-          <span className={label}>Industries (NAICS sectors)</span>
+          <span className={label}>Industries</span>
           <div className="mt-3">
             <ChipGroup
               options={NAICS_SECTOR_OPTIONS.map((o) => ({ value: o.code, label: o.label }))}

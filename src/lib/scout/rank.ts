@@ -182,7 +182,7 @@ export function rankJobs<J extends RankableJob>(
       const industryHit =
         (job.naics_code &&
           prefs.naics_codes.some(
-            (c) => job.naics_code!.startsWith(c) || c.startsWith(job.naics_code!),
+            (c) => inNaicsSector(job.naics_code, c) || c.startsWith(job.naics_code!),
           )) ||
         (job.industry &&
           prefs.industries.some((i) => job.industry!.toLowerCase().includes(i.toLowerCase())));
@@ -231,6 +231,20 @@ export const EMPTY_FILTERS: FeedFilters = {
   fairChanceOnly: false,
 };
 
+/** NAICS sectors that span several two-digit codes, keyed by the code the feed filters on. */
+const NAICS_SECTOR_RANGES: Record<string, string[]> = {
+  "31": ["31", "32", "33"], // Manufacturing
+  "44": ["44", "45"], // Retail Trade
+  "48": ["48", "49"], // Transportation and Warehousing
+};
+
+/** Whether a job's NAICS code falls in the sector filter (a two-digit code, or longer). */
+export function inNaicsSector(code: string | null | undefined, sector: string): boolean {
+  if (!sector) return true;
+  const c = code ?? "";
+  return (NAICS_SECTOR_RANGES[sector] ?? [sector]).some((s) => c.startsWith(s));
+}
+
 export function applyFilters<J extends RankableJob & { company_name?: string | null }>(
   jobs: J[],
   f: FeedFilters,
@@ -242,7 +256,7 @@ export function applyFilters<J extends RankableJob & { company_name?: string | n
     if (!locationMatches(j.location, f.location, !!j.remote)) return false;
     if (f.employmentTypes.length && !f.employmentTypes.includes(j.employment_type ?? ""))
       return false;
-    if (f.naics && !(j.naics_code ?? "").startsWith(f.naics)) return false;
+    if (f.naics && !inNaicsSector(j.naics_code, f.naics)) return false;
     if (f.postedWithinDays !== null && jobAgeDays(j, now) > f.postedWithinDays) return false;
     if (f.remoteOnly && !j.remote) return false;
     if (f.fairChanceOnly && !j.fair_chance) return false;

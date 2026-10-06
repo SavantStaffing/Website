@@ -16,8 +16,7 @@ const NAV = [
   { to: "/talent/jobs", label: "Job Feed" },
   { to: "/talent/temporary-work", label: "Temporary Work" },
   { to: "/talent/applications", label: "Applications" },
-  { to: "/talent/answers", label: "Saved Answers" },
-  { to: "/talent/profile", label: "Account" },
+  { to: "/talent/profile", label: "Talent Profile" },
   { to: "/talent/preferences", label: "Preferences" },
   { to: "/talent/settings", label: "Settings" },
 ] as const;
