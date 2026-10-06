@@ -88,7 +88,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, send) => {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(msg.payload),
       });
-      send(r.ok ? await r.json() : { error: r.status === 401 ? "Sign in to Savant again" : `API ${r.status}` });
+      if (r.ok) return send(await r.json());
+      if (r.status === 401) return send({ error: "Sign in to Savant again" });
+      // The API explains most failures ("Complete your Talent profile first"); show that.
+      const body = await r.json().catch(() => null);
+      send({ error: body?.error || `API ${r.status}` });
     } catch (e) {
       send({ error: String(e) });
     }
