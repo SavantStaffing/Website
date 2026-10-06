@@ -57,6 +57,7 @@ import { Route as CoachRecruitersRouteImport } from './routes/coach/recruiters'
 import { Route as CoachScheduleRouteImport } from './routes/coach/schedule'
 import { Route as CoachSettingsRouteImport } from './routes/coach/settings'
 import { Route as CoachTalentRouteImport } from './routes/coach/talent'
+import { Route as EmployerRatingsEmployerRouteImport } from './routes/employer-ratings_.$employer'
 import { Route as JoinCoachRouteImport } from './routes/join.coach'
 import { Route as RecruiterIndexRouteImport } from './routes/recruiter/index'
 import { Route as RecruiterAccountRouteImport } from './routes/recruiter/account'
@@ -323,6 +324,11 @@ const CoachTalentRoute = CoachTalentRouteImport.update({
   path: '/talent',
   getParentRoute: () => CoachRouteRoute,
 } as any)
+const EmployerRatingsEmployerRoute = EmployerRatingsEmployerRouteImport.update({
+  id: '/employer-ratings_/$employer',
+  path: '/employer-ratings/$employer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinCoachRoute = JoinCoachRouteImport.update({
   id: '/join/coach',
   path: '/join/coach',
@@ -497,6 +503,7 @@ export interface FileRoutesByFullPath {
   '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
+  '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
@@ -568,6 +575,7 @@ export interface FileRoutesByTo {
   '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
+  '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
@@ -644,6 +652,7 @@ export interface FileRoutesById {
   '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
+  '/employer-ratings_/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
@@ -721,6 +730,7 @@ export interface FileRouteTypes {
     | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
+    | '/employer-ratings/$employer'
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
@@ -792,6 +802,7 @@ export interface FileRouteTypes {
     | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
+    | '/employer-ratings/$employer'
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
@@ -867,6 +878,7 @@ export interface FileRouteTypes {
     | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
+    | '/employer-ratings_/$employer'
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
@@ -922,6 +934,7 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AutofillPrivacyRoute: typeof AutofillPrivacyRoute
+  EmployerRatingsEmployerRoute: typeof EmployerRatingsEmployerRoute
   JoinCoachRoute: typeof JoinCoachRoute
   ApiAutofillAnswersRoute: typeof ApiAutofillAnswersRoute
   ApiAutofillPlanRoute: typeof ApiAutofillPlanRoute
@@ -1267,6 +1280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachTalentRouteImport
       parentRoute: typeof CoachRouteRoute
     }
+    '/employer-ratings_/$employer': {
+      id: '/employer-ratings_/$employer'
+      path: '/employer-ratings/$employer'
+      fullPath: '/employer-ratings/$employer'
+      preLoaderRoute: typeof EmployerRatingsEmployerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/coach': {
       id: '/join/coach'
       path: '/join/coach'
@@ -1597,6 +1617,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AutofillPrivacyRoute: AutofillPrivacyRoute,
+  EmployerRatingsEmployerRoute: EmployerRatingsEmployerRoute,
   JoinCoachRoute: JoinCoachRoute,
   ApiAutofillAnswersRoute: ApiAutofillAnswersRoute,
   ApiAutofillPlanRoute: ApiAutofillPlanRoute,

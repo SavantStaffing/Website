@@ -3,6 +3,8 @@ import type { EthicsRecord } from "./ethics.ts";
 import {
   DEFAULT_SETTINGS,
   runScout,
+  sweepEmployerEthics,
+  type CompanyOutcome,
   type EthicsOptions,
   type RunSummary,
   type ScoutSettings,
@@ -193,6 +195,15 @@ export function createScoutStore(db: ScoutDb): ScoutStore {
         .from("employer_ethics")
         .upsert(record, { onConflict: "company_key" });
       if (error) throw new Error(error.message);
+    },
+
+    async employerListingCounts() {
+      const { data, error } = await db.rpc("employer_listing_counts");
+      if (error) throw new Error(error.message);
+      return ((data ?? []) as { company_name: string; listings: number }[]).map((r) => ({
+        company_name: r.company_name,
+        listings: Number(r.listings),
+      }));
     },
 
     async apiUsage(source): Promise<ApiUsage> {
@@ -397,6 +408,51 @@ export async function runAndRecord(
       .eq("id", run.id);
     throw e;
   }
+}
+
+/**
+ * Run the employer ethics sweep (pipeline.ts) and record it as a run, so it
+ * shows in the admin's run history with its Wikirate / DOL request metrics.
+ */
+export async function runEthicsSweep(
+  db: ScoutDb,
+  opts: {
+    trigger: "manual" | "scheduled";
+    triggeredBy: string | null;
+    dolApiKey?: string | null;
+    wikirateKey?: string | null;
+  },
+): Promise<{ runId: string | null; outcome: CompanyOutcome | null }> {
+  const ethics = await loadEthicsOptions(db, {
+    dolApiKey: opts.dolApiKey,
+    wikirateKey: opts.wikirateKey,
+  });
+  if (!ethics.enabled) return { runId: null, outcome: null };
+  const { data: run, error } = await db
+    .from("scout_runs")
+    .insert({ trigger: opts.trigger, triggered_by: opts.triggeredBy })
+    .select("id")
+    .single();
+  if (error || !run) throw new Error(error?.message ?? "Could not start run");
+  const { outcome, metrics } = await sweepEmployerEthics(createScoutStore(db), ethics);
+  await db
+    .from("scout_runs")
+    .update({
+      companies_scanned: outcome.found,
+      jobs_found: 0,
+      jobs_inserted: 0,
+      jobs_updated: 0,
+      jobs_rejected: 0,
+      jobs_flagged: 0,
+      jobs_closed: 0,
+      status: outcome.status === "ok" ? "succeeded" : "failed",
+      error: outcome.error ?? null,
+      finished_at: new Date().toISOString(),
+    })
+    .eq("id", run.id);
+  if (metrics.length)
+    await db.from("scout_source_metrics").insert(metrics.map((m) => ({ ...m, run_id: run.id })));
+  return { runId: run.id, outcome };
 }
 
 /**

@@ -8,6 +8,10 @@
  * 150s wall clock). It answers at once and runs the scan as a background
  * task; results land in scout_runs like any other run.
  *
+ * A call with {"sweep": true} runs the employer ethics sweep instead
+ * (WBA + DOL lookups for employers hiring on Savant that aren't on the scan
+ * list; pg_cron sends it hourly, see 20261005000005_where_you_work_matters.sql).
+ *
  * Auth: the caller must send the x-scout-token header matching
  * scout_settings.cron_token (random, generated in the database; pg_cron
  * reads it there). The function itself uses the service-role key Supabase
@@ -18,7 +22,7 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { setJobPageLimit } from "./scout/jobposting.ts";
-import { runAndRecord, stalestCompanyIds } from "./scout/supabase-store.ts";
+import { runAndRecord, runEthicsSweep, stalestCompanyIds } from "./scout/supabase-store.ts";
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void };
 
@@ -53,7 +57,18 @@ Deno.serve(async (req) => {
   const body = (await req.json().catch(() => ({}))) as {
     companies?: number;
     companyIds?: string[];
+    sweep?: boolean;
   };
+  if (body.sweep) {
+    EdgeRuntime.waitUntil(
+      runEthicsSweep(db, { trigger: "scheduled", triggeredBy: null })
+        .then(({ runId, outcome }) =>
+          console.log(`ethics sweep ${runId ?? "skipped (ethics off)"}: ${outcome?.rating ?? ""}`),
+        )
+        .catch((e) => console.error("ethics sweep failed:", e instanceof Error ? e.message : e)),
+    );
+    return json({ started: "ethics sweep" }, 202);
+  }
   const n = Math.min(Math.max(Number(body.companies ?? 1) || 1, 1), 3);
   const ids = body.companyIds?.length
     ? body.companyIds.slice(0, 3)

@@ -1313,6 +1313,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      where_you_work_matters: {
+        Row: {
+          careers_url: string | null;
+          company_name: string;
+          gold_badges: number;
+          id: string;
+          imported_at: string;
+          industry: string | null;
+          normalized_name: string;
+          platinum_badges: number;
+        };
+        Insert: {
+          careers_url?: string | null;
+          company_name: string;
+          gold_badges: number;
+          id?: string;
+          imported_at?: string;
+          industry?: string | null;
+          normalized_name: string;
+          platinum_badges: number;
+        };
+        Update: {
+          careers_url?: string | null;
+          company_name?: string;
+          gold_badges?: number;
+          id?: string;
+          imported_at?: string;
+          industry?: string | null;
+          normalized_name?: string;
+          platinum_badges?: number;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1348,6 +1381,10 @@ export type Database = {
           p_hours?: number;
         };
         Returns: Json;
+      };
+      employer_listing_counts: {
+        Args: Record<PropertyKey, never>;
+        Returns: { company_name: string; listings: number }[];
       };
       employer_rating_inputs: {
         Args: Record<PropertyKey, never>;

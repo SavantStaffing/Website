@@ -1,7 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChipGroup, label, list, mutedButton, primaryButton } from "@/components/site/ui";
+import {
+  ChipGroup,
+  label,
+  linkButton,
+  list,
+  mutedButton,
+  primaryButton,
+} from "@/components/site/ui";
 import { RatingBadge } from "@/components/ratings/RatingBadge";
 import { ScoreInfo } from "@/components/ratings/ScoreInfo";
 import { COMPONENT_INFO, CONFIDENCE_INFO } from "@/lib/ratings/score-info";
@@ -184,7 +191,8 @@ function EmployerRatings() {
 
           {scope === "hiring" && unrated.length > 0 && (
             <p className="mt-8 text-xs text-muted-foreground">
-              Not yet rated (no independent data found): {unrated.map((e) => e.name).join(", ")}.
+              Not yet rated (not enough independent data yet):{" "}
+              {unrated.map((e) => e.name).join(", ")}.
             </p>
           )}
         </>
@@ -209,35 +217,51 @@ function EmployerRow({
   const r = e.rating!;
   return (
     <li id={employerAnchor(e.key)} className="scroll-mt-24 py-5">
-      <button
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full flex-wrap items-center gap-x-6 gap-y-2 text-left"
-      >
+      {/* The name opens the employer's own page; the rest of the row expands the summary. */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <span className="w-8 text-sm tabular-nums text-muted-foreground">{position}</span>
-        <span className="min-w-0 flex-1 text-lg font-medium">{e.name}</span>
-        <RatingBadge tier={r.tier} score={r.score} rating={r} />
-        <span className="w-36 whitespace-nowrap text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-          <ScoreInfo
-            label={`${r.confidence} confidence`}
-            body={
-              <>
-                <p className="text-sm font-semibold normal-case">{r.confidence} confidence</p>
-                <p className="mt-2 text-muted-foreground">{CONFIDENCE_INFO[r.confidence]}</p>
-                <p className="mt-2 text-muted-foreground">
-                  Confidence reflects how many of our sources cover this employer, not how good it
-                  is.
-                </p>
-              </>
-            }
+        <span className="min-w-0 flex-1 text-lg font-medium">
+          <Link
+            to="/employer-ratings/$employer"
+            params={{ employer: employerAnchor(e.key) }}
+            className="underline decoration-[color:var(--color-hairline)] underline-offset-4 [@media(hover:hover)]:hover:decoration-foreground"
           >
-            {r.confidence} confidence
-          </ScoreInfo>
+            {e.name}
+          </Link>
         </span>
-        <span className="w-28 whitespace-nowrap text-right text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-          {e.openJobs ? `${e.openJobs} open job${e.openJobs === 1 ? "" : "s"}` : "—"}
-        </span>
-      </button>
+        <button
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-label={`${open ? "Hide" : "Show"} rating summary for ${e.name}`}
+          className="flex flex-wrap items-center gap-x-6 gap-y-2 text-left"
+        >
+          <RatingBadge tier={r.tier} score={r.score} rating={r} />
+          <span className="w-36 whitespace-nowrap text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+            <ScoreInfo
+              label={`${r.confidence} confidence`}
+              body={
+                <>
+                  <p className="text-sm font-semibold normal-case">{r.confidence} confidence</p>
+                  <p className="mt-2 text-muted-foreground">{r.confidenceNote}</p>
+                  <p className="mt-2 text-muted-foreground">{CONFIDENCE_INFO[r.confidence]}</p>
+                  <p className="mt-2 text-muted-foreground">
+                    Confidence reflects how many of our sources cover this employer, not how good it
+                    is.
+                  </p>
+                </>
+              }
+            >
+              {r.confidence} confidence
+            </ScoreInfo>
+          </span>
+          <span className="w-28 whitespace-nowrap text-right text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+            {e.openJobs ? `${e.openJobs} open job${e.openJobs === 1 ? "" : "s"}` : "—"}
+          </span>
+          <span aria-hidden className="w-3 text-xs text-muted-foreground">
+            {open ? "−" : "+"}
+          </span>
+        </button>
+      </div>
 
       {open && (
         <div className="mt-5 grid gap-8 pl-14 md:grid-cols-2">
@@ -301,18 +325,21 @@ function EmployerRow({
                 </ul>
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
-              {r.confidence === "High"
-                ? "Backed by most of our sources."
-                : r.confidence === "Medium"
-                  ? "Based on some of our sources; treat as a good indication."
-                  : "Based on limited data; treat as a first look."}
-            </p>
-            {e.openJobs > 0 && (
-              <Link to="/jobs" className={mutedButton}>
-                Browse jobs →
+            <p className="text-xs text-muted-foreground">{r.confidenceNote}</p>
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
+              <Link
+                to="/employer-ratings/$employer"
+                params={{ employer: employerAnchor(e.key) }}
+                className={linkButton}
+              >
+                Full breakdown →
               </Link>
-            )}
+              {e.openJobs > 0 && (
+                <Link to="/jobs" className={mutedButton}>
+                  Browse jobs →
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -406,9 +433,29 @@ function Methodology() {
             violator, and 2 per serious OSHA safety violation (up to 12).
           </p>
           <p>
-            Confidence shows how much of the rating is backed by data: High when most measures are
-            available, Low when it rests on a single source. A Low-confidence employer is never
-            rated above Strong.
+            Employers that JUST Capital and As You Sow don't cover are rated from at least two of
+            these, each counting equally: 50 points each with two sources, 33.3 each with three.
+            Where You Work Matters gives 30 of its 50 for making the list (four Gold badges) and 5
+            more per Platinum badge.
+          </p>
+          <table className="w-full text-left">
+            <tbody className="divide-y divide-[color:var(--color-hairline)]">
+              {[
+                ["Social Benchmark", "World Benchmarking Alliance"],
+                ["Gold & Platinum badges", "Where You Work Matters"],
+                ["Labor record", "U.S. Department of Labor"],
+              ].map(([m, src]) => (
+                <tr key={m}>
+                  <td className="py-2 pr-4 text-foreground">{m}</td>
+                  <td className="py-2 pr-4">{src}</td>
+                  <td className="py-2 text-right">Equal</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p>
+            Confidence shows how much of the rating is backed by data, and every rating says which
+            sources it rests on. A Low-confidence employer is never rated above Strong.
           </p>
           <p className="text-xs">
             Sources: World Benchmarking Alliance Social Benchmark via{" "}
@@ -420,9 +467,9 @@ function Methodology() {
             >
               Wikirate.org
             </a>{" "}
-            (CC BY 4.0); JUST Capital rankings; As You Sow workplace DEI scores; U.S. Department of
-            Labor enforcement data. Savant computes the combined rating; the sources don't endorse
-            it.
+            (CC BY 4.0); JUST Capital rankings; As You Sow workplace DEI scores; Where You Work
+            Matters badges; U.S. Department of Labor enforcement data. Savant computes the combined
+            rating; the sources don't endorse it.
           </p>
         </div>
       </div>
