@@ -13,6 +13,7 @@ import {
 } from "@/lib/autofill/extension";
 import { detectJob } from "@/lib/autofill/mapper";
 import { ApplyDialog } from "@/components/jobs/ApplyDialog";
+import { ShareJobDialog } from "@/components/jobs/ShareJobDialog";
 import {
   applyFilters,
   effectiveTrack,
@@ -226,6 +227,9 @@ export function JobFeed({
   const { auth } = useAuth();
   // Signed-in recruiters/admins browsing the public preview aren't prompted to sign up.
   const signedIn = !!auth;
+  // Coaches and admins can send a job to talent.
+  const canShare = auth?.role === "admin" || auth?.role === "career_coach";
+  const [sharing, setSharing] = useState<FeedJob | null>(null);
   const [jobs, setJobs] = useState<FeedJob[] | null>(null);
   const [prefs, setPrefs] = useState<RankablePreferences | null>(null);
   const [filters, setFilters] = useState<FeedFilters>({
@@ -394,6 +398,14 @@ export function JobFeed({
           onContinue={(autofill) => applying && startApplication(applying, autofill)}
         />
       )}
+      {canShare && (
+        <ShareJobDialog
+          job={
+            sharing ? { id: sharing.id, title: sharing.title, company: companyOf(sharing) } : null
+          }
+          onClose={() => setSharing(null)}
+        />
+      )}
       <TrackTabs
         value={filters.track}
         counts={trackCounts}
@@ -431,6 +443,7 @@ export function JobFeed({
               isSaved={saved.has(job.id)}
               onSave={() => toggleSave(job.id)}
               onApply={() => apply(job)}
+              onShare={canShare ? () => setSharing(job) : undefined}
             />
           ))}
         </ul>
@@ -728,6 +741,7 @@ function JobRow({
   isSaved,
   onSave,
   onApply,
+  onShare,
 }: {
   job: FeedJob & { match: number; matchReasons: string[] };
   mode: "talent" | "guest";
@@ -738,6 +752,8 @@ function JobRow({
   isSaved: boolean;
   onSave: () => void;
   onApply: () => void;
+  /** Coaches and admins: send this job to talent. */
+  onShare?: () => void;
 }) {
   const external = !!job.apply_url && job.source !== "manual";
   const employer = useEmployerRatings().lookup(companyOf(job));
@@ -810,6 +826,11 @@ function JobRow({
           )}
         </button>
         <div className="flex items-center gap-5">
+          {onShare && (
+            <button onClick={onShare} className={mutedButton}>
+              Share
+            </button>
+          )}
           {mode === "talent" && (
             <button onClick={onSave} className={mutedButton} aria-pressed={isSaved}>
               {isSaved ? "Bookmarked" : "Bookmark"}
