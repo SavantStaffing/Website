@@ -88,8 +88,10 @@ function EmployerPage() {
       ) : !e.rating ? (
         <Notice title={e.name}>
           <p>
-            Not yet rated: none of our independent sources cover this employer, so there is no score
-            to break down. That says nothing about how good or bad it is.
+            Not yet rated: we don't have enough independent data on this employer yet. It needs JUST
+            Capital or As You Sow coverage, or at least two of the World Benchmarking Alliance,
+            Where You Work Matters and its Department of Labor record. That says nothing about how
+            good or bad it is.
           </p>
           {e.openJobs > 0 && (
             <Link to="/jobs" className={`mt-6 inline-block ${linkButton}`}>
@@ -167,7 +169,7 @@ function Breakdown({ e, index }: { e: RatedEmployer; index: Map<string, RatedEmp
         <Stat title="Confidence">
           <div className="text-2xl font-semibold">{r.confidence}</div>
           <p className="mt-2 text-xs text-muted-foreground">
-            {Math.round(r.coverage * 100)}% of the rating's weight is backed by data.
+            {r.sources.length} source{r.sources.length === 1 ? "" : "s"}: {r.sources.join(", ")}.
           </p>
         </Stat>
         <Stat title="Rank">
@@ -199,6 +201,9 @@ function Breakdown({ e, index }: { e: RatedEmployer; index: Map<string, RatedEmp
           {tier.blurb} {CONFIDENCE_INFO[r.confidence]}
         </span>
       </p>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        {r.confidenceNote}
+      </p>
 
       {(r.highlights.length > 0 || r.concerns.length > 0) && (
         <div className="mt-10 grid gap-8 text-sm md:grid-cols-2">
@@ -227,8 +232,9 @@ function Breakdown({ e, index }: { e: RatedEmployer; index: Map<string, RatedEmp
 
       <Section title="How the score adds up">
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          The score is the weighted average of the measures this employer has data for, minus any
-          points for its labor record. Measures without data are left out, not counted as zero.
+          {r.route === "adaptive"
+            ? "JUST Capital and As You Sow don't cover this employer, so it's rated from the World Benchmarking Alliance, Where You Work Matters and its labor record: the ones it has share the 100 points equally (50 each with two sources, 33.3 each with three). Measures without data are left out, not counted as zero."
+            : "The score is the weighted average of the measures this employer has data for, minus any points for its labor record. Measures without data are left out, not counted as zero."}
         </p>
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[30rem] text-left text-sm">
@@ -297,7 +303,7 @@ function Breakdown({ e, index }: { e: RatedEmployer; index: Map<string, RatedEmp
           {r.components.map((c) => {
             const info = SCORE_INFO[COMPONENT_INFO[c.key]];
             const s = standing(c.key, c.value);
-            const wba = c.key !== "just_capital" && c.key !== "as_you_sow";
+            const wba = ["fair_pay", "cultures", "honest", "wba"].includes(c.key);
             return (
               <div key={c.key} className={card}>
                 <div className="flex items-baseline justify-between gap-4">
@@ -363,21 +369,22 @@ function Breakdown({ e, index }: { e: RatedEmployer; index: Map<string, RatedEmp
 
       <Section title="Labor record">
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {SCORE_INFO.labor_record.what} {SCORE_INFO.labor_record.scale}
+          {SCORE_INFO.labor_record.what}{" "}
+          {r.route === "adaptive" ? SCORE_INFO.labor.scale : SCORE_INFO.labor_record.scale}
         </p>
         {!r.laborChecked ? (
           <p className="mt-4 text-sm">
             We haven't checked this employer's Department of Labor record yet, so nothing has been
             deducted.
           </p>
-        ) : r.penalties.length === 0 ? (
+        ) : r.laborFindings.length === 0 ? (
           <p className="mt-4 text-sm">
             Clean: no wage-and-hour cases or serious safety violations on record at its Bay Area
             sites in the last five years.
           </p>
         ) : (
           <ul className={`mt-6 text-sm ${list}`}>
-            {r.penalties.map((p) => (
+            {r.laborFindings.map((p) => (
               <li key={p.label} className="flex justify-between gap-4 py-3">
                 <span>{p.label}</span>
                 <span className="tabular-nums text-red-700 dark:text-red-400">−{p.points}</span>

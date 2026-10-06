@@ -1,6 +1,10 @@
 /**
  * Savant Employer Rating: one 0–100 score and a plain-language tier per
  * employer, combining every independent source the Job Scout collects.
+ * There are two routes to a rating, depending on which sources cover the
+ * employer.
+ *
+ * Standard route — employers JUST Capital and/or As You Sow cover:
  *
  *   Component                          Source                            Weight
  *   Fair pay & worker respect          WBA Social Benchmark, Theme B      25
@@ -17,9 +21,23 @@
  *   repeat FLSA violator     −8
  *   serious OSHA violation   −2 each (max −12)
  *
- * Confidence reflects how much of the weight is backed by data, so a score
- * built from one source is labelled as such rather than presented as settled;
- * a Low-confidence employer can't be rated above Strong, whatever its score.
+ * Confidence reflects how much of the weight is backed by data.
+ *
+ * Adaptive route — every other employer, rated from whichever of these three
+ * sources it has. It needs at least two; with fewer it isn't rated.
+ *
+ *   Source                                   Score (0–100)
+ *   Social Benchmark (WBA via Wikirate)      Themes B/A/C, 25:10:10
+ *   Where You Work Matters                   60 + 10 per Platinum badge (of 4)
+ *   Labor record (U.S. Department of Labor)  85 if clean, −2.5 per penalty point above
+ *
+ * The sources count equally: each is worth 100 ÷ (sources the employer has)
+ * points. With two sources each is worth 50, so Where You Work Matters gives
+ * 30 for four Gold badges plus 5 per Platinum; with three, 20 plus 3.3.
+ * Confidence is the source count: 2 is Medium, 3 is High.
+ *
+ * A Low-confidence employer (standard route) can't be rated above Strong,
+ * whatever its score, and every rating says in words what backs it.
  *
  * Framework-free so the Employer Ratings page and the job feed share it.
  */
@@ -36,7 +54,16 @@ export type RatingInputs = {
   dol_wage_cases: number;
   dol_repeat_violator: boolean;
   osha_serious_violations: number;
+  /** Where You Work Matters badges; null when the employer isn't on the list. */
+  wywm_gold?: number | null;
+  wywm_platinum?: number | null;
 };
+
+/**
+ * standard: JUST Capital and/or As You Sow, plus WBA, minus labor penalties.
+ * adaptive: WBA, Where You Work Matters and the labor record, weighted equally.
+ */
+export type RatingRoute = "standard" | "adaptive";
 
 export type Tier = "Exemplary" | "Strong" | "Fair" | "Mixed" | "Concerning";
 export type Confidence = "High" | "Medium" | "Low";
@@ -45,14 +72,17 @@ export type EmployerRating = {
   score: number; // 0–100, rounded
   tier: Tier;
   confidence: Confidence;
+  /** The confidence in words: how many sources, and which. */
+  confidenceNote: string;
   components: { key: string; label: string; value: number; weight: number; detail: string }[];
+  /** Points taken off after the average (standard route only). */
   penalties: { label: string; points: number }[];
   /** Short, human reasons for the tier — best first, then concerns. */
   highlights: string[];
   concerns: string[];
-  /** Weighted average of the components, before the labor-record penalties. */
+  /** Weighted average of the components, before penalties. */
   base: number;
-  /** Share of the rating's total weight backed by data, 0–1. */
+  /** Share of the route's total weight backed by data, 0–1. */
   coverage: number;
   /** Measures this employer has no data for (left out of the average). */
   missing: { key: string; label: string; weight: number }[];
@@ -60,6 +90,11 @@ export type EmployerRating = {
   laborChecked: boolean;
   /** True when Low confidence held an Exemplary-range score at Strong. */
   capped: boolean;
+  route: RatingRoute;
+  /** The independent sources behind the score, by name. */
+  sources: string[];
+  /** What the Department of Labor record shows, with the points each finding is worth. */
+  laborFindings: { label: string; points: number }[];
 };
 
 /** JUST Capital ranks roughly the Russell 1000; rank 1 → 100, rank 1,000 → 0. */
@@ -76,7 +111,7 @@ const WEIGHTS = {
 } as const;
 const TOTAL_WEIGHT = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
 
-/** Every measure the rating can use, in display order. */
+/** Every measure the standard route can use, in display order. */
 const MEASURES: { key: keyof typeof WEIGHTS; label: string }[] = [
   { key: "fair_pay", label: "Fair pay & worker respect" },
   { key: "cultures", label: "Cultures & communities" },
@@ -84,6 +119,33 @@ const MEASURES: { key: keyof typeof WEIGHTS; label: string }[] = [
   { key: "just_capital", label: "Corporate conduct" },
   { key: "as_you_sow", label: "Diversity & inclusion" },
 ];
+
+const ADAPTIVE_MEASURES: { key: "wba" | "wywm" | "labor"; label: string }[] = [
+  { key: "wba", label: "Social Benchmark (WBA)" },
+  { key: "wywm", label: "Where You Work Matters" },
+  { key: "labor", label: "Labor record" },
+];
+/** Fewer sources than this and the adaptive route doesn't rate the employer. */
+export const ADAPTIVE_MIN_SOURCES = 2;
+
+/**
+ * Where You Work Matters, 0–100: 60 for making the list (four Gold badges), +10
+ * per Platinum (of 4). As points that's 30 + 5 per Platinum when the employer
+ * has two sources (each worth 50).
+ */
+export const wywmScore = (platinum: number) => 60 + 10 * Math.max(0, Math.min(4, platinum));
+
+/** Labor record on the adaptive route: a clean record scores 85, each penalty point costs 2.5. */
+export const LABOR_CLEAN_SCORE = 85;
+export const LABOR_POINT_COST = 2.5;
+
+const SOURCE_NAMES = {
+  wba: "World Benchmarking Alliance",
+  just_capital: "JUST Capital",
+  as_you_sow: "As You Sow",
+  wywm: "Where You Work Matters",
+  dol: "U.S. Department of Labor",
+} as const;
 
 export const TIERS: { tier: Tier; min: number; blurb: string }[] = [
   {
@@ -100,10 +162,65 @@ export const TIERS: { tier: Tier; min: number; blurb: string }[] = [
 export const tierFor = (score: number): Tier => TIERS.find((t) => score >= t.min)!.tier;
 
 const clamp = (n: number) => Math.max(0, Math.min(100, n));
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-/** Returns null when there's no scored source at all — the employer isn't rated. */
+/** Department of Labor findings and their point values (empty when clean or unchecked). */
+function laborFindings(i: RatingInputs): EmployerRating["laborFindings"] {
+  if (!i.dol_checked) return [];
+  const out: EmployerRating["laborFindings"] = [];
+  if (i.dol_wage_cases > 0)
+    out.push({
+      label: plural(i.dol_wage_cases, "wage-and-hour case"),
+      points: Math.min(16, i.dol_wage_cases * 4),
+    });
+  if (i.dol_repeat_violator) out.push({ label: "Repeat wage violator", points: 8 });
+  if (i.osha_serious_violations > 0)
+    out.push({
+      label: plural(i.osha_serious_violations, "serious OSHA violation"),
+      points: Math.min(12, i.osha_serious_violations * 2),
+    });
+  return out;
+}
+
+type Component = EmployerRating["components"][number];
+
+/** Strengths and concerns, shared by both routes. Labor is described by its findings. */
+function reasons(
+  components: Component[],
+  findings: EmployerRating["laborFindings"],
+  i: RatingInputs,
+) {
+  const scored = components.filter((c) => c.key !== "labor");
+  const highlights = scored
+    .filter((c) => c.value >= 70)
+    .sort((a, b) => b.value - a.value)
+    .map((c) => `${c.label}: ${Math.round(c.value)}/100`);
+  if (i.dol_checked && !findings.length) highlights.push("Clean Bay Area labor record");
+  const concerns = [
+    ...scored
+      .filter((c) => c.value < 35)
+      .sort((a, b) => a.value - b.value)
+      .map((c) => `${c.label}: ${Math.round(c.value)}/100`),
+    ...findings.map((f) => f.label),
+  ];
+  return { highlights, concerns };
+}
+
+const weightedAverage = (components: Component[]) => {
+  const weight = components.reduce((s, c) => s + c.weight, 0);
+  return { weight, base: components.reduce((s, c) => s + c.value * c.weight, 0) / weight };
+};
+
+/**
+ * Returns null when the employer doesn't have enough data to rate: no scored
+ * source on the standard route, fewer than two sources on the adaptive one.
+ */
 export function rateEmployer(i: RatingInputs): EmployerRating | null {
-  const components: EmployerRating["components"] = [];
+  return i.just_capital_rank !== null || i.as_you_sow !== null ? rateStandard(i) : rateAdaptive(i);
+}
+
+function rateStandard(i: RatingInputs): EmployerRating | null {
+  const components: Component[] = [];
   const add = (
     key: string,
     label: string,
@@ -134,65 +251,127 @@ export function rateEmployer(i: RatingInputs): EmployerRating | null {
   add("as_you_sow", "Diversity & inclusion", i.as_you_sow, WEIGHTS.as_you_sow, "As You Sow DEI");
   if (!components.length) return null;
 
-  const weight = components.reduce((s, c) => s + c.weight, 0);
-  const base = components.reduce((s, c) => s + c.value * c.weight, 0) / weight;
-
-  const penalties: EmployerRating["penalties"] = [];
-  if (i.dol_checked) {
-    if (i.dol_wage_cases > 0)
-      penalties.push({
-        label: `${i.dol_wage_cases} wage-and-hour case${i.dol_wage_cases === 1 ? "" : "s"}`,
-        points: Math.min(16, i.dol_wage_cases * 4),
-      });
-    if (i.dol_repeat_violator) penalties.push({ label: "Repeat wage violator", points: 8 });
-    if (i.osha_serious_violations > 0)
-      penalties.push({
-        label: `${i.osha_serious_violations} serious OSHA violation${i.osha_serious_violations === 1 ? "" : "s"}`,
-        points: Math.min(12, i.osha_serious_violations * 2),
-      });
-  }
+  const { weight, base } = weightedAverage(components);
+  const findings = laborFindings(i);
+  const penalties = findings;
   const score = Math.round(clamp(base - penalties.reduce((s, p) => s + p.points, 0)));
 
   const coverage = weight / TOTAL_WEIGHT;
   const confidence: Confidence =
     coverage >= 0.7 && components.length >= 3 ? "High" : coverage >= 0.4 ? "Medium" : "Low";
 
-  const highlights = components
-    .filter((c) => c.value >= 70)
-    .sort((a, b) => b.value - a.value)
-    .map((c) => `${c.label}: ${Math.round(c.value)}/100`);
-  if (i.dol_checked && !penalties.length) highlights.push("Clean Bay Area labor record");
-  const concerns = [
-    ...components
-      .filter((c) => c.value < 35)
-      .sort((a, b) => a.value - b.value)
-      .map((c) => `${c.label}: ${Math.round(c.value)}/100`),
-    ...penalties.map((p) => p.label),
-  ];
+  const have = new Set(components.map((c) => c.key));
+  const sources: string[] = [
+    have.has("fair_pay") || have.has("cultures") || have.has("honest") ? SOURCE_NAMES.wba : null,
+    have.has("just_capital") ? SOURCE_NAMES.just_capital : null,
+    have.has("as_you_sow") ? SOURCE_NAMES.as_you_sow : null,
+    i.dol_checked ? SOURCE_NAMES.dol : null,
+  ].filter((s): s is NonNullable<typeof s> => !!s);
 
   // One source isn't enough to call an employer Exemplary.
   const capped = confidence === "Low" && score >= 80;
-  const tier = capped ? "Strong" : tierFor(score);
+  return {
+    score,
+    tier: capped ? "Strong" : tierFor(score),
+    confidence,
+    confidenceNote: `${confidence} confidence: ${plural(sources.length, "source")} (${sources.join(", ")}), covering ${Math.round(coverage * 100)}% of the rating's weight.`,
+    components,
+    penalties,
+    ...reasons(components, findings, i),
+    base,
+    coverage,
+    missing: MEASURES.filter((m) => !have.has(m.key)).map((m) => ({
+      ...m,
+      weight: WEIGHTS[m.key],
+    })),
+    laborChecked: i.dol_checked,
+    capped,
+    route: "standard",
+    sources,
+    laborFindings: findings,
+  };
+}
 
+function rateAdaptive(i: RatingInputs): EmployerRating | null {
+  const components: Component[] = [];
+
+  const themes = (
+    [
+      ["Fair pay", i.fair_pay, WEIGHTS.fair_pay],
+      ["Cultures", i.cultures, WEIGHTS.cultures],
+      ["Honest business", i.honest, WEIGHTS.honest],
+    ] as [string, number | null, number][]
+  ).filter((t): t is [string, number, number] => t[1] !== null && !Number.isNaN(t[1]));
+  if (themes.length) {
+    const w = themes.reduce((s, t) => s + t[2], 0);
+    components.push({
+      key: "wba",
+      label: "Social Benchmark (WBA)",
+      value: clamp(themes.reduce((s, t) => s + clamp(t[1]) * t[2], 0) / w),
+      weight: 0, // set below: the sources share 100 points equally
+      detail: themes.map(([name, v]) => `${name} ${Math.round(v)}`).join(" · "),
+    });
+  }
+
+  if (i.wywm_platinum !== null && i.wywm_platinum !== undefined) {
+    components.push({
+      key: "wywm",
+      label: "Where You Work Matters",
+      value: wywmScore(i.wywm_platinum),
+      weight: 0,
+      detail: `${i.wywm_platinum} Platinum · ${i.wywm_gold ?? 0} Gold badges`,
+    });
+  }
+
+  const findings = laborFindings(i);
+  if (i.dol_checked) {
+    const points = findings.reduce((s, f) => s + f.points, 0);
+    components.push({
+      key: "labor",
+      label: "Labor record",
+      value: clamp(LABOR_CLEAN_SCORE - points * LABOR_POINT_COST),
+      weight: 0,
+      detail: points
+        ? `${findings.map((f) => f.label).join(", ")} · −${points} points`
+        : "Clean, last 5 years",
+    });
+  }
+
+  if (components.length < ADAPTIVE_MIN_SOURCES) return null;
+
+  // Every source counts equally: each is worth 100 / n points.
+  const n = components.length;
+  for (const c of components) c.weight = 100 / n;
+  const { base } = weightedAverage(components);
+  const score = Math.round(clamp(base));
+  const confidence: Confidence = n >= 3 ? "High" : "Medium";
+  const sources = components.map((c) =>
+    c.key === "wba" ? SOURCE_NAMES.wba : c.key === "wywm" ? SOURCE_NAMES.wywm : SOURCE_NAMES.dol,
+  );
   const have = new Set(components.map((c) => c.key));
-  const missing = MEASURES.filter((m) => !have.has(m.key)).map((m) => ({
-    ...m,
-    weight: WEIGHTS[m.key],
-  }));
+  // Two sources minimum means this route is never Low confidence, so never capped.
+  const capped = false;
 
   return {
     score,
-    tier,
+    tier: tierFor(score),
     confidence,
+    confidenceNote: `${confidence} confidence: ${n} of ${ADAPTIVE_MEASURES.length} possible sources (${sources.join(", ")}), each worth ${Math.round((100 / n) * 10) / 10} of the 100 points.`,
     components,
-    penalties,
-    highlights,
-    concerns,
+    penalties: [],
+    ...reasons(components, findings, i),
     base,
-    coverage,
-    missing,
+    coverage: n / ADAPTIVE_MEASURES.length,
+    // What a missing source would be worth if the employer had it.
+    missing: ADAPTIVE_MEASURES.filter((m) => !have.has(m.key)).map((m) => ({
+      ...m,
+      weight: Math.round((100 / (n + 1)) * 10) / 10,
+    })),
     laborChecked: i.dol_checked,
     capped,
+    route: "adaptive",
+    sources,
+    laborFindings: findings,
   };
 }
 
@@ -220,6 +399,8 @@ export type RatingBundle = {
     osha_serious_violations: number;
     wba_year: number | null;
   }[];
+  /** Where You Work Matters list; missing before migration 20261005000005. */
+  wywm?: { company_name: string; normalized_name: string; gold: number; platinum: number }[];
   aliases: { name: string; rating_name: string }[];
   jobs: { company: string; n: number }[];
 };
@@ -241,8 +422,8 @@ const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 
 /**
  * Every employer we know about — hiring on Savant, checked by the Job Scout,
- * or on a published ranking — with its rating. Sorted best first; unrated
- * employers last.
+ * on a published ranking or on Where You Work Matters — with its rating.
+ * Sorted best first; unrated employers last.
  */
 export function buildEmployerIndex(b: RatingBundle): Map<string, RatedEmployer> {
   const aliasOf = new Map(
@@ -256,6 +437,7 @@ export function buildEmployerIndex(b: RatingBundle): Map<string, RatedEmployer> 
     rankings.set(r.normalized_name, cur);
   }
   const ethics = new Map(b.ethics.map((e) => [e.company_key, e]));
+  const wywm = new Map((b.wywm ?? []).map((w) => [w.normalized_name, w]));
   const jobs = new Map<string, { name: string; n: number }>();
   for (const j of b.jobs) {
     const k = normalizeCompanyName(j.company);
@@ -264,7 +446,7 @@ export function buildEmployerIndex(b: RatingBundle): Map<string, RatedEmployer> 
     jobs.set(k, { name: cur?.name ?? j.company, n: (cur?.n ?? 0) + Number(j.n) });
   }
 
-  const keys = new Set([...jobs.keys(), ...ethics.keys(), ...rankings.keys()]);
+  const keys = new Set([...jobs.keys(), ...ethics.keys(), ...rankings.keys(), ...wywm.keys()]);
   // A ranking filed under a company's alias belongs to the company itself.
   for (const alias of aliasOf.values())
     if (!jobs.has(alias) && !ethics.has(alias)) keys.delete(alias);
@@ -273,7 +455,9 @@ export function buildEmployerIndex(b: RatingBundle): Map<string, RatedEmployer> 
   for (const key of keys) {
     if (!key) continue;
     const e = ethics.get(key);
-    const r = rankings.get(aliasOf.get(key) ?? key) ?? rankings.get(key);
+    const alias = aliasOf.get(key);
+    const r = rankings.get(alias ?? key) ?? rankings.get(key);
+    const w = (alias ? wywm.get(alias) : undefined) ?? wywm.get(key);
     const rating = rateEmployer({
       fair_pay: num(e?.fair_pay_score),
       cultures: num(e?.cultures_score),
@@ -284,10 +468,12 @@ export function buildEmployerIndex(b: RatingBundle): Map<string, RatedEmployer> 
       dol_wage_cases: e?.dol_wage_cases ?? 0,
       dol_repeat_violator: !!e?.dol_repeat_violator,
       osha_serious_violations: e?.osha_serious_violations ?? 0,
+      wywm_gold: num(w?.gold),
+      wywm_platinum: num(w?.platinum),
     });
     out.push({
       key,
-      name: jobs.get(key)?.name ?? e?.company_name ?? r?.name ?? key,
+      name: jobs.get(key)?.name ?? e?.company_name ?? r?.name ?? w?.company_name ?? key,
       openJobs: jobs.get(key)?.n ?? 0,
       rating,
       hiringRank: null,

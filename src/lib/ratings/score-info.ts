@@ -3,7 +3,14 @@
  * hover/tap cards (components/ratings/ScoreInfo.tsx). Keep in step with the
  * formula in employer-rating.ts and the sources the Job Scout collects.
  */
-import { JUST_CAPITAL_UNIVERSE, TIERS, type Confidence, type Tier } from "./employer-rating";
+import {
+  JUST_CAPITAL_UNIVERSE,
+  LABOR_CLEAN_SCORE,
+  LABOR_POINT_COST,
+  TIERS,
+  type Confidence,
+  type Tier,
+} from "./employer-rating";
 
 export type ScoreInfoEntry = {
   title: string;
@@ -24,7 +31,27 @@ export const SCORE_INFO = {
     title: "Savant Employer Rating",
     what: "One score for how well an employer treats its people, combining every independent source we have: pay and worker treatment, corporate conduct, diversity and inclusion, and its recent U.S. Department of Labor record.",
     scale:
-      "0–100, higher is better. Sources an employer isn't covered by are left out rather than counted as zero; wage and safety violations subtract points.",
+      "0–100, higher is better. Sources an employer isn't covered by are left out rather than counted as zero; wage and safety violations subtract points. Employers outside JUST Capital and As You Sow are rated from at least two of WBA, Where You Work Matters and the labor record, each counting equally.",
+  },
+  wba: {
+    title: "Social Benchmark (WBA)",
+    what: "The World Benchmarking Alliance's Social Benchmark, combining decent work (fair pay and worker respect), human rights, and ethical conduct. Decent work counts most.",
+    scale:
+      "0–100, higher is better. On the adaptive route it counts equally with the employer's other sources: 50 points with two, 33.3 with three.",
+    source: WBA,
+  },
+  wywm: {
+    title: "Where You Work Matters",
+    what: "Where You Work Matters awards Gold and Platinum badges to employers; its list includes only those with four or more. Platinum badges count for more.",
+    scale:
+      "Counts equally with the employer's other sources. With two sources it's worth 50 points: 30 for making the list (four Gold badges) plus 5 per Platinum. With three it's worth 33.3: 20 plus 3.3 per Platinum. Shown as 0–100: 60 plus 10 per Platinum.",
+    source: { name: "Where You Work Matters", url: "https://www.whereyouworkmatters.org/" },
+  },
+  labor: {
+    title: "Labor record",
+    what: "U.S. Department of Labor records for the employer's Bay Area workplaces over the last five years: wage-and-hour cases and serious OSHA safety violations.",
+    scale: `A clean record scores ${LABOR_CLEAN_SCORE}; each penalty point (4 per wage case, 8 for a repeat violator, 2 per serious OSHA violation) costs ${LABOR_POINT_COST}. On the adaptive route it counts equally with the employer's other sources.`,
+    source: { name: "U.S. Department of Labor", url: "https://enforcedata.dol.gov/" },
   },
   fair_pay: {
     title: "Fair pay & worker respect",
@@ -74,6 +101,9 @@ export const COMPONENT_INFO: Record<string, ScoreKey> = {
   honest: "honest",
   just_capital: "just_capital",
   as_you_sow: "as_you_sow",
+  wba: "wba",
+  wywm: "wywm",
+  labor: "labor",
 };
 
 export const TIER_RANGES: { tier: Tier; range: string; blurb: string }[] = TIERS.map((t, i) => ({
@@ -83,9 +113,10 @@ export const TIER_RANGES: { tier: Tier; range: string; blurb: string }[] = TIERS
 }));
 
 export const CONFIDENCE_INFO: Record<Confidence, string> = {
-  High: "Backed by most of our sources (at least 70% of the rating's weight, from three or more).",
-  Medium: "Backed by some of our sources. A good indication, not the full picture.",
-  Low: "Based on a single source or very little data. Treat it as a first look; it can't rate above Strong.",
+  High: "Backed by most of our sources: at least 70% of the rating's weight from three or more, or all three on the adaptive route.",
+  Medium:
+    "Backed by some of our sources (two on the adaptive route). A good indication, not the full picture.",
+  Low: "Based on very little data, usually a single source. Treat it as a first look; it can't rate above Strong.",
 };
 
 /**

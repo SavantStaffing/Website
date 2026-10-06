@@ -155,6 +155,8 @@ export interface ScoutStore {
   /** Cached ethics lookup for a company key, if any. */
   getEthics(companyKey: string): Promise<EthicsRecord | null>;
   saveEthics(record: EthicsRecord): Promise<void>;
+  /** Live postings per employer name, across every source. */
+  employerListingCounts(): Promise<{ company_name: string; listings: number }[]>;
   /** Metered-API calls made so far (aggregators.ts budgets). */
   apiUsage(source: AggregatorSource): Promise<ApiUsage>;
   /** Count one call, atomically; returns the counts after it. */
@@ -807,6 +809,97 @@ async function currentEthics(
   if (nothing && cached) return cached;
   if (!dryRun) await store.saveEthics(fresh);
   return fresh;
+}
+
+/** Employers need this many live postings before the sweep looks them up. */
+export const ETHICS_SWEEP_MIN_LISTINGS = 2;
+/** Each lookup takes several seconds (Wikirate asks for gaps), so a run does a batch. */
+export const ETHICS_SWEEP_PER_RUN = 15;
+/** Leaves room inside the Edge Function's 150 s wall clock for the lookup in flight. */
+const ETHICS_SWEEP_BUDGET_MS = 80_000;
+
+/**
+ * Employer ethics sweep: WBA + DOL records for employers hiring on Savant
+ * that aren't on the scan list (board and aggregator postings), so the
+ * Employer Ratings can rate them. Looks up employers with
+ * ETHICS_SWEEP_MIN_LISTINGS or more live postings whose record is missing or
+ * stale, most postings first. Each call does a batch; the schedule clears the
+ * backlog over a few hours.
+ */
+export async function sweepEmployerEthics(
+  store: ScoutStore,
+  opts: EthicsOptions,
+  now = new Date(),
+): Promise<{ outcome: CompanyOutcome; metrics: SourceMetrics[] }> {
+  const rec = new MetricsRecorder();
+  setWikirateKey(opts.wikirateKey);
+  const outcome: CompanyOutcome = {
+    company: "Employer ethics sweep",
+    status: "ok",
+    ats: null,
+    found: 0,
+    passRate: 1,
+    inserted: 0,
+    updated: 0,
+    rejected: 0,
+    flagged: 0,
+    closed: 0,
+  };
+  try {
+    // Scan-list companies get looked up by their own scans.
+    const skip = new Set((await store.listCompanies()).map((c) => ethicsKey(c.name)));
+    // Name variants ("Acme", "Acme Inc.") count as one employer.
+    const employers = new Map<string, { name: string; listings: number; top: number }>();
+    for (const row of await store.employerListingCounts()) {
+      const key = ethicsKey(row.company_name);
+      if (!key || skip.has(key)) continue;
+      const n = Number(row.listings);
+      const cur = employers.get(key);
+      employers.set(key, {
+        // Look up the most common spelling.
+        name: !cur || n > cur.top ? row.company_name : cur.name,
+        listings: (cur?.listings ?? 0) + n,
+        top: Math.max(cur?.top ?? 0, n),
+      });
+    }
+    const queue = [...employers.entries()]
+      .filter(([, e]) => e.listings >= ETHICS_SWEEP_MIN_LISTINGS)
+      .sort((a, b) => b[1].listings - a[1].listings);
+
+    const started = Date.now();
+    let checked = 0;
+    let withData = 0;
+    let pending = 0;
+    for (const [key, e] of queue) {
+      const cached = await store.getEthics(key);
+      if (cached && ethicsIsFresh(cached, now)) continue;
+      if (checked >= ETHICS_SWEEP_PER_RUN || Date.now() - started > ETHICS_SWEEP_BUDGET_MS) {
+        pending++;
+        continue;
+      }
+      checked++;
+      const fresh = await fetchEthics(rec, e.name, { dolApiKey: opts.dolApiKey, now });
+      // Nothing from either source usually means a source was down; try again next run.
+      if (!fresh.wba_year && !fresh.dol_checked) continue;
+      withData++;
+      await store.saveEthics(fresh);
+    }
+    outcome.found = checked;
+    outcome.updated = withData;
+    outcome.rating = `${queue.length} employers with ${ETHICS_SWEEP_MIN_LISTINGS}+ postings · looked up ${checked}, ${withData} with data · ${pending} waiting for a later run`;
+  } catch (error) {
+    outcome.status = "error";
+    outcome.error = error instanceof Error ? error.message : String(error);
+  }
+  const metrics: SourceMetrics[] = rec.sources().map((source) => ({
+    source,
+    ...rec.summary(source),
+    proxy: null,
+    jobs_ingested: 0,
+    schema_failures: 0,
+    field_fill_rates: fillRates([]),
+  }));
+  return { outcome, metrics };
 }
 
 /** Why an employer misses an ethics cutoff, or null. Unbenchmarked scores never gate. */

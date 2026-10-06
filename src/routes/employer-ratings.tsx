@@ -191,7 +191,8 @@ function EmployerRatings() {
 
           {scope === "hiring" && unrated.length > 0 && (
             <p className="mt-8 text-xs text-muted-foreground">
-              Not yet rated (no independent data found): {unrated.map((e) => e.name).join(", ")}.
+              Not yet rated (not enough independent data yet):{" "}
+              {unrated.map((e) => e.name).join(", ")}.
             </p>
           )}
         </>
@@ -241,6 +242,7 @@ function EmployerRow({
               body={
                 <>
                   <p className="text-sm font-semibold normal-case">{r.confidence} confidence</p>
+                  <p className="mt-2 text-muted-foreground">{r.confidenceNote}</p>
                   <p className="mt-2 text-muted-foreground">{CONFIDENCE_INFO[r.confidence]}</p>
                   <p className="mt-2 text-muted-foreground">
                     Confidence reflects how many of our sources cover this employer, not how good it
@@ -323,13 +325,7 @@ function EmployerRow({
                 </ul>
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
-              {r.confidence === "High"
-                ? "Backed by most of our sources."
-                : r.confidence === "Medium"
-                  ? "Based on some of our sources; treat as a good indication."
-                  : "Based on limited data; treat as a first look."}
-            </p>
+            <p className="text-xs text-muted-foreground">{r.confidenceNote}</p>
             <div className="flex flex-wrap gap-x-6 gap-y-2">
               <Link
                 to="/employer-ratings/$employer"
@@ -437,9 +433,29 @@ function Methodology() {
             violator, and 2 per serious OSHA safety violation (up to 12).
           </p>
           <p>
-            Confidence shows how much of the rating is backed by data: High when most measures are
-            available, Low when it rests on a single source. A Low-confidence employer is never
-            rated above Strong.
+            Employers that JUST Capital and As You Sow don't cover are rated from at least two of
+            these, each counting equally: 50 points each with two sources, 33.3 each with three.
+            Where You Work Matters gives 30 of its 50 for making the list (four Gold badges) and 5
+            more per Platinum badge.
+          </p>
+          <table className="w-full text-left">
+            <tbody className="divide-y divide-[color:var(--color-hairline)]">
+              {[
+                ["Social Benchmark", "World Benchmarking Alliance"],
+                ["Gold & Platinum badges", "Where You Work Matters"],
+                ["Labor record", "U.S. Department of Labor"],
+              ].map(([m, src]) => (
+                <tr key={m}>
+                  <td className="py-2 pr-4 text-foreground">{m}</td>
+                  <td className="py-2 pr-4">{src}</td>
+                  <td className="py-2 text-right">Equal</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p>
+            Confidence shows how much of the rating is backed by data, and every rating says which
+            sources it rests on. A Low-confidence employer is never rated above Strong.
           </p>
           <p className="text-xs">
             Sources: World Benchmarking Alliance Social Benchmark via{" "}
@@ -451,9 +467,9 @@ function Methodology() {
             >
               Wikirate.org
             </a>{" "}
-            (CC BY 4.0); JUST Capital rankings; As You Sow workplace DEI scores; U.S. Department of
-            Labor enforcement data. Savant computes the combined rating; the sources don't endorse
-            it.
+            (CC BY 4.0); JUST Capital rankings; As You Sow workplace DEI scores; Where You Work
+            Matters badges; U.S. Department of Labor enforcement data. Savant computes the combined
+            rating; the sources don't endorse it.
           </p>
         </div>
       </div>
