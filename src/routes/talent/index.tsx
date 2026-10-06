@@ -31,6 +31,13 @@ type JobLite = {
   apply_url: string | null;
 };
 type SavedJobRow = { id: string; job_id: string; jobs: JobLite | null };
+type SharedJobRow = {
+  id: string;
+  shared_by_name: string;
+  note: string | null;
+  created_at: string;
+  jobs: JobLite | null;
+};
 type ApplicationRow = {
   id: string;
   status: string;
@@ -51,41 +58,52 @@ function TalentDashboard() {
   const { userId } = Route.useRouteContext();
   const [applications, setApplications] = useState<ApplicationRow[] | null>(null);
   const [saved, setSaved] = useState<SavedJobRow[] | null>(null);
+  const [shared, setShared] = useState<SharedJobRow[] | null>(null);
   const [requests, setRequests] = useState<RequestRow[] | null>(null);
   const [profileDone, setProfileDone] = useState<boolean | null>(null);
 
   useEffect(() => {
     (async () => {
       const job = "jobs (id, title, company_name, location, apply_url)";
-      const [{ data: apps }, { data: savedRows }, { data: reqs }, { data: tp }] = await Promise.all(
-        [
-          supabase
-            .from("job_applications")
-            .select(`id, status, created_at, external_title, external_company, ${job}`)
-            .eq("applicant_id", userId)
-            .is("archived_at", null)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("saved_jobs")
-            .select(`id, job_id, ${job}`)
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("application_requests")
-            .select(`id, status, message, created_at, ${job}`)
-            .eq("talent_id", userId)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("talent_profiles")
-            .select("first_name, resume_text")
-            .eq("user_id", userId)
-            .maybeSingle(),
-        ],
-      );
+      const [
+        { data: apps },
+        { data: savedRows },
+        { data: reqs },
+        { data: tp },
+        { data: sharedRows },
+      ] = await Promise.all([
+        supabase
+          .from("job_applications")
+          .select(`id, status, created_at, external_title, external_company, ${job}`)
+          .eq("applicant_id", userId)
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("saved_jobs")
+          .select(`id, job_id, ${job}`)
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("application_requests")
+          .select(`id, status, message, created_at, ${job}`)
+          .eq("talent_id", userId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("talent_profiles")
+          .select("first_name, resume_text")
+          .eq("user_id", userId)
+          .maybeSingle(),
+        supabase
+          .from("shared_jobs")
+          .select(`id, shared_by_name, note, created_at, ${job}`)
+          .eq("talent_id", userId)
+          .order("created_at", { ascending: false }),
+      ]);
       setApplications((apps as unknown as ApplicationRow[]) ?? []);
       setSaved((savedRows as unknown as SavedJobRow[]) ?? []);
       setRequests((reqs as unknown as RequestRow[]) ?? []);
       setProfileDone(!!tp?.first_name && !!tp?.resume_text);
+      setShared((sharedRows as unknown as SharedJobRow[]) ?? []);
     })();
   }, [userId]);
 
@@ -96,6 +114,12 @@ function TalentDashboard() {
     toast.success(
       status === "accepted" ? "Accepted — your application has been sent." : "Declined.",
     );
+  }
+
+  async function removeShared(id: string) {
+    const { error } = await supabase.from("shared_jobs").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    setShared((prev) => prev?.filter((s) => s.id !== id) ?? null);
   }
 
   async function unsave(row: SavedJobRow) {
@@ -171,6 +195,45 @@ function TalentDashboard() {
           </ul>
         )}
       </div>
+
+      {shared && shared.length > 0 && (
+        <div>
+          <SectionHeading title="Shared with you" />
+          <ul className={`mt-6 ${list}`}>
+            {shared.map((s) => (
+              <li key={s.id} className="flex flex-wrap items-start justify-between gap-4 py-5">
+                <div className="min-w-0">
+                  <div className="text-lg font-medium">{s.jobs?.title ?? "A role"}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {s.jobs?.company_name ?? "—"} · {s.jobs?.location ?? "—"} · from{" "}
+                    {s.shared_by_name} · {timeAgo(s.created_at)}
+                  </div>
+                  {s.note && <p className="mt-2 max-w-2xl whitespace-pre-line text-sm">{s.note}</p>}
+                </div>
+                <div className="flex shrink-0 gap-5">
+                  {s.jobs?.apply_url ? (
+                    <a
+                      href={s.jobs.apply_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={linkButton}
+                    >
+                      Open ↗
+                    </a>
+                  ) : (
+                    <Link to="/talent/jobs" className={linkButton}>
+                      Job feed →
+                    </Link>
+                  )}
+                  <button onClick={() => removeShared(s.id)} className={mutedButton}>
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <MyServiceRequests userId={userId} />
 

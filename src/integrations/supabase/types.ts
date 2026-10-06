@@ -917,6 +917,44 @@ export type Database = {
         };
         Relationships: [];
       };
+      shared_jobs: {
+        Row: {
+          created_at: string;
+          id: string;
+          job_id: string;
+          note: string | null;
+          shared_by: string | null;
+          shared_by_name: string;
+          talent_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          job_id: string;
+          note?: string | null;
+          shared_by?: string | null;
+          shared_by_name: string;
+          talent_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          job_id?: string;
+          note?: string | null;
+          shared_by?: string | null;
+          shared_by_name?: string;
+          talent_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shared_jobs_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       talent_preferences: {
         Row: {
           employment_types: string[];
@@ -1381,6 +1419,19 @@ export type Database = {
           p_hours?: number;
         };
         Returns: Json;
+      };
+      share_job: {
+        Args: { _job_id: string; _talent_ids: string[]; _note?: string | null };
+        Returns: number;
+      };
+      share_job_recipients: {
+        Args: { _job_id: string };
+        Returns: {
+          talent_id: string;
+          display_name: string;
+          detail: string | null;
+          already_shared: boolean;
+        }[];
       };
       employer_listing_counts: {
         Args: Record<PropertyKey, never>;
