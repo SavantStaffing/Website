@@ -18,6 +18,7 @@ import {
   applyFilters,
   effectiveTrack,
   EMPTY_FILTERS,
+  inNaicsSector,
   rankJobs,
   type FeedFilters,
   type RankablePreferences,
@@ -287,6 +288,29 @@ export function JobFeed({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, userId]);
 
+  // Jobs per industry under every other filter, so each option shows what picking it
+  // gives; "" is "All industries". Recomputed whenever a filter changes.
+  const sectorCounts = useMemo(() => {
+    if (!jobs) return {};
+    const pool = applyFilters(jobs, { ...filters, naics: "" });
+    return Object.fromEntries([
+      ["", pool.length],
+      ...NAICS_SECTOR_OPTIONS.map((o) => [
+        o.code,
+        pool.filter((j) => inNaicsSector(j.naics_code, o.code)).length,
+      ]),
+    ]) as Record<string, number>;
+  }, [jobs, filters]);
+
+  // Same for the track tabs: every filter except the track itself. Guests only pick a track.
+  const trackPool = useMemo(
+    () =>
+      jobs && (mode === "talent" || signedIn)
+        ? applyFilters(jobs, { ...filters, track: "all" })
+        : (jobs ?? []),
+    [jobs, filters, mode, signedIn],
+  );
+
   const ranked = useMemo(() => {
     if (!jobs) return null;
     const filtered =
@@ -374,9 +398,9 @@ export function JobFeed({
     : previewMix(ranked, GUEST_PREVIEW);
 
   const trackCounts = {
-    all: jobs?.length ?? 0,
-    hourly: jobs?.filter((j) => effectiveTrack(j) === "hourly").length ?? 0,
-    professional: jobs?.filter((j) => effectiveTrack(j) === "professional").length ?? 0,
+    all: trackPool.length,
+    hourly: trackPool.filter((j) => effectiveTrack(j) === "hourly").length,
+    professional: trackPool.filter((j) => effectiveTrack(j) === "professional").length,
   };
 
   return (
@@ -417,6 +441,7 @@ export function JobFeed({
           filters={filters}
           onChange={(f) => (setFilters(f), setPage(1))}
           count={ranked.length}
+          sectorCounts={sectorCounts}
           hasPrefs={!!prefs}
           canSetPrefs={mode === "talent"}
         />
@@ -544,12 +569,15 @@ function Filters({
   filters,
   onChange,
   count,
+  sectorCounts,
   hasPrefs,
   canSetPrefs,
 }: {
   filters: FeedFilters;
   onChange: (f: FeedFilters) => void;
   count: number;
+  /** Matching jobs per industry code, given the other filters. */
+  sectorCounts: Record<string, number>;
   hasPrefs: boolean;
   /** Only talent have preferences to rank by. */
   canSetPrefs: boolean;
@@ -588,10 +616,10 @@ function Filters({
             onChange={(e) => set("naics", e.target.value)}
             className={`mt-2 block ${selectCls}`}
           >
-            <option value="">All industries</option>
+            <option value="">All industries ({sectorCounts[""] ?? 0})</option>
             {NAICS_SECTOR_OPTIONS.map((o) => (
               <option key={o.code} value={o.code}>
-                {o.label} ({o.code})
+                {o.label} ({sectorCounts[o.code] ?? 0})
               </option>
             ))}
           </select>

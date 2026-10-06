@@ -187,7 +187,11 @@ function AutofillGuide() {
             </Point>
             <Point>
               When you submit, the answers you typed are kept in your{" "}
-              <Link to="/talent/answers" className="underline underline-offset-4">
+              <Link
+                to="/talent/profile"
+                hash="saved-answers"
+                className="underline underline-offset-4"
+              >
                 Saved Answers
               </Link>{" "}
               so the next form can reuse them. You can edit or delete them any time.

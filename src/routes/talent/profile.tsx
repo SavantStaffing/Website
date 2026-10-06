@@ -4,19 +4,21 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { ResumeUpload } from "@/components/talent/ResumeUpload";
+import { SavedAnswers } from "@/components/talent/SavedAnswers";
 import {
   Field,
   TagInput,
   TextArea,
   Toggle,
   label,
+  mutedButton,
   primaryButton,
   selectCls,
 } from "@/components/site/ui";
 
 export const Route = createFileRoute("/talent/profile")({
   head: () => ({
-    meta: [{ title: "Account" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Talent Profile" }, { name: "robots", content: "noindex" }],
   }),
   component: Profile,
 });
@@ -168,25 +170,33 @@ function Profile() {
   return (
     <section className="space-y-16">
       <div>
-        <h2 className="text-2xl font-semibold">Contact info</h2>
-        <form onSubmit={saveContact} className="mt-8 max-w-md space-y-6">
-          <Field label="Username" value={username} onChange={setUsername} />
-          <Field label="Email" type="email" value={email} onChange={setEmail} />
-          <Field label="Phone" type="tel" value={phone} onChange={setPhone} />
-          <button type="submit" disabled={savingContact} className={primaryButton}>
-            {savingContact ? "…" : "Save contact info"}
-          </button>
-        </form>
+        <h1 className="text-3xl font-semibold">Talent Profile</h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Your résumé, profile and saved answers in one place. Recruiters see your profile, and
+          Savant Apply uses all three to fill in applications for you.
+        </p>
+        <nav aria-label="On this page" className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+          {[
+            ["#resume", "Resume"],
+            ["#professional-profile", "Professional profile"],
+            ["#saved-answers", "Saved answers"],
+            ["#contact", "Contact info"],
+          ].map(([href, text]) => (
+            <a key={href} href={href} className={mutedButton}>
+              {text}
+            </a>
+          ))}
+        </nav>
       </div>
 
-      <div>
+      <div id="resume" className="scroll-mt-24">
         <h2 className="text-2xl font-semibold">Resume</h2>
         <div className="mt-8">
           <ResumeUpload userId={userId} />
         </div>
       </div>
 
-      <div>
+      <div id="professional-profile" className="scroll-mt-24">
         <h2 className="text-2xl font-semibold">Professional profile</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Recruiters see this in their talent feed (unless you hide it), and Savant Apply uses it to
@@ -272,6 +282,19 @@ function Profile() {
           />
           <button type="submit" disabled={savingPro} className={primaryButton}>
             {savingPro ? "…" : "Save profile"}
+          </button>
+        </form>
+      </div>
+      <SavedAnswers userId={userId} />
+
+      <div id="contact" className="scroll-mt-24">
+        <h2 className="text-2xl font-semibold">Contact info</h2>
+        <form onSubmit={saveContact} className="mt-8 max-w-md space-y-6">
+          <Field label="Username" value={username} onChange={setUsername} />
+          <Field label="Email" type="email" value={email} onChange={setEmail} />
+          <Field label="Phone" type="tel" value={phone} onChange={setPhone} />
+          <button type="submit" disabled={savingContact} className={primaryButton}>
+            {savingContact ? "…" : "Save contact info"}
           </button>
         </form>
       </div>

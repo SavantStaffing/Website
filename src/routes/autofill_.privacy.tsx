@@ -156,7 +156,11 @@ function SavantApplyPrivacy() {
             </li>
             <li>
               <strong>In your Savant account:</strong> the answers you submitted, as{" "}
-              <Link to="/talent/answers" className="underline underline-offset-4">
+              <Link
+                to="/talent/profile"
+                hash="saved-answers"
+                className="underline underline-offset-4"
+              >
                 Saved Answers
               </Link>
               ; a record of each autofill (the job, which fields were filled and whether you
