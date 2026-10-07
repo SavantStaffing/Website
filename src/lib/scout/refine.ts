@@ -125,3 +125,7 @@ export function naicsFromIndustry(
 export const NAICS_SECTOR_OPTIONS = NAICS_SECTORS.map(([, code, label]) => ({ code, label })).sort(
   (a, b) => a.code.localeCompare(b.code),
 );
+
+/** A sector's name for display; codes stay internal. */
+export const naicsSectorLabel = (code: string | null | undefined) =>
+  code ? (NAICS_SECTOR_OPTIONS.find((o) => o.code === code)?.label ?? null) : null;

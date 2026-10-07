@@ -9,7 +9,7 @@ import {
   type PartnerSnapshot,
   type TempPartner,
 } from "@/data/temp-partners";
-import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
+import { naicsSectorLabel } from "@/lib/scout/refine";
 
 const ACTIVITY_TONE: Record<ActivityLevel, "good" | "warn" | "muted"> = {
   high: "good",
@@ -27,8 +27,7 @@ const usd = (n: number) =>
 
 const range = (lo: number, hi: number) => (lo === hi ? usd(lo) : `${usd(lo)}–${usd(hi)}`);
 
-const sectorLabel = (code: string) =>
-  NAICS_SECTOR_OPTIONS.find((o) => o.code === code)?.label ?? code;
+const sectorLabel = (code: string) => naicsSectorLabel(code) ?? "Other sector";
 
 /**
  * Temporary staffing through partner platforms. Shared by the informative

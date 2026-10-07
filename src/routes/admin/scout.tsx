@@ -27,7 +27,7 @@ import {
   type RatingSource,
   type RatingsConfig,
 } from "@/lib/scout/ratings";
-import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
+import { NAICS_SECTOR_OPTIONS, naicsSectorLabel } from "@/lib/scout/refine";
 import { detectCompanyAts, runScoutNow } from "@/lib/scout/scout.functions";
 import { ATS_PLATFORMS, type AtsPlatform } from "@/lib/scout/types";
 
@@ -266,7 +266,7 @@ function JobScout() {
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
           The scout reads each company's public ATS job board (Greenhouse, Lever, Ashby,
           SmartRecruiters, Workable), validates every posting, refines it (schedule, seniority,
-          remote, NAICS), screens ghost jobs, and publishes the rest to the talent feed. Postings
+          remote, industry), screens ghost jobs, and publishes the rest to the talent feed. Postings
           that disappear from a board are closed automatically. Companies are first checked against
           the{" "}
           <Link to="/admin/ratings" className="text-foreground underline underline-offset-4">
@@ -308,7 +308,11 @@ function JobScout() {
                     <td className="py-4 pr-4">
                       <div className="font-medium">{c.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {[c.industry, c.naics_code && `NAICS ${c.naics_code}`]
+                        {[
+                          c.industry,
+                          naicsSectorLabel(c.naics_code) !== c.industry &&
+                            naicsSectorLabel(c.naics_code),
+                        ]
                           .filter(Boolean)
                           .join(" · ") || "—"}
                       </div>
@@ -715,7 +719,7 @@ function AddCompany({ onAdded }: { onAdded: () => void }) {
         </div>
         <div className="grid gap-6 md:grid-cols-2">
           <label className="block">
-            <span className={label}>NAICS sector</span>
+            <span className={label}>Sector</span>
             <select
               value={naics}
               onChange={(e) => {
@@ -728,7 +732,7 @@ function AddCompany({ onAdded }: { onAdded: () => void }) {
               <option value="">Infer from postings</option>
               {NAICS_SECTOR_OPTIONS.map((o) => (
                 <option key={o.code} value={o.code}>
-                  {o.code} — {o.label}
+                  {o.label}
                 </option>
               ))}
             </select>
