@@ -1,18 +1,27 @@
 import { FEATURED_OCCUPATIONS, INDUSTRY_SERIES, type Region } from "./regions";
 
 /**
- * California EDD Labor Market Information, read from the state open-data
- * portal's datastore API (data.ca.gov, CKAN `datastore_search_sql`). Public
- * data, no key. Results are cached in memory for a few hours; EDD updates
- * monthly (LAUS, CES) or yearly (OEWS, projections).
+ * California EDD Labor Market Information from the state open-data portal
+ * (data.ca.gov, CKAN). Public data, no key. Results are cached in memory for
+ * a few hours; EDD updates monthly (LAUS, CES) or yearly (OEWS, projections).
  *
  *   LAUS  — Local Area Unemployment Statistics (monthly, by county / metro)
  *   CES   — Current Employment Statistics (monthly jobs by industry)
  *   OEWS  — Occupational Employment and Wage Statistics (yearly pay by occupation)
  *   Projections — Long-term occupational employment projections (10-year)
+ *
+ * The portal re-ingests EDD's files when they're republished, and doesn't
+ * keep them stable: column names change ("Seasonally Adjusted (Y/N)" became
+ * "seasonally_adjusted__y_n_", "50th Percentile (Median) Wage" became
+ * "unsafe_50th_percentile__median__wage"), types change (codes become
+ * numbers, dates become ISO), and a dataset's queryable table can disappear
+ * for a while. So columns are looked up by a normalized name, values are
+ * read in either format, and when a table can't be queried the published
+ * CSV file is read instead.
  */
 
-const API = "https://data.ca.gov/api/3/action/datastore_search_sql";
+const BASE = "https://data.ca.gov/api/3/action";
+const UA = "SavantStaffing-Insights/1.0";
 
 const RESOURCE = {
   laus: "b4bc4656-7866-420f-8d87-4eda4c9996ed",
@@ -23,36 +32,202 @@ const RESOURCE = {
 } as const;
 
 const TTL_MS = 6 * 60 * 60 * 1000;
-type Row = Record<string, string | number | null>;
-const cache = new Map<string, { at: number; rows: Promise<Row[]> }>();
 
-async function query(sql: string): Promise<Row[]> {
-  const hit = cache.get(sql);
-  if (hit && Date.now() - hit.at < TTL_MS) return hit.rows;
-  const rows = (async () => {
-    const res = await fetch(`${API}?sql=${encodeURIComponent(sql)}`, {
-      headers: { Accept: "application/json", "User-Agent": "SavantStaffing-Insights/1.0" },
-      signal: AbortSignal.timeout(20_000),
+/** A record keyed by normalized column name (see norm), whichever source it came from. */
+type Rec = Record<string, unknown>;
+
+/** "Seasonally Adjusted (Y/N)", "seasonally_adjusted__y_n_" and "Seasonally Adjusted(Y/N)" are one column. */
+const norm = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/^unsafe_/, "")
+    .replace(/[^a-z0-9]/g, "");
+const v = (r: Rec, column: string) => r[norm(column)];
+const normalize = (raw: Record<string, unknown>): Rec =>
+  Object.fromEntries(Object.entries(raw).map(([k, x]) => [norm(k), x]));
+
+class EddError extends Error {}
+
+function cached<T>(
+  store: Map<string, { at: number; value: Promise<T> }>,
+  key: string,
+  load: () => Promise<T>,
+) {
+  const hit = store.get(key);
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
+  const value = load();
+  store.set(key, { at: Date.now(), value });
+  value.catch(() => store.delete(key)); // don't cache failures
+  return value;
+}
+
+async function api<T>(action: string, params: Record<string, string>): Promise<T> {
+  const res = await fetch(`${BASE}/${action}?${new URLSearchParams(params)}`, {
+    headers: { Accept: "application/json", "User-Agent": UA },
+    signal: AbortSignal.timeout(20_000),
+  });
+  const body = (await res.json().catch(() => null)) as {
+    success?: boolean;
+    result?: T;
+    error?: unknown;
+  } | null;
+  if (!res.ok || !body?.success || !body.result)
+    throw new EddError(
+      `EDD ${action} failed (${res.status}): ${JSON.stringify(body?.error ?? "").slice(0, 200)}`,
+    );
+  return body.result;
+}
+
+// ---------------------------------------------------------------- queryable tables
+
+const queryCache = new Map<string, { at: number; value: Promise<Rec[]> }>();
+const fieldCache = new Map<string, { at: number; value: Promise<Map<string, string>> }>();
+
+function query(sql: string): Promise<Rec[]> {
+  return cached(queryCache, sql, async () => {
+    const result = await api<{ records: Record<string, unknown>[] }>("datastore_search_sql", {
+      sql,
     });
-    if (!res.ok) throw new Error(`EDD data request failed (${res.status})`);
-    const body = (await res.json()) as { success: boolean; result?: { records: Row[] } };
-    if (!body.success || !body.result) throw new Error("EDD data request was rejected");
-    return body.result.records;
-  })();
-  cache.set(sql, { at: Date.now(), rows });
-  rows.catch(() => cache.delete(sql)); // don't cache failures
-  return rows;
+    return result.records.map(normalize);
+  });
+}
+
+/** The table's columns, normalized name → actual name. Throws when it can't be queried. */
+function fields(resource: string): Promise<Map<string, string>> {
+  return cached(fieldCache, resource, async () => {
+    const result = await api<{ fields: { id: string }[] }>("datastore_search", {
+      resource_id: resource,
+      limit: "0",
+    });
+    return new Map(result.fields.map((f) => [norm(f.id), f.id]));
+  });
+}
+
+/** A quoting column lookup for building SQL against this table's current column names. */
+async function columnsOf(resource: string) {
+  const map = await fields(resource);
+  return (column: string) => {
+    const actual = map.get(norm(column));
+    if (!actual) throw new EddError(`EDD column "${column}" is missing from ${resource}`);
+    return `"${actual.replace(/"/g, '""')}"`;
+  };
 }
 
 const lit = (s: string) => `'${s.replace(/'/g, "''")}'`;
-const num = (v: unknown): number | null => {
-  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
+const list = (values: string[]) => [...new Set(values)].map(lit).join(", ");
+
+// ---------------------------------------------------------------- published CSV files
+
+const csvCache = new Map<string, { at: number; value: Promise<Rec[]> }>();
+
+/** One CSV line into fields (quoted fields may contain commas and doubled quotes). */
+function splitCsv(line: string): string[] {
+  const out: string[] = [];
+  let field = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quoted) {
+      if (c === '"' && line[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (c === '"') quoted = false;
+      else field += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") {
+      out.push(field);
+      field = "";
+    } else field += c;
+  }
+  out.push(field);
+  return out;
+}
+
+/**
+ * The resource's CSV file, streamed and kept only where `keep` says so (the
+ * LAUS file is ~25 MB since 1976; we keep the last few years). `key` names
+ * the filter for the cache.
+ */
+function csvRows(resource: string, key: string, keep: (r: Rec) => boolean): Promise<Rec[]> {
+  return cached(csvCache, `${resource}:${key}`, async () => {
+    const meta = await api<{ url: string }>("resource_show", { id: resource });
+    const res = await fetch(meta.url, {
+      headers: { "User-Agent": UA },
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!res.ok || !res.body) throw new EddError(`EDD file download failed (${res.status})`);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let header: string[] | null = null;
+    let buffer = "";
+    const rows: Rec[] = [];
+    const take = (line: string) => {
+      if (!line.trim()) return;
+      const cells = splitCsv(line.replace(/\r$/, ""));
+      if (!header) {
+        header = cells.map((h) => norm(h.replace(/^﻿/, "")));
+        return;
+      }
+      const r: Rec = {};
+      header.forEach((h, i) => (r[h] = cells[i] ?? ""));
+      if (keep(r)) rows.push(r);
+    };
+    for (;;) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value, { stream: !done });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      lines.forEach(take);
+      if (done) break;
+    }
+    take(buffer);
+    return rows;
+  });
+}
+
+/** Query the table; if the portal can't serve it right now, read the CSV file instead. */
+async function tableOrFile(
+  fromTable: () => Promise<Rec[]>,
+  fromFile: () => Promise<Rec[]>,
+): Promise<Rec[]> {
+  try {
+    return await fromTable();
+  } catch (e) {
+    if (!(e instanceof EddError)) throw e;
+    return fromFile();
+  }
+}
+
+// ---------------------------------------------------------------- values in either format
+
+const num = (x: unknown): number | null => {
+  const n =
+    typeof x === "number"
+      ? x
+      : typeof x === "string" && x.trim()
+        ? Number(x.replace(/,/g, ""))
+        : NaN;
   return Number.isFinite(n) ? n : null;
 };
-const str = (v: unknown) => (typeof v === "string" ? v.trim() : v === null ? "" : String(v));
+const str = (x: unknown) =>
+  typeof x === "string" ? x.trim() : x === null || x === undefined ? "" : String(x);
+
+/** Year and month from "01/2026", "01/01/2026" or "2026-01-01". */
+function yearMonth(x: unknown): { y: number; m: number } | null {
+  const s = str(x);
+  let m: RegExpMatchArray | null;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})/))) return { y: Number(m[1]), m: Number(m[2]) };
+  if ((m = s.match(/^(\d{1,2})\/(?:\d{1,2}\/)?(\d{4})/)))
+    return { y: Number(m[2]), m: Number(m[1]) };
+  return null;
+}
+
+/** "29-1141" and 291141 are the same occupation. */
+const socDigits = (x: unknown) => str(x).replace(/\D/g, "");
+const socForms = (digits: string) => [digits, `${digits.slice(0, 2)}-${digits.slice(2)}`];
 
 /** LAUS and CES mark San Rafael "MD**"; match both spellings. */
-const areaIn = (r: Region) => `"Area Name" IN (${lit(r.edd)}, ${lit(`${r.edd}**`)})`;
+const areaNames = (r: Region) => [r.edd, `${r.edd}**`];
 
 const MONTHS = [
   "January",
@@ -86,25 +261,52 @@ export type Unemployment = {
   trend: UnemploymentPoint[];
 };
 
+const notSeasonallyAdjusted = (r: Rec) => /^n/i.test(str(v(r, "Seasonally Adjusted (Y/N)")));
+
 async function lausSeries(r: Region, sinceYear: number) {
-  const rows = await query(
-    `SELECT "Year","Date_Numeric","Status","Labor Force","Employment","Unemployment","Unemployment Rate"
-     FROM "${RESOURCE.laus}"
-     WHERE ${areaIn(r)} AND "Area Type" = ${lit(r.areaType)}
-       AND "Seasonally Adjusted(Y/N)" = 'N' AND "Year" >= ${lit(String(sinceYear))}`,
+  const names = areaNames(r);
+  const rows = await tableOrFile(
+    async () => {
+      const c = await columnsOf(RESOURCE.laus);
+      const cols = [
+        "Year",
+        "Date_Numeric",
+        "Status",
+        "Labor Force",
+        "Employment",
+        "Unemployment",
+        "Unemployment Rate",
+      ];
+      return query(
+        `SELECT ${cols.map(c).join(",")} FROM "${RESOURCE.laus}"
+         WHERE ${c("Area Name")} IN (${list(names)}) AND ${c("Area Type")} = ${lit(r.areaType)}
+           AND ${c("Seasonally Adjusted (Y/N)")} = 'N'
+           AND CAST(${c("Year")} AS integer) >= ${sinceYear}`,
+      );
+    },
+    async () =>
+      (
+        await csvRows(
+          RESOURCE.laus,
+          `since-${sinceYear}`,
+          (x) => notSeasonallyAdjusted(x) && (num(v(x, "Year")) ?? 0) >= sinceYear,
+        )
+      ).filter(
+        (x) => names.includes(str(v(x, "Area Name"))) && str(v(x, "Area Type")) === r.areaType,
+      ),
   );
   return rows
     .map((x) => {
-      const [m, y] = str(x.Date_Numeric).split("/").map(Number);
+      const ym = yearMonth(v(x, "Date_Numeric"));
       return {
-        y,
-        m,
-        key: `${y}-${String(m).padStart(2, "0")}`,
-        status: str(x.Status),
-        laborForce: num(x["Labor Force"]),
-        employed: num(x.Employment),
-        unemployed: num(x.Unemployment),
-        rate: num(x["Unemployment Rate"]),
+        y: ym?.y ?? 0,
+        m: ym?.m ?? 0,
+        key: ym ? `${ym.y}-${String(ym.m).padStart(2, "0")}` : "",
+        status: str(v(x, "Status")),
+        laborForce: num(v(x, "Labor Force")),
+        employed: num(v(x, "Employment")),
+        unemployed: num(v(x, "Unemployment")),
+        rate: num(v(x, "Unemployment Rate")),
       };
     })
     .filter((x) => x.y && x.m && x.rate !== null)
@@ -154,26 +356,26 @@ export type JobsTrend = {
 };
 
 async function cesRows(resource: string, r: Region, fromYear: number) {
-  // The 2014–2025 file stores codes without leading zeros ("0" for Total
-  // Nonfarm); ask for both spellings and pad them back below.
+  // Series codes may be text ("00000000") or numbers (0); compare as text, both spellings.
   const wanted = ["00000000", ...INDUSTRY_SERIES.map((s) => s.code)];
-  const codes = [...new Set([...wanted, ...wanted.map((c) => String(Number(c)))])]
-    .map(lit)
-    .join(", ");
+  const codes = list([...wanted, ...wanted.map((code) => String(Number(code)))]);
+  const c = await columnsOf(resource);
   const rows = await query(
-    `SELECT "Date","Series Code","Current Employment"
+    `SELECT ${c("Date")},${c("Series Code")},${c("Current Employment")}
      FROM "${resource}"
-     WHERE ${areaIn(r)} AND "Seasonally Adjusted (Y/N)" = 'N'
-       AND "Series Code" IN (${codes}) AND "Year" >= ${lit(String(fromYear))}`,
+     WHERE ${c("Area Name")} IN (${list(areaNames(r))})
+       AND ${c("Seasonally Adjusted (Y/N)")} = 'N'
+       AND CAST(${c("Series Code")} AS text) IN (${codes})
+       AND CAST(${c("Year")} AS integer) >= ${fromYear}`,
   );
   return rows.map((x) => {
-    const [m, , y] = str(x.Date).split("/").map(Number);
+    const ym = yearMonth(v(x, "Date"));
     return {
-      key: `${y}-${String(m).padStart(2, "0")}`,
-      y,
-      m,
-      code: str(x["Series Code"]).padStart(8, "0"),
-      jobs: num(x["Current Employment"]),
+      key: ym ? `${ym.y}-${String(ym.m).padStart(2, "0")}` : "",
+      y: ym?.y ?? 0,
+      m: ym?.m ?? 0,
+      code: str(v(x, "Series Code")).padStart(8, "0"),
+      jobs: num(v(x, "Current Employment")),
     };
   });
 }
@@ -224,48 +426,63 @@ export type WageRow = {
 };
 export type Wages = { period: string; rows: WageRow[] };
 
-async function latestOewsYear(r: Region): Promise<string | null> {
+/** EDD has spelled the all-industries row both ways. */
+const ALL_INDUSTRIES = list(["Total, All Industry", "Total, All Industries"]);
+
+async function latestOewsYear(r: Region): Promise<number | null> {
+  const c = await columnsOf(RESOURCE.oews);
   const rows = await query(
-    `SELECT MAX("Year") AS y FROM "${RESOURCE.oews}" WHERE "Area Name" = ${lit(r.edd)}`,
+    `SELECT MAX(CAST(${c("Year")} AS integer)) AS y FROM "${RESOURCE.oews}"
+     WHERE ${c("Area Name")} = ${lit(r.edd)}`,
   );
-  return rows[0]?.y ? str(rows[0].y) : null;
+  return rows[0] ? num(rows[0].y) : null;
 }
 
-function toWageRows(rows: Row[], trackOf: (soc: string) => WageRow["track"]): WageRow[] {
+function toWageRows(rows: Rec[], trackOf: (soc: string) => WageRow["track"]): WageRow[] {
   const bySoc = new Map<string, WageRow>();
   for (const x of rows) {
-    const soc = str(x["Standard Occupational Classification"]);
+    const soc = socDigits(v(x, "Standard Occupational Classification"));
     const w = bySoc.get(soc) ?? {
       soc,
-      title: str(x["Occupational Title"]),
+      title: str(v(x, "Occupational Title")),
       track: trackOf(soc),
-      employed: num(x["Number of Employed"]),
+      employed: num(v(x, "Number of Employed")),
       hourly: { p25: null, median: null, p75: null },
       annual: { p25: null, median: null, p75: null },
     };
     const band = {
-      p25: num(x["25th Percentile Wage"]),
-      median: num(x["50th Percentile (Median) Wage"]),
-      p75: num(x["75th Percentile Wage"]),
+      p25: num(v(x, "25th Percentile Wage")),
+      median: num(v(x, "50th Percentile (Median) Wage")),
+      p75: num(v(x, "75th Percentile Wage")),
     };
-    if (/hour/i.test(str(x["Wage Type"]))) w.hourly = band;
+    if (/hour/i.test(str(v(x, "Wage Type")))) w.hourly = band;
     else w.annual = band;
     bySoc.set(soc, w);
   }
   return [...bySoc.values()];
 }
 
-const WAGE_COLUMNS = `"Standard Occupational Classification","Occupational Title","Wage Type","Number of Employed","25th Percentile Wage","50th Percentile (Median) Wage","75th Percentile Wage"`;
+const WAGE_COLUMNS = [
+  "Standard Occupational Classification",
+  "Occupational Title",
+  "Wage Type",
+  "Number of Employed",
+  "25th Percentile Wage",
+  "50th Percentile (Median) Wage",
+  "75th Percentile Wage",
+];
 
 export async function getWages(r: Region): Promise<Wages | null> {
   const year = await latestOewsYear(r);
   if (!year) return null;
+  const c = await columnsOf(RESOURCE.oews);
   const tracks = new Map(FEATURED_OCCUPATIONS.map((o) => [o.soc, o.track]));
   const rows = await query(
-    `SELECT ${WAGE_COLUMNS} FROM "${RESOURCE.oews}"
-     WHERE "Area Name" = ${lit(r.edd)} AND "Year" = ${lit(year)}
-       AND "Industry Name" = 'Total, All Industry'
-       AND "Standard Occupational Classification" IN (${[...tracks.keys()].map(lit).join(", ")})`,
+    `SELECT ${WAGE_COLUMNS.map(c).join(",")} FROM "${RESOURCE.oews}"
+     WHERE ${c("Area Name")} = ${lit(r.edd)} AND CAST(${c("Year")} AS integer) = ${year}
+       AND ${c("Industry Name")} IN (${ALL_INDUSTRIES})
+       AND CAST(${c("Standard Occupational Classification")} AS text)
+         IN (${list([...tracks.keys()].flatMap(socForms))})`,
   );
   const order = FEATURED_OCCUPATIONS.map((o) => o.soc);
   return {
@@ -285,12 +502,13 @@ export async function searchWages(r: Region, q: string): Promise<WageRow[]> {
   if (term.length < 2) return [];
   const year = await latestOewsYear(r);
   if (!year) return [];
+  const c = await columnsOf(RESOURCE.oews);
   const rows = await query(
-    `SELECT ${WAGE_COLUMNS} FROM "${RESOURCE.oews}"
-     WHERE "Area Name" = ${lit(r.edd)} AND "Year" = ${lit(year)}
-       AND "Industry Name" = 'Total, All Industry'
-       AND "Occupational Title" ILIKE ${lit(`%${term}%`)}
-       AND "Standard Occupational Classification" NOT LIKE '%0000'
+    `SELECT ${WAGE_COLUMNS.map(c).join(",")} FROM "${RESOURCE.oews}"
+     WHERE ${c("Area Name")} = ${lit(r.edd)} AND CAST(${c("Year")} AS integer) = ${year}
+       AND ${c("Industry Name")} IN (${ALL_INDUSTRIES})
+       AND ${c("Occupational Title")} ILIKE ${lit(`%${term}%`)}
+       AND CAST(${c("Standard Occupational Classification")} AS text) NOT LIKE '%0000'
      LIMIT 40`,
   );
   return toWageRows(rows, () => null)
@@ -317,43 +535,60 @@ export type Outlook = {
   fastestGrowing: ProjectionRow[];
 };
 
-const toProjection = (x: Row): ProjectionRow => ({
-  title: str(x["Occupational Title"]),
-  base: num(x["Base Year Employment Estimate"]),
-  projected: num(x["Projected Year Employment Estimate"]),
-  pct: num(x["Percentage Change"]),
-  openings: num(x["Total Job Openings"]),
-  medianHourly: num(x["Median Hourly Wage"]),
-  medianAnnual: num(x["Median Annual Wage"]),
-  education: str(x["Entry Level Education"]),
+const toProjection = (x: Rec): ProjectionRow => ({
+  title: str(v(x, "Occupational Title")),
+  base: num(v(x, "Base Year Employment Estimate")),
+  projected: num(v(x, "Projected Year Employment Estimate")),
+  pct: num(v(x, "Percentage Change")),
+  openings: num(v(x, "Total Job Openings")),
+  medianHourly: num(v(x, "Median Hourly Wage")),
+  medianAnnual: num(v(x, "Median Annual Wage")),
+  education: str(v(x, "Entry Level Education")),
 });
 
+/** Projections name areas "Oakland-Fremont-Berkeley MD (Alameda and Contra Costa Counties)". */
+const projectionArea = (r: Region, name: string) =>
+  r.areaType === "State" ? name === r.edd : name.startsWith(`${r.edd} (`);
+
 export async function getOutlook(r: Region): Promise<Outlook | null> {
-  // Projections name areas "Oakland-Fremont-Berkeley MD (Alameda and Contra Costa Counties)".
-  const area =
-    r.areaType === "State"
-      ? `"Area Name" = ${lit(r.edd)}`
-      : `"Area Name" LIKE ${lit(`${r.edd} (%`)}`;
-  const cols = `"Period","SOC Level","Occupational Title","Base Year Employment Estimate","Projected Year Employment Estimate","Percentage Change","Total Job Openings","Median Hourly Wage","Median Annual Wage","Entry Level Education"`;
-  const [overallRows, openings, growth] = await Promise.all([
-    query(`SELECT ${cols} FROM "${RESOURCE.projections}" WHERE ${area} AND "SOC Level" = 1`),
-    query(
-      `SELECT ${cols} FROM "${RESOURCE.projections}" WHERE ${area} AND "SOC Level" = 4
-       ORDER BY "Total Job Openings" DESC NULLS LAST LIMIT 8`,
-    ),
-    // Growth among occupations big enough to matter locally.
-    query(
-      `SELECT ${cols} FROM "${RESOURCE.projections}" WHERE ${area} AND "SOC Level" = 4
-         AND "Base Year Employment Estimate" >= ${r.areaType === "State" ? 20000 : 1000}
-       ORDER BY "Percentage Change" DESC NULLS LAST LIMIT 8`,
-    ),
-  ]);
-  const first = overallRows[0] ?? openings[0];
+  // A whole area is a few hundred occupations, so sort and pick here.
+  const rows = (
+    await tableOrFile(
+      async () => {
+        const c = await columnsOf(RESOURCE.projections);
+        const area =
+          r.areaType === "State"
+            ? `${c("Area Name")} = ${lit(r.edd)}`
+            : `${c("Area Name")} LIKE ${lit(`${r.edd} (%`)}`;
+        return query(
+          `SELECT * FROM "${RESOURCE.projections}"
+           WHERE ${area} AND CAST(${c("SOC Level")} AS integer) IN (1, 4)`,
+        );
+      },
+      () =>
+        csvRows(RESOURCE.projections, "levels-1-4", (x) =>
+          ["1", "4"].includes(str(v(x, "SOC Level"))),
+        ),
+    )
+  ).filter((x) => projectionArea(r, str(v(x, "Area Name"))));
+
+  const level = (x: Rec) => num(v(x, "SOC Level"));
+  const detailed = rows.filter((x) => level(x) === 4).map(toProjection);
+  const overallRow = rows.find((x) => level(x) === 1);
+  const first = overallRow ?? rows.find((x) => level(x) === 4);
   if (!first) return null;
+
+  const minBase = r.areaType === "State" ? 20000 : 1000;
+  const top = (from: ProjectionRow[], by: (p: ProjectionRow) => number | null) =>
+    [...from].sort((a, b) => (by(b) ?? -Infinity) - (by(a) ?? -Infinity)).slice(0, 8);
   return {
-    period: str(first.Period).replace("-", "–"),
-    overall: overallRows[0] ? toProjection(overallRows[0]) : null,
-    mostOpenings: openings.map(toProjection),
-    fastestGrowing: growth.map(toProjection),
+    period: str(v(first, "Period")).replace("-", "–"),
+    overall: overallRow ? toProjection(overallRow) : null,
+    mostOpenings: top(detailed, (p) => p.openings),
+    // Growth among occupations big enough to matter locally.
+    fastestGrowing: top(
+      detailed.filter((p) => (p.base ?? 0) >= minBase),
+      (p) => p.pct,
+    ),
   };
 }
