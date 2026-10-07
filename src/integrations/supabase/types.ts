@@ -917,6 +917,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      recruiter_requests: {
+        Row: {
+          company_name: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          note: string | null;
+          requested_at: string;
+          status: string;
+          user_id: string;
+        };
+        Insert: {
+          company_name?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          note?: string | null;
+          requested_at?: string;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          company_name?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          note?: string | null;
+          requested_at?: string;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       shared_jobs: {
         Row: {
           created_at: string;
@@ -1432,6 +1462,10 @@ export type Database = {
           detail: string | null;
           already_shared: boolean;
         }[];
+      };
+      decide_recruiter_request: {
+        Args: { _user_id: string; _approve: boolean; _note?: string | null };
+        Returns: undefined;
       };
       employer_listing_counts: {
         Args: Record<PropertyKey, never>;

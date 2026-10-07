@@ -13,6 +13,11 @@ export type AuthContext = {
     username: string | null;
     organizationId: string | null;
   };
+  /**
+   * A recruiter sign-up an admin hasn't approved yet ("pending") or turned
+   * down ("declined"). Such accounts only see /pending-approval. Null otherwise.
+   */
+  approval: "pending" | "declined" | null;
 };
 
 /**
@@ -29,20 +34,27 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
     const { data: userRes, error } = await supabase.auth.getUser();
     if (error || !userRes.user) return null;
 
-    const [{ data: roleRows }, { data: profileRow }, { data: talentRow }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", userRes.user.id),
-      supabase
-        .from("profiles")
-        .select("username, organization_id")
-        .eq("id", userRes.user.id)
-        .maybeSingle(),
-      // Only job seekers have one; everyone else gets no row back.
-      supabase
-        .from("talent_profiles")
-        .select("first_name, last_name")
-        .eq("user_id", userRes.user.id)
-        .maybeSingle(),
-    ]);
+    const [{ data: roleRows }, { data: profileRow }, { data: talentRow }, { data: request }] =
+      await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userRes.user.id),
+        supabase
+          .from("profiles")
+          .select("username, organization_id")
+          .eq("id", userRes.user.id)
+          .maybeSingle(),
+        // Only job seekers have one; everyone else gets no row back.
+        supabase
+          .from("talent_profiles")
+          .select("first_name, last_name")
+          .eq("user_id", userRes.user.id)
+          .maybeSingle(),
+        // Recruiter sign-ups waiting for an admin (see recruiter_requests).
+        supabase
+          .from("recruiter_requests")
+          .select("status")
+          .eq("user_id", userRes.user.id)
+          .maybeSingle(),
+      ]);
     const fullName = [talentRow?.first_name, talentRow?.last_name]
       .map((s) => s?.trim())
       .filter(Boolean)
@@ -57,6 +69,12 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
           ? "career_coach"
           : "talent";
 
+    // Only an account with no role of its own is held back.
+    const approval =
+      !roles.length && (request?.status === "pending" || request?.status === "declined")
+        ? request.status
+        : null;
+
     return {
       userId: userRes.user.id,
       email: userRes.user.email ?? null,
@@ -66,6 +84,7 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
         username: profileRow?.username ?? null,
         organizationId: profileRow?.organization_id ?? null,
       },
+      approval,
     };
   } catch (error) {
     console.error(error);

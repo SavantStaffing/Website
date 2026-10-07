@@ -29,10 +29,15 @@ const loginSchema = z.object({
   email: z.string().trim().email().max(254),
   password: z.string().min(6).max(128),
 });
-const signupSchema = loginSchema.extend({
-  username: z.string().trim().min(2).max(40),
-  role: z.enum(["talent", "recruiter"]),
-});
+const signupSchema = loginSchema
+  .extend({
+    username: z.string().trim().min(2).max(40),
+    role: z.enum(["talent", "recruiter"]),
+    company: z.string().trim().max(200),
+  })
+  .refine((d) => d.role !== "recruiter" || d.company.length >= 2, {
+    message: "Enter the company you recruit for",
+  });
 
 /** Only same-origin relative paths are honored as post-login redirects. */
 function safeNext(next: string | undefined) {
@@ -173,12 +178,13 @@ function SignupForm() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [role, setRole] = useState<SignupRole>("talent");
+  const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = signupSchema.safeParse({ email, password, username, role });
+    const parsed = signupSchema.safeParse({ email, password, username, role, company });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
@@ -189,7 +195,11 @@ function SignupForm() {
       password: parsed.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/verify-email${next ? `?next=${encodeURIComponent(next)}` : ""}`,
-        data: { username: parsed.data.username, role: parsed.data.role },
+        data: {
+          username: parsed.data.username,
+          role: parsed.data.role,
+          ...(parsed.data.role === "recruiter" ? { company: parsed.data.company } : {}),
+        },
       },
     });
     setLoading(false);
@@ -208,6 +218,12 @@ function SignupForm() {
           We sent a confirmation link to <span className="text-foreground">{email}</span>. Click the
           link to verify and finish signing up.
         </p>
+        {role === "recruiter" && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Recruiter accounts are reviewed by a Savant admin before they can see talent or post
+            jobs. We'll let you know once yours is approved.
+          </p>
+        )}
       </div>
     );
   }
@@ -232,6 +248,14 @@ function SignupForm() {
         </div>
       </div>
       <Field label="Username" value={username} onChange={setUsername} autoComplete="username" />
+      {role === "recruiter" && (
+        <Field
+          label="Company you recruit for"
+          value={company}
+          onChange={setCompany}
+          autoComplete="organization"
+        />
+      )}
       <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
       <Field
         label="Password"
