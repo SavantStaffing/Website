@@ -596,7 +596,7 @@ export function ScoutDiagnostics() {
                   <th className="py-3 text-right font-normal">Schema failures</th>
                   {FIELDS.map((f) => (
                     <th key={f} className="py-3 text-right font-normal">
-                      {f.replace("_", " ")}
+                      {f === "naics_code" ? "sector" : f.replace("_", " ")}
                     </th>
                   ))}
                 </tr>
@@ -629,7 +629,7 @@ export function ScoutDiagnostics() {
             </table>
             <p className="mt-3 text-xs text-muted-foreground">
               Fill rates are from each source's most recent ingest in this window. Low
-              industry/NAICS fill means the company's row has no NAICS sector set.
+              industry/sector fill means the company's row has no sector set.
             </p>
           </div>
         )}

@@ -11,6 +11,7 @@ export const Route = createFileRoute("/dashboard")({
   ssr: false,
   beforeLoad: async () => {
     const ctx = await requireAuth();
+    if (ctx.approval) throw redirect({ to: "/pending-approval", replace: true });
     throw redirect({ to: getDashboardPath(ctx.role), replace: true });
   },
 });

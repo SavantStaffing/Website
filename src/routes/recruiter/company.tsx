@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Field, TextArea, card, label, primaryButton, selectCls } from "@/components/site/ui";
-import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
+import { NAICS_SECTOR_OPTIONS, naicsSectorLabel } from "@/lib/scout/refine";
 
 export const Route = createFileRoute("/recruiter/company")({
   head: () => ({
@@ -104,7 +104,7 @@ function Company() {
           {[
             ["Website", form.website],
             ["Industry", form.industry],
-            ["NAICS", form.naics_code],
+            ["Sector", naicsSectorLabel(form.naics_code)],
           ].map(([k, v]) => (
             <div key={k}>
               <dt className={label}>{k}</dt>
@@ -136,7 +136,7 @@ function Company() {
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Industry" value={form.industry} onChange={set("industry")} />
           <label className="block">
-            <span className={label}>NAICS sector</span>
+            <span className={label}>Sector</span>
             <select
               value={form.naics_code}
               onChange={(e) => {
@@ -152,7 +152,7 @@ function Company() {
               <option value="">Not set</option>
               {NAICS_SECTOR_OPTIONS.map((o) => (
                 <option key={o.code} value={o.code}>
-                  {o.code} — {o.label}
+                  {o.label}
                 </option>
               ))}
             </select>

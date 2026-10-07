@@ -22,6 +22,7 @@ import { Route as EmployerRatingsRouteImport } from './routes/employer-ratings'
 import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
 import { Route as PreparationRouteImport } from './routes/preparation'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProgramsRouteImport } from './routes/programs'
@@ -147,6 +148,11 @@ const InsightsRoute = InsightsRouteImport.update({
 const JobsRoute = JobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendingApprovalRoute = PendingApprovalRouteImport.update({
+  id: '/pending-approval',
+  path: '/pending-approval',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreparationRoute = PreparationRouteImport.update({
@@ -472,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/preparation': typeof PreparationRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
@@ -544,6 +551,7 @@ export interface FileRoutesByTo {
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/preparation': typeof PreparationRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
@@ -621,6 +629,7 @@ export interface FileRoutesById {
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/preparation': typeof PreparationRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
@@ -699,6 +708,7 @@ export interface FileRouteTypes {
     | '/forbidden'
     | '/insights'
     | '/jobs'
+    | '/pending-approval'
     | '/preparation'
     | '/privacy'
     | '/programs'
@@ -771,6 +781,7 @@ export interface FileRouteTypes {
     | '/forbidden'
     | '/insights'
     | '/jobs'
+    | '/pending-approval'
     | '/preparation'
     | '/privacy'
     | '/programs'
@@ -847,6 +858,7 @@ export interface FileRouteTypes {
     | '/forbidden'
     | '/insights'
     | '/jobs'
+    | '/pending-approval'
     | '/preparation'
     | '/privacy'
     | '/programs'
@@ -924,6 +936,7 @@ export interface RootRouteChildren {
   ForbiddenRoute: typeof ForbiddenRoute
   InsightsRoute: typeof InsightsRoute
   JobsRoute: typeof JobsRoute
+  PendingApprovalRoute: typeof PendingApprovalRoute
   PreparationRoute: typeof PreparationRoute
   PrivacyRoute: typeof PrivacyRoute
   ProgramsRoute: typeof ProgramsRoute
@@ -1033,6 +1046,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs'
       fullPath: '/jobs'
       preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending-approval': {
+      id: '/pending-approval'
+      path: '/pending-approval'
+      fullPath: '/pending-approval'
+      preLoaderRoute: typeof PendingApprovalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preparation': {
@@ -1607,6 +1627,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForbiddenRoute: ForbiddenRoute,
   InsightsRoute: InsightsRoute,
   JobsRoute: JobsRoute,
+  PendingApprovalRoute: PendingApprovalRoute,
   PreparationRoute: PreparationRoute,
   PrivacyRoute: PrivacyRoute,
   ProgramsRoute: ProgramsRoute,

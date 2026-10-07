@@ -18,6 +18,10 @@ export async function requireAuth(): Promise<AuthContext> {
  */
 export async function requireRole(role: AppRole): Promise<AuthContext> {
   const ctx = await requireAuth();
+  // A recruiter account waiting for approval has no hub yet.
+  if (ctx.approval) {
+    throw redirect({ to: "/pending-approval" });
+  }
   if (ctx.role !== role) {
     throw redirect({ to: "/forbidden" });
   }

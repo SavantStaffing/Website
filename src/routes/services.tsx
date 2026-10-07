@@ -67,7 +67,7 @@ const LAYERS = [
     lede: "What's left is ranked for you — not for the average applicant.",
     checks: [
       "Positions you're targeting, matched against each role's title.",
-      "Industries, down to NAICS sector, so a logistics specialist sees logistics roles first.",
+      "Industries, down to the sector, so a logistics specialist sees logistics roles first.",
       "Locations you'll work in, and whether you're open to remote.",
       "Schedule — full time, part time, temporary, contract or internship.",
       "How recently a role was posted, over the window you choose.",
