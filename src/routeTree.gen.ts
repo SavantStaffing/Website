@@ -60,6 +60,7 @@ import { Route as CoachRecruitersRouteImport } from './routes/coach/recruiters'
 import { Route as CoachScheduleRouteImport } from './routes/coach/schedule'
 import { Route as CoachSettingsRouteImport } from './routes/coach/settings'
 import { Route as CoachTalentRouteImport } from './routes/coach/talent'
+import { Route as CoachWelcomeRouteImport } from './routes/coach/welcome'
 import { Route as EmployerRatingsEmployerRouteImport } from './routes/employer-ratings_.$employer'
 import { Route as JoinCoachRouteImport } from './routes/join.coach'
 import { Route as RecruiterIndexRouteImport } from './routes/recruiter/index'
@@ -74,6 +75,7 @@ import { Route as RecruiterJobsRouteImport } from './routes/recruiter/jobs'
 import { Route as RecruiterSavedRouteImport } from './routes/recruiter/saved'
 import { Route as RecruiterScheduleRouteImport } from './routes/recruiter/schedule'
 import { Route as RecruiterTalentRouteImport } from './routes/recruiter/talent'
+import { Route as RecruiterWelcomeRouteImport } from './routes/recruiter/welcome'
 import { Route as TalentIndexRouteImport } from './routes/talent/index'
 import { Route as TalentAnswersRouteImport } from './routes/talent/answers'
 import { Route as TalentApplicationsRouteImport } from './routes/talent/applications'
@@ -344,6 +346,11 @@ const CoachTalentRoute = CoachTalentRouteImport.update({
   path: '/talent',
   getParentRoute: () => CoachRouteRoute,
 } as any)
+const CoachWelcomeRoute = CoachWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
 const EmployerRatingsEmployerRoute = EmployerRatingsEmployerRouteImport.update({
   id: '/employer-ratings_/$employer',
   path: '/employer-ratings/$employer',
@@ -412,6 +419,11 @@ const RecruiterScheduleRoute = RecruiterScheduleRouteImport.update({
 const RecruiterTalentRoute = RecruiterTalentRouteImport.update({
   id: '/talent',
   path: '/talent',
+  getParentRoute: () => RecruiterRouteRoute,
+} as any)
+const RecruiterWelcomeRoute = RecruiterWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => RecruiterRouteRoute,
 } as any)
 const TalentIndexRoute = TalentIndexRouteImport.update({
@@ -536,6 +548,7 @@ export interface FileRoutesByFullPath {
   '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
+  '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
@@ -549,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/recruiter/saved': typeof RecruiterSavedRoute
   '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
+  '/recruiter/welcome': typeof RecruiterWelcomeRoute
   '/talent/answers': typeof TalentAnswersRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/chat': typeof TalentChatRoute
@@ -613,6 +627,7 @@ export interface FileRoutesByTo {
   '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
+  '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
@@ -626,6 +641,7 @@ export interface FileRoutesByTo {
   '/recruiter/saved': typeof RecruiterSavedRoute
   '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
+  '/recruiter/welcome': typeof RecruiterWelcomeRoute
   '/talent/answers': typeof TalentAnswersRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/chat': typeof TalentChatRoute
@@ -695,6 +711,7 @@ export interface FileRoutesById {
   '/coach/schedule': typeof CoachScheduleRoute
   '/coach/settings': typeof CoachSettingsRoute
   '/coach/talent': typeof CoachTalentRoute
+  '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings_/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
@@ -708,6 +725,7 @@ export interface FileRoutesById {
   '/recruiter/saved': typeof RecruiterSavedRoute
   '/recruiter/schedule': typeof RecruiterScheduleRoute
   '/recruiter/talent': typeof RecruiterTalentRoute
+  '/recruiter/welcome': typeof RecruiterWelcomeRoute
   '/talent/answers': typeof TalentAnswersRoute
   '/talent/applications': typeof TalentApplicationsRoute
   '/talent/chat': typeof TalentChatRoute
@@ -778,6 +796,7 @@ export interface FileRouteTypes {
     | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
+    | '/coach/welcome'
     | '/employer-ratings/$employer'
     | '/join/coach'
     | '/recruiter/account'
@@ -791,6 +810,7 @@ export interface FileRouteTypes {
     | '/recruiter/saved'
     | '/recruiter/schedule'
     | '/recruiter/talent'
+    | '/recruiter/welcome'
     | '/talent/answers'
     | '/talent/applications'
     | '/talent/chat'
@@ -855,6 +875,7 @@ export interface FileRouteTypes {
     | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
+    | '/coach/welcome'
     | '/employer-ratings/$employer'
     | '/join/coach'
     | '/recruiter/account'
@@ -868,6 +889,7 @@ export interface FileRouteTypes {
     | '/recruiter/saved'
     | '/recruiter/schedule'
     | '/recruiter/talent'
+    | '/recruiter/welcome'
     | '/talent/answers'
     | '/talent/applications'
     | '/talent/chat'
@@ -936,6 +958,7 @@ export interface FileRouteTypes {
     | '/coach/schedule'
     | '/coach/settings'
     | '/coach/talent'
+    | '/coach/welcome'
     | '/employer-ratings_/$employer'
     | '/join/coach'
     | '/recruiter/account'
@@ -949,6 +972,7 @@ export interface FileRouteTypes {
     | '/recruiter/saved'
     | '/recruiter/schedule'
     | '/recruiter/talent'
+    | '/recruiter/welcome'
     | '/talent/answers'
     | '/talent/applications'
     | '/talent/chat'
@@ -1362,6 +1386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachTalentRouteImport
       parentRoute: typeof CoachRouteRoute
     }
+    '/coach/welcome': {
+      id: '/coach/welcome'
+      path: '/welcome'
+      fullPath: '/coach/welcome'
+      preLoaderRoute: typeof CoachWelcomeRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
     '/employer-ratings_/$employer': {
       id: '/employer-ratings_/$employer'
       path: '/employer-ratings/$employer'
@@ -1458,6 +1489,13 @@ declare module '@tanstack/react-router' {
       path: '/talent'
       fullPath: '/recruiter/talent'
       preLoaderRoute: typeof RecruiterTalentRouteImport
+      parentRoute: typeof RecruiterRouteRoute
+    }
+    '/recruiter/welcome': {
+      id: '/recruiter/welcome'
+      path: '/welcome'
+      fullPath: '/recruiter/welcome'
+      preLoaderRoute: typeof RecruiterWelcomeRouteImport
       parentRoute: typeof RecruiterRouteRoute
     }
     '/talent/': {
@@ -1614,6 +1652,7 @@ interface CoachRouteRouteChildren {
   CoachScheduleRoute: typeof CoachScheduleRoute
   CoachSettingsRoute: typeof CoachSettingsRoute
   CoachTalentRoute: typeof CoachTalentRoute
+  CoachWelcomeRoute: typeof CoachWelcomeRoute
   CoachIndexRoute: typeof CoachIndexRoute
 }
 
@@ -1624,6 +1663,7 @@ const CoachRouteRouteChildren: CoachRouteRouteChildren = {
   CoachScheduleRoute: CoachScheduleRoute,
   CoachSettingsRoute: CoachSettingsRoute,
   CoachTalentRoute: CoachTalentRoute,
+  CoachWelcomeRoute: CoachWelcomeRoute,
   CoachIndexRoute: CoachIndexRoute,
 }
 
@@ -1643,6 +1683,7 @@ interface RecruiterRouteRouteChildren {
   RecruiterSavedRoute: typeof RecruiterSavedRoute
   RecruiterScheduleRoute: typeof RecruiterScheduleRoute
   RecruiterTalentRoute: typeof RecruiterTalentRoute
+  RecruiterWelcomeRoute: typeof RecruiterWelcomeRoute
   RecruiterIndexRoute: typeof RecruiterIndexRoute
 }
 
@@ -1658,6 +1699,7 @@ const RecruiterRouteRouteChildren: RecruiterRouteRouteChildren = {
   RecruiterSavedRoute: RecruiterSavedRoute,
   RecruiterScheduleRoute: RecruiterScheduleRoute,
   RecruiterTalentRoute: RecruiterTalentRoute,
+  RecruiterWelcomeRoute: RecruiterWelcomeRoute,
   RecruiterIndexRoute: RecruiterIndexRoute,
 }
 

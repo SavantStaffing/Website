@@ -10,6 +10,7 @@ export const Route = createFileRoute("/recruiter")({
 
 const NAV = [
   { to: "/recruiter", label: "Dashboard" },
+  { to: "/recruiter/welcome", label: "Getting started" },
   { to: "/recruiter/inbox", label: "Inbox" },
   { to: "/recruiter/chat", label: "Chat" },
   { to: "/recruiter/schedule", label: "Talent & Schedule" },

@@ -7,6 +7,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
+import { Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Empty, SectionHeading, label, list, mutedButton, primaryButton, timeAgo } from "./ui";
@@ -17,7 +18,38 @@ import { Empty, SectionHeading, label, list, mutedButton, primaryButton, timeAgo
  * admin -> anyone, coach -> talent, recruiter -> talent visible to recruiters
  * or assigned to them, talent -> coaches. Talent reply to recruiters once the
  * recruiter has written first.
+ *
+ * Files (documents, spreadsheets, images up to 10 MB) go to the private
+ * chat-files bucket under the conversation's folder; only the two people in
+ * the conversation can upload or open them (20261007000002).
  */
+
+const FILE_BUCKET = "chat-files";
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+// Same list as the bucket's allowed types.
+const FILE_ACCEPT =
+  ".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.gif,.webp," +
+  "application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document," +
+  "application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain,image/*";
+
+const fileSize = (n: number | null) =>
+  n == null
+    ? ""
+    : n < 1024 * 1024
+      ? `${Math.max(1, Math.round(n / 1024))} KB`
+      : `${(n / 1024 / 1024).toFixed(1)} MB`;
+
+/** Opens an attachment through a link that works for 10 minutes. */
+async function openAttachment(path: string) {
+  const win = window.open("", "_blank");
+  const { data, error } = await supabase.storage.from(FILE_BUCKET).createSignedUrl(path, 600);
+  if (error || !data) {
+    win?.close();
+    return toast.error(error?.message ?? "Couldn't open the file.");
+  }
+  if (win) win.location.href = data.signedUrl;
+  else window.location.href = data.signedUrl;
+}
 
 type Conversation = {
   id: string;
@@ -36,6 +68,9 @@ type Message = {
   sender_id: string;
   body: string;
   created_at: string;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  attachment_size: number | null;
 };
 type Contact = { id: string; name: string; role: string | null; detail: string | null };
 
@@ -81,6 +116,8 @@ export function Chat({
   const [contacts, setContacts] = useState<Contact[] | null>(null);
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
   const open = useMemo(
@@ -97,7 +134,9 @@ export function Chat({
   const loadMessages = useCallback(async (id: string) => {
     const { data, error } = await supabase
       .from("conversation_messages")
-      .select("id, conversation_id, sender_id, body, created_at")
+      .select(
+        "id, conversation_id, sender_id, body, created_at, attachment_path, attachment_name, attachment_size",
+      )
       .eq("conversation_id", id)
       .order("created_at", { ascending: true })
       .limit(500);
@@ -192,7 +231,7 @@ export function Chat({
   async function send(e?: FormEvent) {
     e?.preventDefault();
     const text = body.trim();
-    if (!text || sending) return;
+    if ((!text && !file) || sending) return;
     setSending(true);
     if (draftTo) {
       const { data, error } = await supabase.rpc("start_conversation", {
@@ -208,13 +247,34 @@ export function Chat({
       return;
     }
     if (!conversationId) return setSending(false);
+    let attachment = {};
+    if (file) {
+      // <conversation>/<random>/<name>: the folder is what grants access.
+      const safeName = file.name.replace(/[^\w.\- ]+/g, "_").slice(-120) || "file";
+      const path = `${conversationId}/${crypto.randomUUID()}/${safeName}`;
+      const { error: upErr } = await supabase.storage
+        .from(FILE_BUCKET)
+        .upload(path, file, { contentType: file.type || undefined, upsert: false });
+      if (upErr) {
+        setSending(false);
+        return toast.error(`Couldn't upload ${file.name}: ${upErr.message}`);
+      }
+      attachment = {
+        _file_path: path,
+        _file_name: file.name,
+        _file_size: file.size,
+        _file_type: file.type || null,
+      };
+    }
     const { error } = await supabase.rpc("send_chat_message", {
       _conversation: conversationId,
       _body: text,
+      ...attachment,
     });
     setSending(false);
     if (error) return toast.error(error.message);
     setBody("");
+    setFile(null);
     void loadMessages(conversationId);
     void loadConversations();
   }
@@ -362,7 +422,20 @@ export function Chat({
                       <div
                         className={`max-w-[80%] rounded-sm px-3 py-2 text-sm ${mine ? "bg-foreground text-background" : "border border-[color:var(--color-hairline)]"}`}
                       >
-                        <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                        {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
+                        {m.attachment_path && (
+                          <button
+                            type="button"
+                            onClick={() => openAttachment(m.attachment_path!)}
+                            className={`mt-1 flex max-w-full items-center gap-2 text-left underline-offset-4 [@media(hover:hover)]:hover:underline`}
+                          >
+                            <Paperclip className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            <span className="truncate">{m.attachment_name}</span>
+                            <span className={mine ? "text-background/70" : "text-muted-foreground"}>
+                              {fileSize(m.attachment_size)}
+                            </span>
+                          </button>
+                        )}
                         <p
                           className={`mt-1 text-[10px] ${mine ? "text-background/70" : "text-muted-foreground"}`}
                         >
@@ -380,10 +453,52 @@ export function Chat({
                 <div ref={bottom} />
               </ol>
 
+              {file && (
+                <div className="flex items-center gap-2 border-t border-[color:var(--color-hairline)] px-4 py-2 text-xs">
+                  <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="truncate">{file.name}</span>
+                  <span className="text-muted-foreground">{fileSize(file.size)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFile(null)}
+                    aria-label="Remove attachment"
+                    className="ml-auto p-1 text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
               <form
                 onSubmit={send}
                 className="flex items-end gap-3 border-t border-[color:var(--color-hairline)] p-3"
               >
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept={FILE_ACCEPT}
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null;
+                    e.target.value = "";
+                    if (f && f.size > MAX_FILE_BYTES)
+                      return toast.error("Files can be up to 10 MB.");
+                    setFile(f);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInput.current?.click()}
+                  disabled={!!draftTo}
+                  title={
+                    draftTo
+                      ? "Send a first message, then you can attach files."
+                      : "Attach a file (up to 10 MB)"
+                  }
+                  aria-label="Attach a file"
+                  className="self-center p-2 text-muted-foreground disabled:opacity-40 [@media(hover:hover)]:hover:text-foreground"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </button>
                 <textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
@@ -394,7 +509,11 @@ export function Chat({
                   aria-label="Message"
                   className="min-h-[2.75rem] flex-1 resize-none bg-transparent text-sm outline-none"
                 />
-                <button type="submit" disabled={sending || !body.trim()} className={primaryButton}>
+                <button
+                  type="submit"
+                  disabled={sending || (!body.trim() && !file)}
+                  className={primaryButton}
+                >
                   {sending ? "…" : "Send"}
                 </button>
               </form>
@@ -405,4 +524,3 @@ export function Chat({
     </section>
   );
 }
-

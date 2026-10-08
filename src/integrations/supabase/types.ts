@@ -1187,6 +1187,10 @@ export type Database = {
           sender_id: string;
           body: string;
           created_at: string;
+          attachment_path: string | null;
+          attachment_name: string | null;
+          attachment_size: number | null;
+          attachment_type: string | null;
         };
         Insert: {
           id?: string;
@@ -1194,6 +1198,10 @@ export type Database = {
           sender_id: string;
           body: string;
           created_at?: string;
+          attachment_path?: string | null;
+          attachment_name?: string | null;
+          attachment_size?: number | null;
+          attachment_type?: string | null;
         };
         Update: {
           id?: string;
@@ -1201,6 +1209,10 @@ export type Database = {
           sender_id?: string;
           body?: string;
           created_at?: string;
+          attachment_path?: string | null;
+          attachment_name?: string | null;
+          attachment_size?: number | null;
+          attachment_type?: string | null;
         };
         Relationships: [
           {
@@ -1527,7 +1539,14 @@ export type Database = {
         Returns: string;
       };
       send_chat_message: {
-        Args: { _conversation: string; _body: string };
+        Args: {
+          _conversation: string;
+          _body: string;
+          _file_path?: string | null;
+          _file_name?: string | null;
+          _file_size?: number | null;
+          _file_type?: string | null;
+        };
         Returns: string;
       };
       mark_conversation_read: {
