@@ -15,10 +15,15 @@ type Message = {
   created_at: string;
 };
 
-/** "/preparation#career-programs" → a Link's path and hash. */
+/**
+ * A stored link → a Link's path, search and hash:
+ * "/preparation#career-programs", "/talent/chat?c=<id>".
+ */
 const target = (to: string) => {
-  const [path, hash] = to.split("#");
-  return { to: path as LinkProps["to"], hash: hash || undefined };
+  const [rest, hash] = to.split("#");
+  const [path, query] = rest.split("?");
+  const search = query ? Object.fromEntries(new URLSearchParams(query)) : undefined;
+  return { to: path as LinkProps["to"], search: search as never, hash: hash || undefined };
 };
 
 type Filter = "unread" | "forms";
@@ -102,7 +107,7 @@ export function Inbox({ userId, isAdmin = false }: { userId: string; isAdmin?: b
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   {m.link ? (
                     <Link
-                      to={m.link as LinkProps["to"]}
+                      {...target(m.link)}
                       onClick={() => markRead([m.id])}
                       className={`text-base ${m.read_at ? "" : "font-semibold"} [@media(hover:hover)]:hover:underline`}
                     >
