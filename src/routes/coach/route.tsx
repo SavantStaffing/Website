@@ -9,6 +9,7 @@ export const Route = createFileRoute("/coach")({
 });
 
 const NAV = [
+  { to: "/coach/welcome", label: "Getting started" },
   { to: "/coach", label: "Service Requests" },
   { to: "/coach/inbox", label: "Inbox" },
   { to: "/coach/chat", label: "Chat" },
