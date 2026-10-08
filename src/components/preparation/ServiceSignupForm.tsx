@@ -70,7 +70,7 @@ export function ServiceSignupForm({
   if (sent) {
     return (
       <p className="text-sm">
-        You're signed up for {def.title}. A career coach will be in touch — track it on your{" "}
+        {def.done} — track it on your{" "}
         <Link to="/talent" className="underline underline-offset-4">
           dashboard
         </Link>
@@ -82,7 +82,7 @@ export function ServiceSignupForm({
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} className={primaryButton}>
-        Sign up for {def.title}
+        {def.cta}
       </button>
     );
   }
@@ -107,7 +107,9 @@ export function ServiceSignupForm({
     setSending(false);
     if (error) return toast.error(error.message);
     setSent(true);
-    toast.success(`Signed up for ${def.title}.`);
+    toast.success(
+      service === "career_programs" ? "Coach requested." : `Signed up for ${def.title}.`,
+    );
   }
 
   return (
@@ -115,7 +117,13 @@ export function ServiceSignupForm({
       onSubmit={submit}
       className="max-w-2xl space-y-6 border border-[color:var(--color-hairline)] p-6"
     >
-      <div className="text-lg font-medium">Sign up for {def.title}</div>
+      <div className="text-lg font-medium">{def.cta}</div>
+      {service === "career_programs" && (
+        <p className="text-sm text-muted-foreground">
+          A career coach is required for every career program. Tell us what you're aiming for and
+          we'll match you with one.
+        </p>
+      )}
       {def.items.length > 0 && (
         <label className="block">
           <span className={label}>Program</span>
@@ -164,7 +172,7 @@ export function ServiceSignupForm({
       </div>
       <div className="flex flex-wrap items-center gap-6">
         <button type="submit" disabled={sending} className={primaryButton}>
-          {sending ? "…" : "Submit sign-up"}
+          {sending ? "…" : service === "career_programs" ? "Request a coach" : "Submit sign-up"}
         </button>
         <button
           type="button"

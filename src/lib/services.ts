@@ -59,16 +59,21 @@ export const SERVICES = [
     id: "career_programs",
     anchor: "career-programs",
     title: "Career Programs",
-    intro: "Structured programs that get you trained and placed. Content coming soon.",
+    intro:
+      "Structured programs that get you trained and placed. Every career program is run with a Savant career coach, so start by requesting one. Program details coming soon.",
     items: CAREER_PROGRAMS,
+    cta: "Request a coach",
+    done: "Coach requested. A Savant career coach will be in touch to plan your program",
   },
   {
     id: "resume_building",
     anchor: "resume-building",
     title: "Resume Building",
     intro:
-      "Work one-on-one with a Savant career coach on a resume that gets read. Content coming soon.",
+      "Work one-on-one with a Savant career coach on a resume that gets read. We build on Yale University's resume template and structure every resume to pass the applicant tracking systems (ATS) most employers use to screen applications.",
     items: [] as CareerProgram[],
+    cta: "Sign up for Resume Building",
+    done: "You're signed up for Resume Building. A career coach will be in touch",
   },
   {
     id: "interview_development",
@@ -76,6 +81,8 @@ export const SERVICES = [
     title: "Interview Development",
     intro: "Practice interviews and feedback from a Savant career coach. Content coming soon.",
     items: [] as CareerProgram[],
+    cta: "Sign up for Interview Development",
+    done: "You're signed up for Interview Development. A career coach will be in touch",
   },
   {
     id: "job_fairs",
@@ -84,6 +91,8 @@ export const SERVICES = [
     intro:
       "Meet employers face to face at job fairs and hiring events with Savant. Content coming soon.",
     items: [] as CareerProgram[],
+    cta: "Sign up for Job Fairs",
+    done: "You're signed up for Job Fairs. A career coach will be in touch",
   },
 ] as const;
 

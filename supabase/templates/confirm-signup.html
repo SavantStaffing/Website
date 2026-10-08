@@ -1,0 +1,81 @@
+<!doctype html>
+<!--
+  Savant "Confirm your email" (sign-up confirmation) email.
+
+  Supabase Auth template: {{ .ConfirmationURL }} is the verification link.
+  Lovable Cloud generates its own auth email templates (React Email) once a
+  sending domain is set up under Cloud → Emails → "Customize auth emails";
+  give Lovable this file and ask it to use this design and copy for the
+  "Confirm signup" template. Keep the confirmation link variable intact.
+  The logo is served from public/email/savant-logo.png.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>Confirm your email</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f9f8f4;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+      One click to confirm your email and finish creating your Savant account.
+    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f9f8f4;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e7e3da;">
+            <tr>
+              <td style="padding:36px 40px 0 40px;">
+                <img src="https://savantalent.com/email/savant-logo.png" width="112" height="27" alt="Savant" style="display:block;border:0;" />
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 40px 0 40px;font-family:Inter,'Segoe UI',Helvetica,Arial,sans-serif;">
+                <p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#a6824a;">
+                  Confirm your email
+                </p>
+                <h1 style="margin:16px 0 0 0;font-family:Fraunces,Georgia,'Times New Roman',serif;font-size:30px;line-height:1.2;font-weight:600;color:#1c1917;">
+                  You're one click from your Savant account.
+                </h1>
+                <p style="margin:20px 0 0 0;font-size:15px;line-height:1.6;color:#57534e;">
+                  Confirm this email address to finish signing up. Then you can build your profile,
+                  explore jobs from employers we've vetted for fair pay and how they treat their
+                  people, and request a career coach.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 40px 0 40px;">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background:#1c1917;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-family:Inter,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#f9f8f4;text-decoration:none;">
+                        Confirm email
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 40px 0 40px;font-family:Inter,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#78716c;">
+                If the button doesn't work, paste this link into your browser:<br />
+                <a href="{{ .ConfirmationURL }}" style="color:#1c1917;word-break:break-all;">{{ .ConfirmationURL }}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 40px 36px 40px;">
+                <div style="border-top:1px solid #e7e3da;padding-top:20px;font-family:Inter,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#a8a29e;">
+                  You're getting this because someone signed up for Savant with this email. If it
+                  wasn't you, you can ignore it and no account will be created.<br />
+                  Savant Staffing ·
+                  <a href="https://savantalent.com" style="color:#a8a29e;">savantalent.com</a>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

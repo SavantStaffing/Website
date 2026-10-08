@@ -1149,6 +1149,7 @@ export type Database = {
       };
       notifications: {
         Row: {
+          actions: Json | null;
           body: string | null;
           created_at: string;
           id: string;
@@ -1159,6 +1160,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          actions?: Json | null;
           body?: string | null;
           created_at?: string;
           id?: string;
@@ -1169,6 +1171,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          actions?: Json | null;
           body?: string | null;
           created_at?: string;
           id?: string;

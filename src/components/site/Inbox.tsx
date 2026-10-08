@@ -1,7 +1,7 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ChipGroup, Empty, SectionHeading, list, mutedButton, timeAgo } from "./ui";
+import { ChipGroup, Empty, SectionHeading, linkButton, list, mutedButton, timeAgo } from "./ui";
 
 type Message = {
   id: string;
@@ -9,8 +9,16 @@ type Message = {
   title: string;
   body: string | null;
   link: string | null;
+  /** Buttons under the message (notifications.actions). */
+  actions: { label: string; to: string }[] | null;
   read_at: string | null;
   created_at: string;
+};
+
+/** "/preparation#career-programs" → a Link's path and hash. */
+const target = (to: string) => {
+  const [path, hash] = to.split("#");
+  return { to: path as LinkProps["to"], hash: hash || undefined };
 };
 
 type Filter = "unread" | "forms";
@@ -31,11 +39,11 @@ export function Inbox({ userId, isAdmin = false }: { userId: string; isAdmin?: b
   useEffect(() => {
     supabase
       .from("notifications")
-      .select("id, kind, title, body, link, read_at, created_at")
+      .select("id, kind, title, body, link, actions, read_at, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(300)
-      .then(({ data }) => setItems(data ?? []));
+      .then(({ data }) => setItems((data as unknown as Message[]) ?? []));
   }, [userId]);
 
   const visible = useMemo(
@@ -111,6 +119,20 @@ export function Inbox({ userId, isAdmin = false }: { userId: string; isAdmin?: b
                 </div>
                 {m.body && (
                   <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{m.body}</p>
+                )}
+                {Array.isArray(m.actions) && m.actions.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+                    {m.actions.map((a) => (
+                      <Link
+                        key={a.to}
+                        {...target(a.to)}
+                        onClick={() => markRead([m.id])}
+                        className={linkButton}
+                      >
+                        {a.label} →
+                      </Link>
+                    ))}
+                  </div>
                 )}
                 {!m.read_at && (
                   <button onClick={() => markRead([m.id])} className={`mt-2 ${mutedButton}`}>
