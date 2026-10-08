@@ -33,7 +33,15 @@ import { ATS_PLATFORMS, type AtsPlatform } from "@/lib/scout/types";
 
 export const Route = createFileRoute("/admin/scout")({
   head: () => ({
-    meta: [{ title: "Job Scout" }, { name: "robots", content: "noindex" }],
+    meta: [
+      { title: "Job Scout Admin — Savant Staffing" },
+      { name: "description", content: "Manage Savant Staffing job sources and review scan results." },
+      { property: "og:title", content: "Job Scout Admin — Savant Staffing" },
+      { property: "og:description", content: "Manage job sources and review scan results." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: JobScout,
 });
@@ -112,6 +120,14 @@ const ATS_LABEL: Record<string, string> = {
   avionte: "Avionte",
   smpl: "Smpl job board",
   partners: "Partners Personnel board",
+  successfactors: "SAP SuccessFactors",
+  phenom: "Phenom",
+  dayforce: "Dayforce",
+  eightfold: "Eightfold",
+  oracle: "Oracle Recruiting",
+  ultipro: "UKG Pro",
+  amazon: "Amazon Jobs",
+  avature: "Avature",
 };
 
 function JobScout() {

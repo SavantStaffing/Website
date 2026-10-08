@@ -1,5 +1,5 @@
 // Generated from src/lib/scout/webscan.ts by scripts/build-scout-function.mjs. Do not edit.
-import { detectAllAts, detectAts, detectUnsupportedPlatform, type AtsHit } from "./detect.ts";
+import { detectAllAts, detectAts, detectFromPage, detectUnsupportedPlatform, type AtsHit } from "./detect.ts";
 import { scoutFetch, type MetricsRecorder } from "./http.ts";
 
 /**
@@ -49,7 +49,7 @@ export async function scanCompanySite(
     }
     // A redirect straight to the ATS counts too (e.g. /careers → jobs.lever.co/acme).
     const byKey = new Map<string, AtsHit>();
-    for (const h of [detectAts(finalUrl), ...detectAllAts(html)]) {
+    for (const h of [detectAts(finalUrl), ...detectAllAts(html), detectFromPage(finalUrl, html)]) {
       if (h) byKey.set(`${h.ats}:${h.token.toLowerCase()}`, h);
     }
     const all = [...byKey.values()];

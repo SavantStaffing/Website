@@ -1,6 +1,8 @@
 import { scoutJson, type MetricsRecorder } from "./http.ts";
-import { icims, jsonld } from "./jobposting.ts";
+import { avature, icims, jsonld } from "./jobposting.ts";
 import { avionte, partners, smpl } from "./staffing-boards.ts";
+import { dayforce, phenom, successfactors } from "./enterprise-ats.ts";
+import { amazon, eightfold, oracle, ultipro } from "./search-apis.ts";
 import { htmlToText, iso } from "./text.ts";
 import { workday } from "./workday.ts";
 import type { AtsPlatform, BoardSource, RawJob } from "./types.ts";
@@ -242,6 +244,14 @@ export const ATS_ADAPTERS: Record<
   avionte,
   smpl,
   partners,
+  successfactors,
+  phenom,
+  dayforce,
+  eightfold,
+  oracle,
+  ultipro,
+  amazon,
+  avature,
 };
 
 // ---------------------------------------------------------------- JobSpy (job boards)

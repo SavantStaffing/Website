@@ -27,6 +27,12 @@ const PATTERNS: { ats: AtsPlatform; rx: RegExp; token?: (m: RegExpMatchArray) =>
   },
   { ats: "smpl", rx: /(https?:\/\/[\w.-]+)\/(?:json\/)?index\.smpl\?arg=(?:jb_|list_posts)/i },
   { ats: "partners", rx: /(https?:\/\/jobs\.partnerspersonnel\.com)/i },
+  // Dayforce: token = "{clientNamespace}/{jobBoardCode}"
+  {
+    ats: "dayforce",
+    rx: /jobs\.dayforcehcm\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?([\w-]+)\/([\w-]+)/,
+    token: (m) => `${m[1]}/${m[2]}`,
+  },
   // iCIMS: token = portal subdomain
   { ats: "icims", rx: /\b((?!www\b)[\w-]+)\.icims\.com/i },
   { ats: "greenhouse", rx: /boards-api\.greenhouse\.io\/v1\/boards\/([\w-]+)/i },
@@ -127,6 +133,28 @@ export function detectUnsupportedPlatform(text: string): string | null {
   return UNSUPPORTED.find((u) => u.rx.test(text))?.platform ?? null;
 }
 
+/**
+ * Platforms recognized from a fetched careers page as a whole, where the
+ * token comes from the page's own address rather than a link in it:
+ * SuccessFactors RMK sites (served from the company's domain) and Phenom.
+ */
+export function detectFromPage(pageUrl: string, html: string): AtsHit | null {
+  let origin: string;
+  try {
+    origin = new URL(pageUrl).origin;
+  } catch {
+    return null;
+  }
+  if (/rmkcdn\.successfactors\.com/i.test(html)) return { ats: "successfactors", token: origin };
+  if (/phenompeople\.com/i.test(html) && /"refNum"\s*:\s*"[\w-]+"/.test(html)) {
+    const base = [...html.matchAll(/"baseUrl"\s*:\s*"(https?:\/\/[^"]+)"/g)]
+      .map((m) => m[1])
+      .find((u) => u.startsWith(origin));
+    if (base) return { ats: "phenom", token: base };
+  }
+  return null;
+}
+
 /** The public URL a person would visit for a board — shown in the admin config table. */
 export function boardUrl(ats: AtsPlatform, token: string): string {
   switch (ats) {
@@ -156,5 +184,23 @@ export function boardUrl(ats: AtsPlatform, token: string): string {
       return `${token}/index.smpl?arg=jb_search_results`;
     case "partners":
       return token;
+    case "successfactors":
+      return `${token}/search/`;
+    case "phenom":
+      return token;
+    case "dayforce":
+      return `https://jobs.dayforcehcm.com/en-US/${token}`;
+    case "eightfold":
+      return `https://${token.split("|")[0]}/careers`;
+    case "oracle": {
+      const [host, site] = token.split("/");
+      return `https://${host}/hcmUI/CandidateExperience/en/sites/${site}/requisitions`;
+    }
+    case "ultipro":
+      return `https://recruiting2.ultipro.com/${token.split("/")[0]}/JobBoard/${token.split("/")[1]}/`;
+    case "avature":
+      return token;
+    case "amazon":
+      return "https://www.amazon.jobs/en/search";
   }
 }

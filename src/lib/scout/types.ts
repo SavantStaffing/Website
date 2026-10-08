@@ -20,6 +20,17 @@ export const ATS_PLATFORMS = [
   "avionte",
   "smpl",
   "partners",
+  // Enterprise ATS platforms whose lists load in the browser (enterprise-ats.ts).
+  "successfactors",
+  "phenom",
+  "dayforce",
+  // Careers sites with a public JSON search API (search-apis.ts).
+  "eightfold",
+  "oracle",
+  "ultipro",
+  "amazon",
+  // Avature careers sites, read like iCIMS (jobposting.ts).
+  "avature",
 ] as const;
 export type AtsPlatform = (typeof ATS_PLATFORMS)[number];
 
