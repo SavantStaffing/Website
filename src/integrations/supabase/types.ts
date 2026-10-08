@@ -1147,6 +1147,71 @@ export type Database = {
         };
         Relationships: [];
       };
+      conversations: {
+        Row: {
+          id: string;
+          user_a: string;
+          user_b: string;
+          started_by: string;
+          created_at: string;
+          last_message_at: string;
+          a_read_at: string | null;
+          b_read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_a: string;
+          user_b: string;
+          started_by: string;
+          created_at?: string;
+          last_message_at?: string;
+          a_read_at?: string | null;
+          b_read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_a?: string;
+          user_b?: string;
+          started_by?: string;
+          created_at?: string;
+          last_message_at?: string;
+          a_read_at?: string | null;
+          b_read_at?: string | null;
+        };
+        Relationships: [];
+      };
+      conversation_messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          body?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversation_messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notifications: {
         Row: {
           actions: Json | null;
@@ -1456,6 +1521,35 @@ export type Database = {
       share_job: {
         Args: { _job_id: string; _talent_ids: string[]; _note?: string | null };
         Returns: number;
+      };
+      start_conversation: {
+        Args: { _other: string; _body: string };
+        Returns: string;
+      };
+      send_chat_message: {
+        Args: { _conversation: string; _body: string };
+        Returns: string;
+      };
+      mark_conversation_read: {
+        Args: { _conversation: string };
+        Returns: undefined;
+      };
+      my_conversations: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string;
+          other_id: string;
+          other_name: string;
+          other_role: string | null;
+          last_message: string | null;
+          last_sender_is_me: boolean | null;
+          last_message_at: string;
+          unread: number;
+        }[];
+      };
+      chat_contacts: {
+        Args: { _q?: string | null };
+        Returns: { id: string; name: string; role: string | null; detail: string | null }[];
       };
       share_job_recipients: {
         Args: { _job_id: string };
