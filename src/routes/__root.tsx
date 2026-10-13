@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Talent, placed with precision. Explore jobs, staffing services, and workforce programs.",
+          "Path to greatness. Top-rated companies, jobs and premium career services.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

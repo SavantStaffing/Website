@@ -108,8 +108,11 @@ export function SiteFooter() {
             <Link to="/privacy" className="[@media(hover:hover)]:hover:text-foreground">
               Privacy
             </Link>
+            <Link to="/faq" className="[@media(hover:hover)]:hover:text-foreground">
+              FAQ
+            </Link>
           </div>
-          <div>Talent, placed with precision</div>
+          <div>Path to greatness</div>
         </div>
       </div>
     </footer>

@@ -52,11 +52,10 @@ function HeroSection() {
         Savant Staffing
       </p>
       <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
-        Talent, placed with <span className="text-brass">precision.</span>
+        Path to <span className="text-brass">greatness.</span>
       </h1>
       <p className="mt-8 max-w-xl text-base leading-relaxed text-muted-foreground">
-        We match businesses with people who fit — across temporary staffing, direct hire, and
-        executive search. Content coming soon.
+        Connecting you with top-rated companies while offering premium career services.
       </p>
       <div className="mt-10 flex flex-wrap gap-6 text-[12px] uppercase tracking-[0.2em]">
         <Link
