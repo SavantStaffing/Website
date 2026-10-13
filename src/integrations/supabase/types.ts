@@ -1224,6 +1224,45 @@ export type Database = {
           },
         ];
       };
+      calendar_events: {
+        Row: {
+          id: string;
+          owner_id: string;
+          title: string;
+          starts_at: string;
+          ends_at: string;
+          location: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          title: string;
+          starts_at: string;
+          ends_at: string;
+          location?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          title?: string;
+          starts_at?: string;
+          ends_at?: string;
+          location?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      calendar_feeds: {
+        Row: { user_id: string; token: string; created_at: string };
+        Insert: { user_id: string; token: string; created_at?: string };
+        Update: { user_id?: string; token?: string; created_at?: string };
+        Relationships: [];
+      };
       notifications: {
         Row: {
           actions: Json | null;
@@ -1569,6 +1608,40 @@ export type Database = {
       chat_contacts: {
         Args: { _q?: string | null };
         Returns: { id: string; name: string; role: string | null; detail: string | null }[];
+      };
+      help_assistant_use: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
+      rotate_calendar_feed: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
+      my_calendar: {
+        Args: { _from: string; _to: string };
+        Returns: {
+          id: string;
+          kind: string;
+          title: string;
+          starts_at: string;
+          ends_at: string;
+          location: string | null;
+          notes: string | null;
+          link: string | null;
+        }[];
+      };
+      calendar_events_for: {
+        Args: { _uid: string; _from: string; _to: string };
+        Returns: {
+          id: string;
+          kind: string;
+          title: string;
+          starts_at: string;
+          ends_at: string;
+          location: string | null;
+          notes: string | null;
+          link: string | null;
+        }[];
       };
       share_job_recipients: {
         Args: { _job_id: string };

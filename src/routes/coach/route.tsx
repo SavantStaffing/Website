@@ -13,12 +13,14 @@ const NAV = [
   { to: "/coach", label: "Service Requests" },
   { to: "/coach/inbox", label: "Inbox" },
   { to: "/coach/chat", label: "Chat" },
+  { to: "/coach/calendar", label: "Calendar" },
   { to: "/coach/schedule", label: "Talent & Schedule" },
   { to: "/coach/talent", label: "Talent" },
   { to: "/coach/recruiters", label: "Recruiters" },
   { to: "/jobs", label: "Jobs" },
   { to: "/temporary-staffing", label: "Temp Partners" },
   { to: "/coach/settings", label: "Settings" },
+  { to: "/coach/help", label: "Help" },
 ] as const;
 
 function CoachLayout() {

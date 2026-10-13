@@ -14,12 +14,14 @@ const NAV = [
   { to: "/talent", label: "Dashboard" },
   { to: "/talent/inbox", label: "Inbox" },
   { to: "/talent/chat", label: "Chat" },
+  { to: "/talent/calendar", label: "Calendar" },
   { to: "/talent/jobs", label: "Job Feed" },
   { to: "/talent/temporary-work", label: "Temporary Work" },
   { to: "/talent/applications", label: "Applications" },
   { to: "/talent/profile", label: "Talent Profile" },
   { to: "/talent/preferences", label: "Preferences" },
   { to: "/talent/settings", label: "Settings" },
+  { to: "/talent/help", label: "Help" },
 ] as const;
 
 function TalentLayout() {

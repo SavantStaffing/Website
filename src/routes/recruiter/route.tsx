@@ -13,6 +13,7 @@ const NAV = [
   { to: "/recruiter/welcome", label: "Getting started" },
   { to: "/recruiter/inbox", label: "Inbox" },
   { to: "/recruiter/chat", label: "Chat" },
+  { to: "/recruiter/calendar", label: "Calendar" },
   { to: "/recruiter/schedule", label: "Talent & Schedule" },
   { to: "/recruiter/talent", label: "Talent Feed" },
   { to: "/recruiter/assigned", label: "Assigned Talent" },
@@ -21,6 +22,7 @@ const NAV = [
   { to: "/recruiter/applications", label: "Applications" },
   { to: "/recruiter/company", label: "Company" },
   { to: "/recruiter/account", label: "Account" },
+  { to: "/recruiter/help", label: "Help" },
 ] as const;
 
 function RecruiterLayout() {
