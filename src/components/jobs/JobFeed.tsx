@@ -25,6 +25,8 @@ import {
   type TrackFilter,
 } from "@/lib/scout/rank";
 import { NAICS_SECTOR_OPTIONS } from "@/lib/scout/refine";
+import { POSITION_LABELS, type PositionType } from "@/lib/scout/position";
+import { describeArea, type TravelArea } from "@/lib/talent/intake";
 import { JOB_TRACK_BLURBS, JOB_TRACK_LABELS, JOB_TRACKS } from "@/lib/scout/track";
 import { PARTNER_IDS, PARTNER_NAMES, type PartnerId } from "@/data/temp-listings";
 import { RatingBadge } from "@/components/ratings/RatingBadge";
@@ -244,6 +246,8 @@ export function JobFeed({
   const [openId, setOpenId] = useState<string | null>(null);
   const [applying, setApplying] = useState<FeedJob | null>(null);
   const savantApply = useSavantApply();
+  // The talent's intake answers the feed refines to; "none" = intake not done yet.
+  const [intake, setIntake] = useState<IntakeRefine | "none" | null>(null);
 
   useEffect(() => {
     loadActiveJobs()
@@ -268,6 +272,8 @@ export function JobFeed({
           .maybeSingle(),
       ]);
       if (priv?.fair_chance_only) setFilters((f) => ({ ...f, fairChanceOnly: true }));
+      const refine = p?.intake_completed_at ? intakeRefine(p) : null;
+      setIntake(refine ?? "none");
       if (p) {
         setPrefs(p);
         setFilters((f) => ({
@@ -276,6 +282,8 @@ export function JobFeed({
           track: initialTrack ?? (p.job_track as TrackFilter),
           minPay: p.min_hourly_pay === null ? null : Number(p.min_hourly_pay),
           tempApps: p.temp_apps ?? [],
+          // Every visit opens refined to the intake; "Show all jobs" widens it.
+          ...(refine && { naics: refine.naics, role: refine.role, area: refine.area }),
         }));
       }
       // Applications added by link have no job in the feed.
@@ -435,6 +443,32 @@ export function JobFeed({
         counts={trackCounts}
         onChange={(track) => (setFilters((f) => ({ ...f, track })), setPage(1))}
       />
+      {mode === "talent" && intake && (
+        <IntakeBanner
+          intake={intake}
+          active={
+            intake !== "none" &&
+            filters.naics === intake.naics &&
+            filters.role === intake.role &&
+            filters.area === intake.area &&
+            !!(intake.naics || intake.role || intake.area)
+          }
+          onShowAll={() => (
+            setFilters((f) => ({ ...f, naics: "", role: "", area: null })),
+            setPage(1)
+          )}
+          onRefine={() =>
+            intake !== "none" &&
+            (setFilters((f) => ({
+              ...f,
+              naics: intake.naics,
+              role: intake.role,
+              area: intake.area,
+            })),
+            setPage(1))
+          }
+        />
+      )}
       {/* Coaches, recruiters and admins on /jobs get the same refine filters as talent. */}
       {browseAll && (
         <Filters
@@ -561,6 +595,78 @@ function TrackTabs({
       <p className="mt-3 text-xs text-muted-foreground">
         {tabs.find((t) => t.value === value)?.blurb}
       </p>
+    </div>
+  );
+}
+
+type IntakeRefine = { naics: string; role: string; area: TravelArea | null };
+
+/** Feed filters from a completed intake. "Other" answers are free text, so they don't filter. */
+function intakeRefine(p: {
+  intake_industry: string | null;
+  intake_role: string | null;
+  travel_miles: number | null;
+  home_state: string | null;
+  home_metro: string | null;
+}): IntakeRefine {
+  const naics = NAICS_SECTOR_OPTIONS.some((o) => o.code === p.intake_industry)
+    ? p.intake_industry!
+    : "";
+  const role =
+    p.intake_role && p.intake_role in POSITION_LABELS && p.intake_role !== "other"
+      ? p.intake_role
+      : "";
+  const area =
+    p.travel_miles !== null && p.home_state
+      ? { miles: p.travel_miles, state: p.home_state, metro: p.home_metro }
+      : null;
+  return { naics, role, area };
+}
+
+function IntakeBanner({
+  intake,
+  active,
+  onShowAll,
+  onRefine,
+}: {
+  intake: IntakeRefine | "none";
+  active: boolean;
+  onShowAll: () => void;
+  onRefine: () => void;
+}) {
+  const box =
+    "mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-[color:var(--color-hairline)] px-4 py-3 text-sm";
+  if (intake === "none")
+    return (
+      <div className={box}>
+        <span>
+          Tell us what you're looking for and we'll tailor this feed to you. It takes two minutes.
+        </span>
+        <Link to="/talent/intake" className={linkButton}>
+          Start your intake →
+        </Link>
+      </div>
+    );
+  const parts = [
+    intake.role && POSITION_LABELS[intake.role as PositionType],
+    intake.naics && NAICS_SECTOR_OPTIONS.find((o) => o.code === intake.naics)?.label,
+    intake.area && `in ${describeArea(intake.area)} or remote`,
+  ].filter(Boolean);
+  if (!parts.length) return null;
+  return (
+    <div className={box}>
+      <span>
+        {active ? "Refined to your intake: " : "Your intake: "}
+        <span className="font-medium">{parts.join(" · ")}</span>
+      </span>
+      <span className="flex items-center gap-4">
+        <button type="button" onClick={active ? onShowAll : onRefine} className={mutedButton}>
+          {active ? "Show all jobs" : "Refine to my intake"}
+        </button>
+        <Link to="/talent/intake" className={mutedButton}>
+          Edit intake
+        </Link>
+      </span>
     </div>
   );
 }

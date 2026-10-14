@@ -999,6 +999,16 @@ export type Database = {
           job_track: string;
           min_hourly_pay: number | null;
           temp_apps: string[];
+          intake_industry: string | null;
+          intake_industry_other: string | null;
+          intake_role: string | null;
+          intake_role_other: string | null;
+          home_zip: string | null;
+          home_state: string | null;
+          home_metro: string | null;
+          travel_miles: number | null;
+          availability: Json | null;
+          intake_completed_at: string | null;
         };
         Insert: {
           employment_types?: string[];
@@ -1013,6 +1023,16 @@ export type Database = {
           job_track?: string;
           min_hourly_pay?: number | null;
           temp_apps?: string[];
+          intake_industry?: string | null;
+          intake_industry_other?: string | null;
+          intake_role?: string | null;
+          intake_role_other?: string | null;
+          home_zip?: string | null;
+          home_state?: string | null;
+          home_metro?: string | null;
+          travel_miles?: number | null;
+          availability?: Json | null;
+          intake_completed_at?: string | null;
         };
         Update: {
           employment_types?: string[];
@@ -1027,6 +1047,16 @@ export type Database = {
           job_track?: string;
           min_hourly_pay?: number | null;
           temp_apps?: string[];
+          intake_industry?: string | null;
+          intake_industry_other?: string | null;
+          intake_role?: string | null;
+          intake_role_other?: string | null;
+          home_zip?: string | null;
+          home_state?: string | null;
+          home_metro?: string | null;
+          travel_miles?: number | null;
+          availability?: Json | null;
+          intake_completed_at?: string | null;
         };
         Relationships: [];
       };

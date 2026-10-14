@@ -42,6 +42,7 @@ import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as AdminCoachInvitesRouteImport } from './routes/admin/coach-invites'
 import { Route as AdminDiagnosticsRouteImport } from './routes/admin/diagnostics'
 import { Route as AdminInboxRouteImport } from './routes/admin/inbox'
+import { Route as AdminIntakeRouteImport } from './routes/admin/intake'
 import { Route as AdminJobsRouteImport } from './routes/admin/jobs'
 import { Route as AdminMessagesRouteImport } from './routes/admin/messages'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
@@ -89,6 +90,7 @@ import { Route as TalentCalendarRouteImport } from './routes/talent/calendar'
 import { Route as TalentChatRouteImport } from './routes/talent/chat'
 import { Route as TalentHelpRouteImport } from './routes/talent/help'
 import { Route as TalentInboxRouteImport } from './routes/talent/inbox'
+import { Route as TalentIntakeRouteImport } from './routes/talent/intake'
 import { Route as TalentJobsRouteImport } from './routes/talent/jobs'
 import { Route as TalentPreferencesRouteImport } from './routes/talent/preferences'
 import { Route as TalentProfileRouteImport } from './routes/talent/profile'
@@ -263,6 +265,11 @@ const AdminDiagnosticsRoute = AdminDiagnosticsRouteImport.update({
 const AdminInboxRoute = AdminInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminIntakeRoute = AdminIntakeRouteImport.update({
+  id: '/intake',
+  path: '/intake',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminJobsRoute = AdminJobsRouteImport.update({
@@ -500,6 +507,11 @@ const TalentInboxRoute = TalentInboxRouteImport.update({
   path: '/inbox',
   getParentRoute: () => TalentRouteRoute,
 } as any)
+const TalentIntakeRoute = TalentIntakeRouteImport.update({
+  id: '/intake',
+  path: '/intake',
+  getParentRoute: () => TalentRouteRoute,
+} as any)
 const TalentJobsRoute = TalentJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -585,6 +597,7 @@ export interface FileRoutesByFullPath {
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/inbox': typeof AdminInboxRoute
+  '/admin/intake': typeof AdminIntakeRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
@@ -629,6 +642,7 @@ export interface FileRoutesByFullPath {
   '/talent/chat': typeof TalentChatRoute
   '/talent/help': typeof TalentHelpRoute
   '/talent/inbox': typeof TalentInboxRoute
+  '/talent/intake': typeof TalentIntakeRoute
   '/talent/jobs': typeof TalentJobsRoute
   '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
@@ -673,6 +687,7 @@ export interface FileRoutesByTo {
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/inbox': typeof AdminInboxRoute
+  '/admin/intake': typeof AdminIntakeRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
@@ -717,6 +732,7 @@ export interface FileRoutesByTo {
   '/talent/chat': typeof TalentChatRoute
   '/talent/help': typeof TalentHelpRoute
   '/talent/inbox': typeof TalentInboxRoute
+  '/talent/intake': typeof TalentIntakeRoute
   '/talent/jobs': typeof TalentJobsRoute
   '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
@@ -766,6 +782,7 @@ export interface FileRoutesById {
   '/admin/coach-invites': typeof AdminCoachInvitesRoute
   '/admin/diagnostics': typeof AdminDiagnosticsRoute
   '/admin/inbox': typeof AdminInboxRoute
+  '/admin/intake': typeof AdminIntakeRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
@@ -810,6 +827,7 @@ export interface FileRoutesById {
   '/talent/chat': typeof TalentChatRoute
   '/talent/help': typeof TalentHelpRoute
   '/talent/inbox': typeof TalentInboxRoute
+  '/talent/intake': typeof TalentIntakeRoute
   '/talent/jobs': typeof TalentJobsRoute
   '/talent/preferences': typeof TalentPreferencesRoute
   '/talent/profile': typeof TalentProfileRoute
@@ -860,6 +878,7 @@ export interface FileRouteTypes {
     | '/admin/coach-invites'
     | '/admin/diagnostics'
     | '/admin/inbox'
+    | '/admin/intake'
     | '/admin/jobs'
     | '/admin/messages'
     | '/admin/organizations'
@@ -904,6 +923,7 @@ export interface FileRouteTypes {
     | '/talent/chat'
     | '/talent/help'
     | '/talent/inbox'
+    | '/talent/intake'
     | '/talent/jobs'
     | '/talent/preferences'
     | '/talent/profile'
@@ -948,6 +968,7 @@ export interface FileRouteTypes {
     | '/admin/coach-invites'
     | '/admin/diagnostics'
     | '/admin/inbox'
+    | '/admin/intake'
     | '/admin/jobs'
     | '/admin/messages'
     | '/admin/organizations'
@@ -992,6 +1013,7 @@ export interface FileRouteTypes {
     | '/talent/chat'
     | '/talent/help'
     | '/talent/inbox'
+    | '/talent/intake'
     | '/talent/jobs'
     | '/talent/preferences'
     | '/talent/profile'
@@ -1040,6 +1062,7 @@ export interface FileRouteTypes {
     | '/admin/coach-invites'
     | '/admin/diagnostics'
     | '/admin/inbox'
+    | '/admin/intake'
     | '/admin/jobs'
     | '/admin/messages'
     | '/admin/organizations'
@@ -1084,6 +1107,7 @@ export interface FileRouteTypes {
     | '/talent/chat'
     | '/talent/help'
     | '/talent/inbox'
+    | '/talent/intake'
     | '/talent/jobs'
     | '/talent/preferences'
     | '/talent/profile'
@@ -1368,6 +1392,13 @@ declare module '@tanstack/react-router' {
       path: '/inbox'
       fullPath: '/admin/inbox'
       preLoaderRoute: typeof AdminInboxRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/intake': {
+      id: '/admin/intake'
+      path: '/intake'
+      fullPath: '/admin/intake'
+      preLoaderRoute: typeof AdminIntakeRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/jobs': {
@@ -1699,6 +1730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TalentInboxRouteImport
       parentRoute: typeof TalentRouteRoute
     }
+    '/talent/intake': {
+      id: '/talent/intake'
+      path: '/intake'
+      fullPath: '/talent/intake'
+      preLoaderRoute: typeof TalentIntakeRouteImport
+      parentRoute: typeof TalentRouteRoute
+    }
     '/talent/jobs': {
       id: '/talent/jobs'
       path: '/jobs'
@@ -1780,6 +1818,7 @@ interface AdminRouteRouteChildren {
   AdminCoachInvitesRoute: typeof AdminCoachInvitesRoute
   AdminDiagnosticsRoute: typeof AdminDiagnosticsRoute
   AdminInboxRoute: typeof AdminInboxRoute
+  AdminIntakeRoute: typeof AdminIntakeRoute
   AdminJobsRoute: typeof AdminJobsRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
@@ -1802,6 +1841,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminCoachInvitesRoute: AdminCoachInvitesRoute,
   AdminDiagnosticsRoute: AdminDiagnosticsRoute,
   AdminInboxRoute: AdminInboxRoute,
+  AdminIntakeRoute: AdminIntakeRoute,
   AdminJobsRoute: AdminJobsRoute,
   AdminMessagesRoute: AdminMessagesRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
@@ -1897,6 +1937,7 @@ interface TalentRouteRouteChildren {
   TalentChatRoute: typeof TalentChatRoute
   TalentHelpRoute: typeof TalentHelpRoute
   TalentInboxRoute: typeof TalentInboxRoute
+  TalentIntakeRoute: typeof TalentIntakeRoute
   TalentJobsRoute: typeof TalentJobsRoute
   TalentPreferencesRoute: typeof TalentPreferencesRoute
   TalentProfileRoute: typeof TalentProfileRoute
@@ -1912,6 +1953,7 @@ const TalentRouteRouteChildren: TalentRouteRouteChildren = {
   TalentChatRoute: TalentChatRoute,
   TalentHelpRoute: TalentHelpRoute,
   TalentInboxRoute: TalentInboxRoute,
+  TalentIntakeRoute: TalentIntakeRoute,
   TalentJobsRoute: TalentJobsRoute,
   TalentPreferencesRoute: TalentPreferencesRoute,
   TalentProfileRoute: TalentProfileRoute,

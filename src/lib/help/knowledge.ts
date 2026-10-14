@@ -195,6 +195,11 @@ export const PAGES: Record<HelpRole, { label: string; to: string; what: string }
       what: "interviews and coaching sessions; sync to your own calendar",
     },
     { label: "Job Feed", to: "/talent/jobs", what: "personalised jobs with filters" },
+    {
+      label: "Intake",
+      to: "/talent/intake",
+      what: 'your introduction to Savant: industry, role, ZIP code, travel distance and weekly availability. The job feed opens refined to these answers ("Show all jobs" widens it), and your coach and Savant admins can see them',
+    },
     { label: "Temporary Work", to: "/talent/temporary-work", what: "temp and hourly shifts" },
     { label: "Applications", to: "/talent/applications", what: "status of each application" },
     {
