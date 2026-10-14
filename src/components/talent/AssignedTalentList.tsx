@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge, Empty, label, list, mutedButton, timeAgo } from "@/components/site/ui";
+import { intakeSummary, type IntakeRow } from "@/lib/talent/intake";
 
 /** How long a résumé link opened from here stays valid. */
 const RESUME_LINK_SECONDS = 600;
@@ -28,6 +29,8 @@ type Assigned = {
   resumeFilename: string | null;
   resumeText: string | null;
   wants: string[];
+  intake: ReturnType<typeof intakeSummary> | null;
+  intakeAt: string | null;
 };
 
 const yesNo = (v: boolean | null) => (v === null ? "—" : v ? "Yes" : "No");
@@ -60,7 +63,9 @@ export function AssignedTalentList({ staffId, emptyText }: { staffId: string; em
         supabase.from("talent_profiles").select("*").in("user_id", ids),
         supabase
           .from("talent_preferences")
-          .select("user_id, positions, locations, employment_types, remote_ok, job_track")
+          .select(
+            "user_id, positions, locations, employment_types, remote_ok, job_track, intake_industry, intake_industry_other, intake_role, intake_role_other, home_zip, home_state, home_metro, travel_miles, availability, intake_completed_at",
+          )
           .in("user_id", ids),
       ]);
       const p = new Map((profiles ?? []).map((x) => [x.id, x]));
@@ -109,6 +114,8 @@ export function AssignedTalentList({ staffId, emptyText }: { staffId: string; em
               ...(pf?.employment_types ?? []).map((e: string) => e.replace("_", " ")),
               ...(pf?.remote_ok ? ["Open to remote"] : []),
             ],
+            intake: pf?.intake_completed_at ? intakeSummary(pf as IntakeRow) : null,
+            intakeAt: pf?.intake_completed_at ?? null,
           };
         }),
       );
@@ -170,6 +177,21 @@ export function AssignedTalentList({ staffId, emptyText }: { staffId: string; em
             <Info term="Needs sponsorship">{yesNo(r.needsSponsorship)}</Info>
             <Info term="Salary expectation">{r.salary || "—"}</Info>
           </dl>
+
+          {r.intake ? (
+            <div className="mt-4">
+              <div className={label}>Intake · {timeAgo(r.intakeAt)}</div>
+              <dl className="mt-2 grid max-w-4xl gap-x-8 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <Info term="Industry">{r.intake.industry || "—"}</Info>
+                <Info term="Role">{r.intake.role || "—"}</Info>
+                <Info term="Home ZIP">{r.intake.home || "—"}</Info>
+                <Info term="Will travel">{r.intake.travel}</Info>
+                <Info term="Availability">{r.intake.availability}</Info>
+              </dl>
+            </div>
+          ) : (
+            <p className="mt-4 text-xs text-muted-foreground">Intake not completed yet.</p>
+          )}
 
           {r.wants.length > 0 && (
             <div className="mt-4">

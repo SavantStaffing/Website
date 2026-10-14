@@ -1,5 +1,7 @@
 import type { JobTrack } from "./track.ts";
 import { locationMatches, textMatches } from "./search.ts";
+import { positionType } from "./position.ts";
+import { inTravelArea, type TravelArea } from "../talent/intake.ts";
 
 /**
  * "User Feed Ranking" — orders jobs for one talent from their saved
@@ -215,6 +217,10 @@ export type FeedFilters = {
   minFairPay: number | null;
   /** Only fair-chance roles. Set from the talent's advanced preferences, not the feed. */
   fairChanceOnly: boolean;
+  /** Role type (position.ts PositionType); "" = any. Seeded from the talent's intake. */
+  role: string;
+  /** Where the talent will travel, from their intake; null = anywhere. */
+  area: TravelArea | null;
 };
 
 export const EMPTY_FILTERS: FeedFilters = {
@@ -229,6 +235,8 @@ export const EMPTY_FILTERS: FeedFilters = {
   tempApps: [],
   minFairPay: null,
   fairChanceOnly: false,
+  role: "",
+  area: null,
 };
 
 /** NAICS sectors that span several two-digit codes, keyed by the code the feed filters on. */
@@ -259,6 +267,8 @@ export function applyFilters<J extends RankableJob & { company_name?: string | n
     if (f.naics && !inNaicsSector(j.naics_code, f.naics)) return false;
     if (f.postedWithinDays !== null && jobAgeDays(j, now) > f.postedWithinDays) return false;
     if (f.remoteOnly && !j.remote) return false;
+    if (f.role && positionType(j.title) !== f.role) return false;
+    if (!inTravelArea(j.location, !!j.remote, f.area)) return false;
     if (f.fairChanceOnly && !j.fair_chance) return false;
     if (
       f.minFairPay !== null &&

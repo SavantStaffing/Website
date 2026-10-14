@@ -61,6 +61,7 @@ function TalentDashboard() {
   const [shared, setShared] = useState<SharedJobRow[] | null>(null);
   const [requests, setRequests] = useState<RequestRow[] | null>(null);
   const [profileDone, setProfileDone] = useState<boolean | null>(null);
+  const [intakeDone, setIntakeDone] = useState<boolean | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -71,6 +72,7 @@ function TalentDashboard() {
         { data: reqs },
         { data: tp },
         { data: sharedRows },
+        { data: intake },
       ] = await Promise.all([
         supabase
           .from("job_applications")
@@ -98,7 +100,13 @@ function TalentDashboard() {
           .select(`id, shared_by_name, note, created_at, ${job}`)
           .eq("talent_id", userId)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("talent_preferences")
+          .select("intake_completed_at")
+          .eq("user_id", userId)
+          .maybeSingle(),
       ]);
+      setIntakeDone(!!intake?.intake_completed_at);
       setApplications((apps as unknown as ApplicationRow[]) ?? []);
       setSaved((savedRows as unknown as SavedJobRow[]) ?? []);
       setRequests((reqs as unknown as RequestRow[]) ?? []);
@@ -132,6 +140,20 @@ function TalentDashboard() {
 
   return (
     <section className="space-y-14">
+      {intakeDone === false && (
+        <div className={`${card} flex flex-wrap items-center justify-between gap-4`}>
+          <div>
+            <div className="text-lg font-medium">Tell us what you're looking for</div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Industry, role, where you are and when you can work. Your job feed tailors itself to
+              your answers, and your coach sees them too.
+            </p>
+          </div>
+          <Link to="/talent/intake" className={linkButton}>
+            Start your intake →
+          </Link>
+        </div>
+      )}
       {profileDone === false && (
         <div className={`${card} flex flex-wrap items-center justify-between gap-4`}>
           <div>

@@ -15,6 +15,7 @@ const NAV = [
   { to: "/admin/calendar", label: "Calendar" },
   { to: "/admin/schedule", label: "Talent & Schedule" },
   { to: "/admin/assignments", label: "Talent assignments" },
+  { to: "/admin/intake", label: "Talent intake" },
   { to: "/admin/users", label: "Users" },
   { to: "/admin/recruiters", label: "Recruiters" },
   { to: "/admin/coach-invites", label: "Coach invites" },

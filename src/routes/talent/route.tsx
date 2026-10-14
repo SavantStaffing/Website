@@ -16,6 +16,7 @@ const NAV = [
   { to: "/talent/chat", label: "Chat" },
   { to: "/talent/calendar", label: "Calendar" },
   { to: "/talent/jobs", label: "Job Feed" },
+  { to: "/talent/intake", label: "Intake" },
   { to: "/talent/temporary-work", label: "Temporary Work" },
   { to: "/talent/applications", label: "Applications" },
   { to: "/talent/profile", label: "Talent Profile" },
