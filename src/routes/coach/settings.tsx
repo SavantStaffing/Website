@@ -10,5 +10,5 @@ export const Route = createFileRoute("/coach/settings")({
 
 function CoachSettings() {
   const { userId } = Route.useRouteContext();
-  return <AccountSettings userId={userId} />;
+  return <AccountSettings userId={userId} editName />;
 }

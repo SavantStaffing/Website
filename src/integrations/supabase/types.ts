@@ -106,6 +106,7 @@ export type Database = {
           created_at: string;
           email: string | null;
           email_notifications: boolean;
+          full_name: string | null;
           id: string;
           org_permission: string;
           organization_id: string | null;
@@ -117,6 +118,7 @@ export type Database = {
           created_at?: string;
           email?: string | null;
           email_notifications?: boolean;
+          full_name?: string | null;
           id: string;
           org_permission?: string;
           organization_id?: string | null;
@@ -128,6 +130,7 @@ export type Database = {
           created_at?: string;
           email?: string | null;
           email_notifications?: boolean;
+          full_name?: string | null;
           id?: string;
           org_permission?: string;
           organization_id?: string | null;
@@ -1706,6 +1709,12 @@ export type Database = {
           _user_id: string;
         };
         Returns: string;
+      };
+      username_available: {
+        Args: {
+          _name: string;
+        };
+        Returns: Json;
       };
       coach_invite_status: {
         Args: {

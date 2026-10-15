@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import { Badge, label, linkButton, mutedButton, selectCls, timeAgo } from "@/components/site/ui";
 import { APPLICATION_STATUS_LABEL, RECRUITER_STATUSES } from "@/lib/applications";
 import { SERVICE_LABEL, SERVICE_STATUS_LABEL, type ServiceId } from "@/lib/services";
@@ -21,7 +22,7 @@ export function usePeople(ids: (string | null | undefined)[]) {
     if (!list.length) return;
     (async () => {
       const [{ data: profiles }, { data: tps }] = await Promise.all([
-        supabase.from("profiles").select("id, username, email, phone").in("id", list),
+        supabase.from("profiles").select("id, username, full_name, email, phone").in("id", list),
         supabase
           .from("talent_profiles")
           .select("user_id, first_name, last_name")
@@ -34,7 +35,7 @@ export function usePeople(ids: (string | null | undefined)[]) {
       for (const id of list) {
         const p = profiles?.find((x) => x.id === id);
         map.set(id, {
-          name: names.get(id) || p?.username || p?.email || "Talent",
+          name: personName(p, names.get(id), "Talent"),
           email: p?.email ?? null,
           phone: p?.phone ?? null,
         });

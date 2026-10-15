@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import {
   Badge,
   Empty,
@@ -73,7 +74,10 @@ function Assignments() {
       const ids = [...new Set((roles ?? []).map((r) => r.user_id))];
       const [{ data: profiles }, { data: tps }, { data: orgs }] = await Promise.all([
         ids.length
-          ? supabase.from("profiles").select("id, username, email, organization_id").in("id", ids)
+          ? supabase
+              .from("profiles")
+              .select("id, username, full_name, email, organization_id")
+              .in("id", ids)
           : Promise.resolve({ data: [] as never[] }),
         ids.length
           ? supabase
@@ -94,11 +98,7 @@ function Assignments() {
           const x = tp.get(r.user_id);
           t.set(r.user_id, {
             id: r.user_id,
-            name:
-              [x?.first_name, x?.last_name].filter(Boolean).join(" ") ||
-              p?.username ||
-              p?.email ||
-              "Talent",
+            name: personName(p, [x?.first_name, x?.last_name].filter(Boolean).join(" "), "Talent"),
             email: p?.email ?? null,
             detail: x?.headline || x?.current_title || null,
           });
@@ -106,7 +106,7 @@ function Assignments() {
           s.set(r.user_id, {
             id: r.user_id,
             role: r.role as Staff["role"],
-            name: p?.username || p?.email || ROLE_LABEL[r.role],
+            name: personName(p, null, ROLE_LABEL[r.role]),
             email: p?.email ?? null,
             detail: p?.organization_id ? (org.get(p.organization_id) ?? null) : null,
           });

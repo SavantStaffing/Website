@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import { Empty, label, list, selectCls, timeAgo } from "@/components/site/ui";
 import { intakeSummary, type IntakeRow } from "@/lib/talent/intake";
 
@@ -47,7 +48,7 @@ function IntakeList() {
       const ids = (prefs ?? []).map((p) => p.user_id);
       const [{ data: profiles }, { data: tps }] = ids.length
         ? await Promise.all([
-            supabase.from("profiles").select("id, username, email").in("id", ids),
+            supabase.from("profiles").select("id, username, full_name, email").in("id", ids),
             supabase
               .from("talent_profiles")
               .select("user_id, first_name, last_name")
@@ -64,6 +65,7 @@ function IntakeList() {
             userId: pf.user_id,
             name:
               [tp?.first_name, tp?.last_name].filter(Boolean).join(" ") ||
+              pr?.full_name ||
               pr?.username ||
               pr?.email ||
               "Talent",

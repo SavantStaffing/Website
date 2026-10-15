@@ -3,10 +3,26 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteAccount } from "./DeleteAccount";
 import { Field, Toggle, primaryButton } from "./ui";
+import {
+  UsernameField,
+  USERNAME_RE,
+  profileSaveError,
+  usernameOk,
+  type UsernameStatus,
+} from "./UsernameField";
 
 /** "Account Settings" for talent, recruiters and coaches: notifications,
- *  password, and self-service account deletion. */
-export function AccountSettings({ userId, children }: { userId: string; children?: ReactNode }) {
+ *  password, and self-service account deletion. `editName` adds the name
+ *  and username (for accounts with no other page to set them, i.e. coaches). */
+export function AccountSettings({
+  userId,
+  editName = false,
+  children,
+}: {
+  userId: string;
+  editName?: boolean;
+  children?: ReactNode;
+}) {
   const [emailNotifications, setEmailNotifications] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -48,6 +64,7 @@ export function AccountSettings({ userId, children }: { userId: string; children
 
   return (
     <section className="space-y-16">
+      {editName && <NameAndUsername userId={userId} />}
       <div>
         <h2 className="text-2xl font-semibold">Notifications</h2>
         <div className="mt-6 max-w-xl">
@@ -84,5 +101,72 @@ export function AccountSettings({ userId, children }: { userId: string; children
 
       <DeleteAccount />
     </section>
+  );
+}
+
+function NameAndUsername({ userId }: { userId: string }) {
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [current, setCurrent] = useState<string | null>(null);
+  const [status, setStatus] = useState<UsernameStatus>("idle");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from("profiles")
+      .select("full_name, username")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        setFullName(data?.full_name ?? "");
+        setUsername(data?.username ?? "");
+        setCurrent(data?.username ?? null);
+      });
+  }, [userId]);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const name = fullName.trim();
+    const handle = username.trim();
+    if (name.length < 2 || name.length > 100) return toast.error("Enter your full name.");
+    const changed = handle.toLowerCase() !== (current ?? "").toLowerCase();
+    if (changed && !USERNAME_RE.test(handle))
+      return toast.error("Usernames are 2–40 letters, numbers, dots, dashes or underscores.");
+    if (changed && !usernameOk(status))
+      return toast.error(
+        status === "taken"
+          ? "That username is taken. Pick another one."
+          : "Still checking your username.",
+      );
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: name, username: handle })
+      .eq("id", userId);
+    setSaving(false);
+    if (error) return toast.error(profileSaveError(error));
+    setCurrent(handle);
+    toast.success("Saved.");
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold">Name and username</h2>
+      <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+        Your full name is what talent and the Savant team see. Your username is a unique handle.
+      </p>
+      <form onSubmit={save} className="mt-8 max-w-md space-y-6">
+        <Field label="Full name" value={fullName} onChange={setFullName} />
+        <UsernameField
+          value={username}
+          onChange={setUsername}
+          onStatus={setStatus}
+          current={current}
+        />
+        <button type="submit" disabled={saving} className={primaryButton}>
+          {saving ? "…" : "Save"}
+        </button>
+      </form>
+    </div>
   );
 }

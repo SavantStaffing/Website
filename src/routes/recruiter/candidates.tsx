@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 
 export const Route = createFileRoute("/recruiter/candidates")({
   head: () => ({
@@ -60,13 +61,13 @@ function Candidates() {
 
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, username, email")
+        .select("id, username, full_name, email")
         .in("id", applicantIds);
 
       setCandidates(
         (profiles ?? []).map((p) => ({
           id: p.id,
-          username: p.username,
+          username: personName(p),
           email: p.email,
           appliedTo: byApplicant.get(p.id) ?? [],
         })),
@@ -100,7 +101,7 @@ function Candidates() {
         <ul className="mt-8 divide-y divide-[color:var(--color-hairline)] border-y border-[color:var(--color-hairline)]">
           {candidates.map((c) => (
             <li key={c.id} className="py-5">
-              <div className="text-lg font-medium">{c.username ?? c.email}</div>
+              <div className="text-lg font-medium">{c.username}</div>
               <div className="mt-1 text-xs text-muted-foreground">
                 Applied to: {c.appliedTo.join(", ")}
               </div>

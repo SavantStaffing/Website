@@ -4,6 +4,13 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { ResumeUpload } from "@/components/talent/ResumeUpload";
+import {
+  UsernameField,
+  USERNAME_RE,
+  profileSaveError,
+  usernameOk,
+  type UsernameStatus,
+} from "@/components/site/UsernameField";
 import { SavedAnswers } from "@/components/talent/SavedAnswers";
 import {
   Field,
@@ -77,6 +84,8 @@ function Profile() {
   const [initial, setInitial] = useState(true);
 
   const [username, setUsername] = useState("");
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [email, setEmail] = useState(authEmail ?? "");
   const [phone, setPhone] = useState("");
   const [savingContact, setSavingContact] = useState(false);
@@ -96,6 +105,7 @@ function Profile() {
       ]);
       if (base) {
         setUsername(base.username ?? "");
+        setCurrentUsername(base.username ?? null);
         setEmail(base.email ?? authEmail ?? "");
         setPhone(base.phone ?? "");
       }
@@ -118,6 +128,15 @@ function Profile() {
     e.preventDefault();
     const parsed = contactSchema.safeParse({ username, email, phone });
     if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+    const changed = parsed.data.username.toLowerCase() !== (currentUsername ?? "").toLowerCase();
+    if (changed && !USERNAME_RE.test(parsed.data.username))
+      return toast.error("Usernames are 2–40 letters, numbers, dots, dashes or underscores.");
+    if (changed && !usernameOk(usernameStatus))
+      return toast.error(
+        usernameStatus === "taken"
+          ? "That username is taken. Pick another one."
+          : "Still checking your username.",
+      );
     setSavingContact(true);
     const { error: profileError } = await supabase
       .from("profiles")
@@ -134,7 +153,10 @@ function Profile() {
     }
     setSavingContact(false);
     if (profileError || emailError)
-      return toast.error(profileError?.message ?? emailError?.message ?? "Save failed");
+      return toast.error(
+        profileError ? profileSaveError(profileError) : (emailError?.message ?? "Save failed"),
+      );
+    setCurrentUsername(parsed.data.username);
     toast.success(
       parsed.data.email !== authEmail
         ? "Saved. Check your inbox to confirm the new email."
@@ -160,6 +182,17 @@ function Profile() {
     });
     setSavingPro(false);
     if (error) return toast.error(error.message);
+    // Keep the account's real name in step, so staff lists show it too.
+    const name = [pro.first_name, pro.last_name]
+      .map((x) => x?.trim())
+      .filter(Boolean)
+      .join(" ");
+    if (name)
+      void supabase
+        .from("profiles")
+        .update({ full_name: name.slice(0, 100) })
+        .eq("id", userId)
+        .then(() => undefined);
     toast.success("Profile saved.");
   }
 
@@ -290,7 +323,12 @@ function Profile() {
       <div id="contact" className="scroll-mt-24">
         <h2 className="text-2xl font-semibold">Contact info</h2>
         <form onSubmit={saveContact} className="mt-8 max-w-md space-y-6">
-          <Field label="Username" value={username} onChange={setUsername} />
+          <UsernameField
+            value={username}
+            onChange={setUsername}
+            onStatus={setUsernameStatus}
+            current={currentUsername}
+          />
           <Field label="Email" type="email" value={email} onChange={setEmail} />
           <Field label="Phone" type="tel" value={phone} onChange={setPhone} />
           <button type="submit" disabled={savingContact} className={primaryButton}>

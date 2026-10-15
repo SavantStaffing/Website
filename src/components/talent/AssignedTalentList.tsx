@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import { Badge, Empty, label, list, mutedButton, timeAgo } from "@/components/site/ui";
 import { intakeSummary, type IntakeRow } from "@/lib/talent/intake";
 
@@ -59,7 +60,7 @@ export function AssignedTalentList({ staffId, emptyText }: { staffId: string; em
       const ids = (assignments ?? []).map((a) => a.talent_id);
       if (!ids.length) return setRows([]);
       const [{ data: profiles }, { data: tps }, { data: prefs }] = await Promise.all([
-        supabase.from("profiles").select("id, username, email, phone").in("id", ids),
+        supabase.from("profiles").select("id, username, full_name, email, phone").in("id", ids),
         supabase.from("talent_profiles").select("*").in("user_id", ids),
         supabase
           .from("talent_preferences")
@@ -90,6 +91,7 @@ export function AssignedTalentList({ staffId, emptyText }: { staffId: string; em
             since: a.decided_at ?? a.created_at,
             name:
               [tp?.first_name, tp?.last_name].filter(Boolean).join(" ") ||
+              pr?.full_name ||
               pr?.username ||
               pr?.email ||
               "Talent",

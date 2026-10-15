@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import { updateUserRole } from "@/lib/authz/server-actions";
 import type { AppRole } from "@/lib/auth/session";
 import { toast } from "sonner";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 type ProfileRow = {
   id: string;
   username: string | null;
+  full_name: string | null;
   email: string | null;
   organization_id: string | null;
   created_at: string;
@@ -40,7 +42,7 @@ export function UserList({
     const [{ data: profileRows }, { data: roleRows }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, username, email, organization_id, created_at, organizations (name)")
+        .select("id, username, full_name, email, organization_id, created_at, organizations (name)")
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id, role"),
     ]);
@@ -91,8 +93,10 @@ export function UserList({
         {filtered.map((p) => (
           <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
             <div>
-              <div>{p.username ?? "—"}</div>
-              <div className="text-xs text-muted-foreground">{p.email}</div>
+              <div>{personName(p)}</div>
+              <div className="text-xs text-muted-foreground">
+                {[p.email, p.username && `@${p.username}`].filter(Boolean).join(" · ")}
+              </div>
               {showJoined && (
                 <div className="mt-1 text-xs text-muted-foreground">
                   Joined {new Date(p.created_at).toLocaleDateString()}
