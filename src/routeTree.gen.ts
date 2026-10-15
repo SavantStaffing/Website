@@ -23,6 +23,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ForbiddenRouteImport } from './routes/forbidden'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as JournalRouteImport } from './routes/journal'
 import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
 import { Route as PreparationRouteImport } from './routes/preparation'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -68,6 +69,7 @@ import { Route as CoachTalentRouteImport } from './routes/coach/talent'
 import { Route as CoachWelcomeRouteImport } from './routes/coach/welcome'
 import { Route as EmployerRatingsEmployerRouteImport } from './routes/employer-ratings_.$employer'
 import { Route as JoinCoachRouteImport } from './routes/join.coach'
+import { Route as JournalSlugRouteImport } from './routes/journal_.$slug'
 import { Route as RecruiterIndexRouteImport } from './routes/recruiter/index'
 import { Route as RecruiterAccountRouteImport } from './routes/recruiter/account'
 import { Route as RecruiterApplicationsRouteImport } from './routes/recruiter/applications'
@@ -170,6 +172,11 @@ const InsightsRoute = InsightsRouteImport.update({
 const JobsRoute = JobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JournalRoute = JournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PendingApprovalRoute = PendingApprovalRouteImport.update({
@@ -397,6 +404,11 @@ const JoinCoachRoute = JoinCoachRouteImport.update({
   path: '/join/coach',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JournalSlugRoute = JournalSlugRouteImport.update({
+  id: '/journal_/$slug',
+  path: '/journal/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecruiterIndexRoute = RecruiterIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -581,6 +593,7 @@ export interface FileRoutesByFullPath {
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
+  '/journal': typeof JournalRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/preparation': typeof PreparationRoute
   '/privacy': typeof PrivacyRoute
@@ -622,6 +635,7 @@ export interface FileRoutesByFullPath {
   '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
+  '/journal/$slug': typeof JournalSlugRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/assigned': typeof RecruiterAssignedRoute
@@ -671,6 +685,7 @@ export interface FileRoutesByTo {
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
+  '/journal': typeof JournalRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/preparation': typeof PreparationRoute
   '/privacy': typeof PrivacyRoute
@@ -712,6 +727,7 @@ export interface FileRoutesByTo {
   '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
+  '/journal/$slug': typeof JournalSlugRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/assigned': typeof RecruiterAssignedRoute
@@ -766,6 +782,7 @@ export interface FileRoutesById {
   '/forbidden': typeof ForbiddenRoute
   '/insights': typeof InsightsRoute
   '/jobs': typeof JobsRoute
+  '/journal': typeof JournalRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/preparation': typeof PreparationRoute
   '/privacy': typeof PrivacyRoute
@@ -807,6 +824,7 @@ export interface FileRoutesById {
   '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings_/$employer': typeof EmployerRatingsEmployerRoute
   '/join/coach': typeof JoinCoachRoute
+  '/journal_/$slug': typeof JournalSlugRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
   '/recruiter/assigned': typeof RecruiterAssignedRoute
@@ -862,6 +880,7 @@ export interface FileRouteTypes {
     | '/forbidden'
     | '/insights'
     | '/jobs'
+    | '/journal'
     | '/pending-approval'
     | '/preparation'
     | '/privacy'
@@ -903,6 +922,7 @@ export interface FileRouteTypes {
     | '/coach/welcome'
     | '/employer-ratings/$employer'
     | '/join/coach'
+    | '/journal/$slug'
     | '/recruiter/account'
     | '/recruiter/applications'
     | '/recruiter/assigned'
@@ -952,6 +972,7 @@ export interface FileRouteTypes {
     | '/forbidden'
     | '/insights'
     | '/jobs'
+    | '/journal'
     | '/pending-approval'
     | '/preparation'
     | '/privacy'
@@ -993,6 +1014,7 @@ export interface FileRouteTypes {
     | '/coach/welcome'
     | '/employer-ratings/$employer'
     | '/join/coach'
+    | '/journal/$slug'
     | '/recruiter/account'
     | '/recruiter/applications'
     | '/recruiter/assigned'
@@ -1046,6 +1068,7 @@ export interface FileRouteTypes {
     | '/forbidden'
     | '/insights'
     | '/jobs'
+    | '/journal'
     | '/pending-approval'
     | '/preparation'
     | '/privacy'
@@ -1087,6 +1110,7 @@ export interface FileRouteTypes {
     | '/coach/welcome'
     | '/employer-ratings_/$employer'
     | '/join/coach'
+    | '/journal_/$slug'
     | '/recruiter/account'
     | '/recruiter/applications'
     | '/recruiter/assigned'
@@ -1141,6 +1165,7 @@ export interface RootRouteChildren {
   ForbiddenRoute: typeof ForbiddenRoute
   InsightsRoute: typeof InsightsRoute
   JobsRoute: typeof JobsRoute
+  JournalRoute: typeof JournalRoute
   PendingApprovalRoute: typeof PendingApprovalRoute
   PreparationRoute: typeof PreparationRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1154,6 +1179,7 @@ export interface RootRouteChildren {
   AutofillPrivacyRoute: typeof AutofillPrivacyRoute
   EmployerRatingsEmployerRoute: typeof EmployerRatingsEmployerRoute
   JoinCoachRoute: typeof JoinCoachRoute
+  JournalSlugRoute: typeof JournalSlugRoute
   ApiAutofillAnswersRoute: typeof ApiAutofillAnswersRoute
   ApiAutofillPlanRoute: typeof ApiAutofillPlanRoute
   ApiCalendarFeedRoute: typeof ApiCalendarFeedRoute
@@ -1259,6 +1285,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs'
       fullPath: '/jobs'
       preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journal': {
+      id: '/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof JournalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pending-approval': {
@@ -1574,6 +1607,13 @@ declare module '@tanstack/react-router' {
       path: '/join/coach'
       fullPath: '/join/coach'
       preLoaderRoute: typeof JoinCoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journal_/$slug': {
+      id: '/journal_/$slug'
+      path: '/journal/$slug'
+      fullPath: '/journal/$slug'
+      preLoaderRoute: typeof JournalSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recruiter/': {
@@ -1983,6 +2023,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForbiddenRoute: ForbiddenRoute,
   InsightsRoute: InsightsRoute,
   JobsRoute: JobsRoute,
+  JournalRoute: JournalRoute,
   PendingApprovalRoute: PendingApprovalRoute,
   PreparationRoute: PreparationRoute,
   PrivacyRoute: PrivacyRoute,
@@ -1996,6 +2037,7 @@ const rootRouteChildren: RootRouteChildren = {
   AutofillPrivacyRoute: AutofillPrivacyRoute,
   EmployerRatingsEmployerRoute: EmployerRatingsEmployerRoute,
   JoinCoachRoute: JoinCoachRoute,
+  JournalSlugRoute: JournalSlugRoute,
   ApiAutofillAnswersRoute: ApiAutofillAnswersRoute,
   ApiAutofillPlanRoute: ApiAutofillPlanRoute,
   ApiCalendarFeedRoute: ApiCalendarFeedRoute,
