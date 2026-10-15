@@ -4,7 +4,7 @@ export type Block =
   | { type: "h2"; text: string }
   | { type: "p"; content: Inline[] }
   | { type: "ul"; items: Inline[][] }
-  | { type: "table"; head: string[]; rows: Inline[][] };
+  | { type: "table"; head: string[]; rows: Inline[][][] };
 
 export type JournalEntry = {
   slug: string;
