@@ -39,7 +39,8 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
         supabase.from("user_roles").select("role").eq("user_id", userRes.user.id),
         supabase
           .from("profiles")
-          .select("username, organization_id")
+          // "*": keeps sign-in working on a database that hasn't got full_name yet.
+          .select("*")
           .eq("id", userRes.user.id)
           .maybeSingle(),
         // Only job seekers have one; everyone else gets no row back.
@@ -79,7 +80,12 @@ export async function loadAuthContext(): Promise<AuthContext | null> {
       userId: userRes.user.id,
       email: userRes.user.email ?? null,
       role,
-      displayName: fullName || profileRow?.username?.trim() || userRes.user.email || "Your account",
+      displayName:
+        fullName ||
+        profileRow?.full_name?.trim() ||
+        profileRow?.username?.trim() ||
+        userRes.user.email ||
+        "Your account",
       profile: {
         username: profileRow?.username ?? null,
         organizationId: profileRow?.organization_id ?? null,

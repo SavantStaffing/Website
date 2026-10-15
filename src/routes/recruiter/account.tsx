@@ -5,6 +5,14 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AccountSettings } from "@/components/site/AccountSettings";
 import { Field, label, list, primaryButton, selectCls } from "@/components/site/ui";
+import {
+  UsernameField,
+  USERNAME_RE,
+  profileSaveError,
+  usernameOk,
+  type UsernameStatus,
+} from "@/components/site/UsernameField";
+import { personName } from "@/lib/people";
 
 export const Route = createFileRoute("/recruiter/account")({
   head: () => ({
@@ -21,6 +29,7 @@ const PERMISSIONS = [
 ] as const;
 
 const contactSchema = z.object({
+  fullName: z.string().trim().min(2, "Enter your full name").max(100),
   username: z.string().trim().min(2).max(40),
   phone: z.string().trim().max(30).optional().or(z.literal("")),
 });
@@ -28,6 +37,7 @@ const contactSchema = z.object({
 type Teammate = {
   id: string;
   username: string | null;
+  full_name: string | null;
   email: string | null;
   org_permission: string;
 };
@@ -35,7 +45,10 @@ type Teammate = {
 /** Account Info: contact info + Permissions (grant: point of contact / levels; deny: company info). */
 function RecruiterAccount() {
   const { userId, profile } = Route.useRouteContext();
+  const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [phone, setPhone] = useState("");
   const [savingContact, setSavingContact] = useState(false);
   const [team, setTeam] = useState<Teammate[]>([]);
@@ -47,13 +60,13 @@ function RecruiterAccount() {
       const [{ data: me }, { data: teammates }, { data: org }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("username, phone, org_permission")
+          .select("username, full_name, phone, org_permission")
           .eq("id", userId)
           .maybeSingle(),
         profile.organizationId
           ? supabase
               .from("profiles")
-              .select("id, username, email, org_permission")
+              .select("id, username, full_name, email, org_permission")
               .eq("organization_id", profile.organizationId)
               .order("created_at")
           : Promise.resolve({ data: [] as Teammate[] }),
@@ -65,7 +78,9 @@ function RecruiterAccount() {
               .maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
+      setFullName(me?.full_name ?? "");
       setUsername(me?.username ?? "");
+      setCurrentUsername(me?.username ?? null);
       setPhone(me?.phone ?? "");
       setMyPermission(me?.org_permission ?? "member");
       setTeam(teammates ?? []);
@@ -75,15 +90,29 @@ function RecruiterAccount() {
 
   async function saveContact(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = contactSchema.safeParse({ username, phone });
+    const parsed = contactSchema.safeParse({ fullName, username, phone });
     if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+    const changed = parsed.data.username.toLowerCase() !== (currentUsername ?? "").toLowerCase();
+    if (changed && !USERNAME_RE.test(parsed.data.username))
+      return toast.error("Usernames are 2–40 letters, numbers, dots, dashes or underscores.");
+    if (changed && !usernameOk(usernameStatus))
+      return toast.error(
+        usernameStatus === "taken"
+          ? "That username is taken. Pick another one."
+          : "Still checking your username.",
+      );
     setSavingContact(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ username: parsed.data.username, phone: parsed.data.phone || null })
+      .update({
+        full_name: parsed.data.fullName,
+        username: parsed.data.username,
+        phone: parsed.data.phone || null,
+      })
       .eq("id", userId);
     setSavingContact(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(profileSaveError(error));
+    setCurrentUsername(parsed.data.username);
     toast.success("Saved.");
   }
 
@@ -120,7 +149,13 @@ function RecruiterAccount() {
       <section>
         <h2 className="text-2xl font-semibold">Contact info</h2>
         <form onSubmit={saveContact} className="mt-8 max-w-md space-y-6">
-          <Field label="Name" value={username} onChange={setUsername} />
+          <Field label="Full name" value={fullName} onChange={setFullName} />
+          <UsernameField
+            value={username}
+            onChange={setUsername}
+            onStatus={setUsernameStatus}
+            current={currentUsername}
+          />
           <Field label="Phone" type="tel" value={phone} onChange={setPhone} />
           <button type="submit" disabled={savingContact} className={primaryButton}>
             {savingContact ? "…" : "Save"}
@@ -149,7 +184,8 @@ function RecruiterAccount() {
               <option value="">Not set</option>
               {team.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.username ?? t.email}
+                  {personName(t)}
+                  {t.email && t.full_name ? ` (${t.email})` : ""}
                 </option>
               ))}
             </select>
@@ -160,7 +196,7 @@ function RecruiterAccount() {
               <li key={t.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
                 <div>
                   <div>
-                    {t.username ?? "—"}{" "}
+                    {personName(t)}{" "}
                     {t.id === userId && (
                       <span className="text-xs text-muted-foreground">(you)</span>
                     )}

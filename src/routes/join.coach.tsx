@@ -25,7 +25,7 @@ export const Route = createFileRoute("/join/coach")({
 });
 
 const schema = z.object({
-  username: z.string().trim().min(2, "Name must be at least 2 characters").max(40),
+  fullName: z.string().trim().min(2, "Enter your full name").max(100),
   email: z.string().trim().email("Enter a valid email").max(254),
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
 });
@@ -42,7 +42,7 @@ const PROBLEM: Record<Exclude<InviteStatus, "checking" | "valid">, string> = {
 function CoachSignup() {
   const { invite } = Route.useSearch();
   const [status, setStatus] = useState<InviteStatus>("checking");
-  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ function CoachSignup() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = schema.safeParse({ username, email, password });
+    const parsed = schema.safeParse({ fullName, email, password });
     if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
     setLoading(true);
     // Re-check right before signing up: an account made with a dead invite
@@ -72,7 +72,8 @@ function CoachSignup() {
       password: parsed.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/verify-email?next=${encodeURIComponent("/coach")}`,
-        data: { username: parsed.data.username, role: "career_coach", coach_invite: invite },
+        // The username is made from the name (sarah.lee, or sarah.lee-2 if taken).
+        data: { full_name: parsed.data.fullName, role: "career_coach", coach_invite: invite },
       },
     });
     setLoading(false);
@@ -117,7 +118,12 @@ function CoachSignup() {
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-5">
-              <Field label="Name" value={username} onChange={setUsername} autoComplete="name" />
+              <Field
+                label="Full name"
+                value={fullName}
+                onChange={setFullName}
+                autoComplete="name"
+              />
               <Field
                 label="Email"
                 type="email"

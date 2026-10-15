@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import { Empty, SectionHeading, Stat, card, linkButton, list, timeAgo } from "@/components/site/ui";
 
 export const Route = createFileRoute("/recruiter/")({
@@ -71,12 +72,12 @@ function CompanyDashboard() {
       if (hired.length) {
         const { data: people } = await supabase
           .from("profiles")
-          .select("id, username, email")
+          .select("id, username, full_name, email")
           .in(
             "id",
             hired.map((h) => h.applicant_id),
           );
-        const names = new Map((people ?? []).map((p) => [p.id, p.username ?? p.email ?? "—"]));
+        const names = new Map((people ?? []).map((p) => [p.id, personName(p)]));
         const titles = new Map((jobs ?? []).map((j) => [j.id, j.title]));
         setHires(
           hired.map((h) => ({

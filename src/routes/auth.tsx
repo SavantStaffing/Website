@@ -2,6 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  UsernameField,
+  USERNAME_RE,
+  usernameOk,
+  type UsernameStatus,
+} from "@/components/site/UsernameField";
 import { PasswordInput } from "@/components/site/PasswordInput";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
@@ -31,7 +37,11 @@ const loginSchema = z.object({
 });
 const signupSchema = loginSchema
   .extend({
-    username: z.string().trim().min(2).max(40),
+    fullName: z.string().trim().min(2, "Enter your full name").max(100),
+    username: z
+      .string()
+      .trim()
+      .regex(USERNAME_RE, "Usernames are 2–40 letters, numbers, dots, dashes or underscores"),
     role: z.enum(["talent", "recruiter"]),
     company: z.string().trim().max(200),
   })
@@ -176,7 +186,9 @@ function SignupForm() {
   const next = useNextTarget();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [role, setRole] = useState<SignupRole>("talent");
   const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
@@ -184,11 +196,14 @@ function SignupForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = signupSchema.safeParse({ email, password, username, role, company });
+    const parsed = signupSchema.safeParse({ email, password, fullName, username, role, company });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
+    if (usernameStatus === "taken") return toast.error("That username is taken. Pick another one.");
+    if (!usernameOk(usernameStatus))
+      return toast.error("Still checking your username. Try again in a moment.");
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
@@ -196,6 +211,7 @@ function SignupForm() {
       options: {
         emailRedirectTo: `${window.location.origin}/verify-email${next ? `?next=${encodeURIComponent(next)}` : ""}`,
         data: {
+          full_name: parsed.data.fullName,
           username: parsed.data.username,
           role: parsed.data.role,
           ...(parsed.data.role === "recruiter" ? { company: parsed.data.company } : {}),
@@ -247,7 +263,8 @@ function SignupForm() {
           />
         </div>
       </div>
-      <Field label="Username" value={username} onChange={setUsername} autoComplete="username" />
+      <Field label="Full name" value={fullName} onChange={setFullName} autoComplete="name" />
+      <UsernameField value={username} onChange={setUsername} onStatus={setUsernameStatus} />
       {role === "recruiter" && (
         <Field
           label="Company you recruit for"

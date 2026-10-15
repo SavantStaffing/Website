@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import { toast } from "sonner";
 import { linkButton, mutedButton, timeAgo } from "@/components/site/ui";
 
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/admin/recruiters")({
 type RecruiterRow = {
   id: string;
   username: string | null;
+  full_name: string | null;
   email: string | null;
   organization_id: string | null;
   org_permission: string;
@@ -25,6 +27,7 @@ type RequestRow = {
   status: string;
   requested_at: string;
   username: string | null;
+  full_name: string | null;
   email: string | null;
 };
 
@@ -44,21 +47,21 @@ function RecruiterManagement() {
       .order("requested_at", { ascending: true });
     const ids = (rows ?? []).map((r) => r.user_id);
     const { data: people } = ids.length
-      ? await supabase.from("profiles").select("id, username, email").in("id", ids)
+      ? await supabase.from("profiles").select("id, username, full_name, email").in("id", ids)
       : { data: [] };
     const byId = new Map((people ?? []).map((p) => [p.id, p]));
     setRequests(
       (rows ?? []).map((r) => ({
         ...r,
         username: byId.get(r.user_id)?.username ?? null,
+        full_name: byId.get(r.user_id)?.full_name ?? null,
         email: byId.get(r.user_id)?.email ?? null,
       })),
     );
   }
 
   async function decide(r: RequestRow, approve: boolean) {
-    if (!approve && !window.confirm(`Decline ${r.username ?? r.email ?? "this recruiter"}?`))
-      return;
+    if (!approve && !window.confirm(`Decline ${personName(r, null, "this recruiter")}?`)) return;
     setDeciding(r.user_id);
     const { error } = await supabase.rpc("decide_recruiter_request", {
       _user_id: r.user_id,
@@ -74,6 +77,7 @@ function RecruiterManagement() {
         {
           id: r.user_id,
           username: r.username,
+          full_name: r.full_name,
           email: r.email,
           organization_id: null,
           org_permission: "member",
@@ -104,7 +108,7 @@ function RecruiterManagement() {
       }
       const { data: profileRows } = await supabase
         .from("profiles")
-        .select("id, username, email, organization_id, org_permission")
+        .select("id, username, full_name, email, organization_id, org_permission")
         .in("id", recruiterIds);
       setRecruiters((profileRows as RecruiterRow[]) ?? []);
       setLoading(false);
@@ -171,7 +175,7 @@ function RecruiterManagement() {
                 className="flex flex-wrap items-center justify-between gap-4 py-4"
               >
                 <div>
-                  <div>{r.username ?? "—"}</div>
+                  <div>{personName(r)}</div>
                   <div className="text-xs text-muted-foreground">
                     {[r.email, r.company_name, `signed up ${timeAgo(r.requested_at)}`]
                       .filter(Boolean)
@@ -210,7 +214,7 @@ function RecruiterManagement() {
                   className="flex flex-wrap items-center justify-between gap-4 py-3"
                 >
                   <span>
-                    {r.username ?? "—"}{" "}
+                    {personName(r)}{" "}
                     <span className="text-xs text-muted-foreground">
                       {[r.email, r.company_name].filter(Boolean).join(" · ")}
                     </span>
@@ -245,8 +249,10 @@ function RecruiterManagement() {
           {recruiters.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
               <div>
-                <div>{r.username ?? "—"}</div>
-                <div className="text-xs text-muted-foreground">{r.email}</div>
+                <div>{personName(r)}</div>
+                <div className="text-xs text-muted-foreground">
+                  {[r.email, r.username && `@${r.username}`].filter(Boolean).join(" · ")}
+                </div>
               </div>
               <div className="flex flex-wrap gap-3">
                 <select

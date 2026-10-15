@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/recruiter/applications")({
@@ -50,9 +51,12 @@ function RecruiterApplications() {
 
     const applicantIds = [...new Set((apps ?? []).map((a) => a.applicant_id))];
     const { data: profiles } = applicantIds.length
-      ? await supabase.from("profiles").select("id, username, email").in("id", applicantIds)
+      ? await supabase
+          .from("profiles")
+          .select("id, username, full_name, email")
+          .in("id", applicantIds)
       : { data: [] };
-    const nameMap = new Map((profiles ?? []).map((p) => [p.id, p.username ?? p.email ?? "—"]));
+    const nameMap = new Map((profiles ?? []).map((p) => [p.id, personName(p)]));
 
     setApplications(
       (apps ?? []).map((a) => ({

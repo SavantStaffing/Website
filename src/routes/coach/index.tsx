@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { personName } from "@/lib/people";
 import {
   Badge,
   ChipGroup,
@@ -65,7 +66,7 @@ function ServiceRequests() {
       ] as string[];
       if (!ids.length) return;
       const [{ data: profiles }, { data: tps }] = await Promise.all([
-        supabase.from("profiles").select("id, username, email, phone").in("id", ids),
+        supabase.from("profiles").select("id, username, full_name, email, phone").in("id", ids),
         supabase
           .from("talent_profiles")
           .select("user_id, first_name, last_name")
@@ -79,7 +80,7 @@ function ServiceRequests() {
           (profiles ?? []).map((p) => [
             p.id,
             {
-              name: names.get(p.id) || p.username || p.email || "—",
+              name: personName(p, names.get(p.id)),
               email: p.email,
               phone: p.phone,
             },
