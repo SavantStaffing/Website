@@ -1,4 +1,4 @@
-import type { JournalEntry } from "./types";
+import type { Inline, JournalEntry } from "./types";
 
 const BLS = "https://www.bls.gov/ooh";
 
@@ -7,6 +7,7 @@ export const ENTRIES: JournalEntry[] = [
     slug: "high-pay-low-barrier",
     title: "High pay, low barrier: Bay Area careers you can start in two years or less",
     date: "2026-10-15",
+    category: "Career paths",
     summary:
       "Three paths (imaging, HVAC/R and medical coding) can reach a Bay Area paycheck of $75,000 or more for $3,500 or less. Here is how they compare, what to verify first, and how to pay for training.",
     blocks: [
@@ -43,7 +44,12 @@ export const ENTRIES: JournalEntry[] = [
         ],
         rows: [
           [
-            [{ text: "Diagnostic medical sonographer", href: `${BLS}/healthcare/diagnostic-medical-sonographers.htm` }],
+            [
+              {
+                text: "Diagnostic medical sonographer",
+                href: `${BLS}/healthcare/diagnostic-medical-sonographers.htm`,
+              },
+            ],
             ["Imaging program at Foothill College or City College of San Francisco (CCSF)"],
             ["23 to 24 months"],
             ["$2,500 to $3,500"],
@@ -51,7 +57,12 @@ export const ENTRIES: JournalEntry[] = [
             ["$96,590"],
           ],
           [
-            [{ text: "Radiologic technologist", href: `${BLS}/healthcare/radiologic-technologists.htm` }],
+            [
+              {
+                text: "Radiologic technologist",
+                href: `${BLS}/healthcare/radiologic-technologists.htm`,
+              },
+            ],
             ["Same imaging program"],
             ["23 to 24 months"],
             ["$2,500 to $3,500"],
@@ -243,9 +254,15 @@ export const ENTRIES: JournalEntry[] = [
         items: [
           [
             "BLS Occupational Outlook Handbook: ",
-            { text: "radiologic technologists", href: `${BLS}/healthcare/radiologic-technologists.htm` },
+            {
+              text: "radiologic technologists",
+              href: `${BLS}/healthcare/radiologic-technologists.htm`,
+            },
             ", ",
-            { text: "diagnostic medical sonographers", href: `${BLS}/healthcare/diagnostic-medical-sonographers.htm` },
+            {
+              text: "diagnostic medical sonographers",
+              href: `${BLS}/healthcare/diagnostic-medical-sonographers.htm`,
+            },
             ", ",
             { text: "dental hygienists", href: `${BLS}/healthcare/dental-hygienists.htm` },
             ", ",
@@ -258,11 +275,20 @@ export const ENTRIES: JournalEntry[] = [
             ", ",
             { text: "logisticians", href: `${BLS}/business-and-financial/logisticians.htm` },
             ", ",
-            { text: "medical records specialists", href: `${BLS}/healthcare/medical-records-and-health-information-technicians.htm` },
+            {
+              text: "medical records specialists",
+              href: `${BLS}/healthcare/medical-records-and-health-information-technicians.htm`,
+            },
             ", ",
-            { text: "information security analysts", href: `${BLS}/computer-and-information-technology/information-security-analysts.htm` },
+            {
+              text: "information security analysts",
+              href: `${BLS}/computer-and-information-technology/information-security-analysts.htm`,
+            },
             ", ",
-            { text: "buyers and purchasing agents", href: `${BLS}/business-and-financial/purchasing-managers-buyers-and-purchasing-agents.htm` },
+            {
+              text: "buyers and purchasing agents",
+              href: `${BLS}/business-and-financial/purchasing-managers-buyers-and-purchasing-agents.htm`,
+            },
             ", ",
             { text: "data scientists", href: `${BLS}/math/data-scientists.htm` },
           ],
@@ -272,6 +298,117 @@ export const ENTRIES: JournalEntry[] = [
       },
     ],
   },
+  {
+    slug: "understanding-ats",
+    title: "Understanding applicant tracking systems (ATS): how to optimize your resume",
+    date: "2026-10-15",
+    category: "Job search",
+    summary:
+      "Navigate automated hiring systems, tailor your resume, and improve your application strategy with Savant Staffing.",
+    blocks: [
+      { type: "h2", text: "What is an applicant tracking system?" },
+      {
+        type: "p",
+        content: [
+          "An Applicant Tracking System (ATS) is software that helps employers manage job postings, organize applications, and review candidate qualifications. Depending on the system and employer, an ATS may extract resume information, search for relevant keywords, and help recruiters identify applicants whose qualifications align with a position.",
+        ],
+      },
+
+      { type: "h2", text: "Why does ATS compatibility matter?" },
+      {
+        type: "p",
+        content: [
+          "Submitting a resume online does not guarantee that a recruiter will review it immediately. Employers may use automated tools to organize or prioritize applications, making it important to communicate your qualifications clearly and effectively.",
+        ],
+      },
+      {
+        type: "p",
+        content: [
+          "A resume that fails to highlight relevant skills, experience, or terminology may not adequately demonstrate your suitability for a position, even when you possess the necessary qualifications.",
+        ],
+      },
+
+      { type: "h2", text: "How can you optimize your resume?" },
+      { type: "p", content: ["Three practical strategies can help strengthen your applications:"] },
+      {
+        type: "ul",
+        items: [
+          [
+            { bold: "Use relevant keywords." },
+            " Identify the skills, qualifications, and terminology emphasized in the job description. Incorporate them naturally when they accurately reflect your experience.",
+          ],
+          [
+            { bold: "Maintain clear formatting." },
+            " Use conventional section headings, readable fonts, and a straightforward layout to support resume parsing and readability.",
+          ],
+          [
+            { bold: "Tailor your resume to each role." },
+            " Emphasize the experience, skills, projects, and accomplishments most relevant to the position rather than submitting the same generic resume for every opportunity.",
+          ],
+        ],
+      },
+
+      { type: "h2", text: "Why resume tailoring matters" },
+      {
+        type: "p",
+        content: [
+          "Different positions may require different combinations of skills, experience, and qualifications. Your professional background may be relevant to several career paths, but a single resume may not communicate that relevance equally well to every employer.",
+        ],
+      },
+      {
+        type: "p",
+        content: [
+          {
+            bold: "Savant Staffing helps address this challenge through resume building designed to support multiple role-specific alternatives.",
+          },
+          " Instead of relying on one general-purpose resume, job seekers can develop and refine different versions that emphasize their qualifications for distinct positions and career paths.",
+        ],
+      },
+      {
+        type: "p",
+        content: [
+          "For example, a candidate with experience in customer service, administration, and data entry could prepare tailored resume versions for customer support, administrative assistance, and entry-level data operations roles. Each version can highlight the most relevant qualifications while accurately representing the candidate's background.",
+        ],
+      },
+
+      { type: "h2", text: "Take the next step" },
+      {
+        type: "p",
+        content: [
+          "A stronger job search begins with understanding the position, identifying the qualifications employers seek, and presenting your experience accordingly. Combine an ATS-friendly format with thoughtful resume tailoring to make your applications more relevant and easier to evaluate.",
+        ],
+      },
+    ],
+    cta: {
+      title: "Build your resume with Savant Staffing",
+      body: "Create alternatives for different roles, tailor your qualifications to each opportunity, and approach your next application with a more focused strategy.",
+      label: "Start your resume →",
+      to: "/talent/profile",
+    },
+  },
 ];
+
+/** Rough reading time from the text in an entry's blocks (about 230 words a minute). */
+export function readMinutes(entry: JournalEntry): number {
+  const text = (parts: Inline[]) =>
+    parts.map((p) => (typeof p === "string" ? p : "bold" in p ? p.bold : p.text)).join(" ");
+  const words = entry.blocks
+    .map((b) =>
+      b.type === "h2"
+        ? b.text
+        : b.type === "p"
+          ? text(b.content)
+          : b.type === "ul"
+            ? b.items.map(text).join(" ")
+            : b.rows.map((r) => r.map(text).join(" ")).join(" "),
+    )
+    .join(" ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return Math.max(1, Math.round(words / 230));
+}
+
+/** Newest first. */
+export const SORTED_ENTRIES = [...ENTRIES].sort((a, b) => b.date.localeCompare(a.date));
 
 export const getEntry = (slug: string) => ENTRIES.find((e) => e.slug === slug);

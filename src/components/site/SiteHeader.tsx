@@ -13,7 +13,6 @@ const NAV = [
   { to: "/employer-ratings", label: "Employer Ratings" },
   { to: "/services", label: "Services" },
   { to: "/insights", label: "Insights" },
-  { to: "/journal", label: "Journal" },
   { to: "/contact", label: "Contact" },
 ] as const;
 

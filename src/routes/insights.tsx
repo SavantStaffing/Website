@@ -7,7 +7,9 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { GuideList } from "@/components/site/GuideList";
 import { label, mutedButton } from "@/components/site/ui";
+import { SORTED_ENTRIES } from "@/lib/journal/entries";
 import { getRegionInsights, searchOccupationPay } from "@/lib/insights/insights.functions";
 import { DEFAULT_REGION, REGIONS } from "@/lib/insights/regions";
 import { JOB_TRACK_LABELS, type JobTrack } from "@/lib/scout/track";
@@ -68,6 +70,9 @@ function Insights() {
         Unemployment, hiring by industry, what jobs pay and where demand is heading, from the
         California Employment Development Department's labor market data. Updated as EDD publishes.
       </p>
+      <Link to="/insights" hash="guides" className={`mt-6 inline-block ${mutedButton}`}>
+        Read our guides on careers and job search ↓
+      </Link>
 
       <div className="mt-12 flex flex-wrap items-end justify-between gap-6 border-b border-[color:var(--color-hairline)] pb-8">
         <label className="block">
@@ -190,6 +195,16 @@ function Insights() {
         </p>
         {wages?.rows.length ? <PayTable rows={wages.rows} /> : <Unavailable />}
         <PaySearch region={data.region.slug} />
+        <p className="mt-8 text-sm text-muted-foreground">
+          Looking for well-paid work you can train for quickly?{" "}
+          <Link
+            to="/insights/$slug"
+            params={{ slug: "high-pay-low-barrier" }}
+            className="text-foreground underline decoration-[color:var(--color-hairline)] underline-offset-4 [@media(hover:hover)]:hover:decoration-foreground"
+          >
+            Read our guide to high-pay, low-barrier Bay Area careers →
+          </Link>
+        </p>
       </section>
 
       {/* ---------------------------------------------------------- outlook */}
@@ -207,6 +222,15 @@ function Insights() {
         ) : (
           <Unavailable />
         )}
+      </section>
+
+      {/* ---------------------------------------------------------- guides */}
+      <section id="guides" className="mt-24 scroll-mt-24">
+        <h2 className="text-3xl font-semibold">Guides</h2>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          What the numbers mean for your next move: training paths, pay and how to get hired.
+        </p>
+        <GuideList entries={SORTED_ENTRIES} />
       </section>
 
       <section className="mt-24 flex flex-wrap items-center justify-between gap-6 border border-[color:var(--color-hairline)] p-8">
