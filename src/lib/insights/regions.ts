@@ -183,16 +183,47 @@ export const FEATURED_OCCUPATIONS: { soc: string; track: "hourly" | "professiona
   { soc: "472111", track: "professional" }, // Electricians
 ];
 
+export type IndustrySeries = {
+  code: string;
+  label: string;
+  /**
+   * Finer CES series that replace this one when the region publishes all of them.
+   * Smaller metro areas often report only the supersector, so the parent is the fallback.
+   */
+  split?: { code: string; label: string }[];
+};
+
 /** CES supersectors shown in the industry trends, by series code. */
-export const INDUSTRY_SERIES: { code: string; label: string }[] = [
+export const INDUSTRY_SERIES: IndustrySeries[] = [
   { code: "20000000", label: "Construction" },
   { code: "30000000", label: "Manufacturing" },
-  { code: "40000000", label: "Trade, transportation & utilities" },
+  {
+    code: "40000000",
+    label: "Trade, transportation & utilities",
+    split: [
+      { code: "41000000", label: "Wholesale trade" },
+      { code: "42000000", label: "Retail trade" },
+      { code: "43000000", label: "Transportation, warehousing & utilities" },
+    ],
+  },
   { code: "50000000", label: "Information" },
   { code: "55000000", label: "Financial activities" },
   { code: "60000000", label: "Professional & business services" },
-  { code: "65000000", label: "Education & health services" },
+  {
+    code: "65000000",
+    label: "Education & health services",
+    split: [
+      { code: "65610000", label: "Educational services (private)" },
+      { code: "65620000", label: "Health care & social assistance" },
+    ],
+  },
   { code: "70000000", label: "Leisure & hospitality" },
   { code: "80000000", label: "Other services" },
   { code: "90000000", label: "Government" },
 ];
+
+/** Every series code to request: each supersector plus any finer series under it. */
+export const INDUSTRY_CODES: string[] = INDUSTRY_SERIES.flatMap((s) => [
+  s.code,
+  ...(s.split?.map((x) => x.code) ?? []),
+]);
