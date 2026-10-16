@@ -67,6 +67,7 @@ import { Route as CoachSettingsRouteImport } from './routes/coach/settings'
 import { Route as CoachTalentRouteImport } from './routes/coach/talent'
 import { Route as CoachWelcomeRouteImport } from './routes/coach/welcome'
 import { Route as EmployerRatingsEmployerRouteImport } from './routes/employer-ratings_.$employer'
+import { Route as InsightsSlugRouteImport } from './routes/insights_.$slug'
 import { Route as JoinCoachRouteImport } from './routes/join.coach'
 import { Route as RecruiterIndexRouteImport } from './routes/recruiter/index'
 import { Route as RecruiterAccountRouteImport } from './routes/recruiter/account'
@@ -392,6 +393,11 @@ const EmployerRatingsEmployerRoute = EmployerRatingsEmployerRouteImport.update({
   path: '/employer-ratings/$employer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InsightsSlugRoute = InsightsSlugRouteImport.update({
+  id: '/insights_/$slug',
+  path: '/insights/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinCoachRoute = JoinCoachRouteImport.update({
   id: '/join/coach',
   path: '/join/coach',
@@ -621,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/coach/talent': typeof CoachTalentRoute
   '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
+  '/insights/$slug': typeof InsightsSlugRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
@@ -711,6 +718,7 @@ export interface FileRoutesByTo {
   '/coach/talent': typeof CoachTalentRoute
   '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings/$employer': typeof EmployerRatingsEmployerRoute
+  '/insights/$slug': typeof InsightsSlugRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
@@ -806,6 +814,7 @@ export interface FileRoutesById {
   '/coach/talent': typeof CoachTalentRoute
   '/coach/welcome': typeof CoachWelcomeRoute
   '/employer-ratings_/$employer': typeof EmployerRatingsEmployerRoute
+  '/insights_/$slug': typeof InsightsSlugRoute
   '/join/coach': typeof JoinCoachRoute
   '/recruiter/account': typeof RecruiterAccountRoute
   '/recruiter/applications': typeof RecruiterApplicationsRoute
@@ -902,6 +911,7 @@ export interface FileRouteTypes {
     | '/coach/talent'
     | '/coach/welcome'
     | '/employer-ratings/$employer'
+    | '/insights/$slug'
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
@@ -992,6 +1002,7 @@ export interface FileRouteTypes {
     | '/coach/talent'
     | '/coach/welcome'
     | '/employer-ratings/$employer'
+    | '/insights/$slug'
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
@@ -1086,6 +1097,7 @@ export interface FileRouteTypes {
     | '/coach/talent'
     | '/coach/welcome'
     | '/employer-ratings_/$employer'
+    | '/insights_/$slug'
     | '/join/coach'
     | '/recruiter/account'
     | '/recruiter/applications'
@@ -1153,6 +1165,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AutofillPrivacyRoute: typeof AutofillPrivacyRoute
   EmployerRatingsEmployerRoute: typeof EmployerRatingsEmployerRoute
+  InsightsSlugRoute: typeof InsightsSlugRoute
   JoinCoachRoute: typeof JoinCoachRoute
   ApiAutofillAnswersRoute: typeof ApiAutofillAnswersRoute
   ApiAutofillPlanRoute: typeof ApiAutofillPlanRoute
@@ -1567,6 +1580,13 @@ declare module '@tanstack/react-router' {
       path: '/employer-ratings/$employer'
       fullPath: '/employer-ratings/$employer'
       preLoaderRoute: typeof EmployerRatingsEmployerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights_/$slug': {
+      id: '/insights_/$slug'
+      path: '/insights/$slug'
+      fullPath: '/insights/$slug'
+      preLoaderRoute: typeof InsightsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/coach': {
@@ -1995,6 +2015,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AutofillPrivacyRoute: AutofillPrivacyRoute,
   EmployerRatingsEmployerRoute: EmployerRatingsEmployerRoute,
+  InsightsSlugRoute: InsightsSlugRoute,
   JoinCoachRoute: JoinCoachRoute,
   ApiAutofillAnswersRoute: ApiAutofillAnswersRoute,
   ApiAutofillPlanRoute: ApiAutofillPlanRoute,
