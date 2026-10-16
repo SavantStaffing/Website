@@ -1,4 +1,4 @@
-import { FEATURED_OCCUPATIONS, INDUSTRY_SERIES, type Region } from "./regions";
+import { FEATURED_OCCUPATIONS, INDUSTRY_CODES, INDUSTRY_SERIES, type Region } from "./regions";
 
 /**
  * California EDD Labor Market Information from the state open-data portal
@@ -357,7 +357,7 @@ export type JobsTrend = {
 
 async function cesRows(resource: string, r: Region, fromYear: number) {
   // Series codes may be text ("00000000") or numbers (0); compare as text, both spellings.
-  const wanted = ["00000000", ...INDUSTRY_SERIES.map((s) => s.code)];
+  const wanted = ["00000000", ...INDUSTRY_CODES];
   const codes = list([...wanted, ...wanted.map((code) => String(Number(code)))]);
   const c = await columnsOf(resource);
   const rows = await query(
@@ -395,12 +395,19 @@ export async function getJobsTrend(r: Region): Promise<JobsTrend | null> {
   const at = (code: string, y: number, m: number) =>
     rows.find((x) => x.code === code && x.y === y && x.m === m)?.jobs ?? null;
 
-  const industries = INDUSTRY_SERIES.flatMap(({ code, label }) => {
+  const row = (code: string, label: string): IndustryTrend | null => {
     const now = at(code, latest.y, latest.m);
-    if (now === null) return [];
+    if (now === null) return null;
     const yearAgo = at(code, latest.y - 1, latest.m);
     const change = yearAgo === null ? null : now - yearAgo;
-    return [{ label, now, yearAgo, change, pct: yearAgo ? (change! / yearAgo) * 100 : null }];
+    return { label, now, yearAgo, change, pct: yearAgo ? (change! / yearAgo) * 100 : null };
+  };
+  const industries = INDUSTRY_SERIES.flatMap(({ code, label, split }) => {
+    // Show the finer breakdown only when the region publishes every part of it.
+    const parts = split?.map((s) => row(s.code, s.label));
+    if (parts && parts.every((p): p is IndustryTrend => p !== null)) return parts;
+    const whole = row(code, label);
+    return whole ? [whole] : [];
   }).sort((a, b) => (b.pct ?? -Infinity) - (a.pct ?? -Infinity));
 
   return {
