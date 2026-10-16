@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { CookieNotice } from "@/components/site/CookieNotice";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 function NotFoundComponent() {
@@ -137,6 +138,7 @@ function RootComponent() {
           </main>
           <SiteFooter />
         </div>
+        <CookieNotice />
         <Toaster theme="light" position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
