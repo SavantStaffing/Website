@@ -6,5 +6,13 @@
   "name": "savantalent",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Public settings only. Private keys (SUPABASE_SERVICE_ROLE_KEY,
+  // ANTHROPIC_API_KEY, RESEND_API_KEY, ...) are Cloudflare secrets.
+  "vars": {
+    "SUPABASE_URL": "https://auldwzcqtjpwmliqqoyj.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ITvSYfXEAJNbxjykI6Ecjg_sGzmo2YJ",
+    "RESEND_FROM": "Savant Staffing <noreply@savantalent.com>",
+    "CONTACT_NOTIFY_TO": "info@savantalent.com"
+  }
 }
