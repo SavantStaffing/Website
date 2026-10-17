@@ -70,11 +70,17 @@ function Insights() {
         Unemployment, hiring by industry, what jobs pay and where demand is heading, from the
         California Employment Development Department's labor market data. Updated as EDD publishes.
       </p>
-      <Link to="/insights" hash="guides" className={`mt-6 inline-block ${mutedButton}`}>
-        Read our guides on careers and job search ↓
-      </Link>
 
-      <div className="mt-12 flex flex-wrap items-end justify-between gap-6 border-b border-[color:var(--color-hairline)] pb-8">
+      {/* ---------------------------------------------------------- guides */}
+      <section id="guides" className="mt-16 scroll-mt-24">
+        <h2 className="text-3xl font-semibold">Guides</h2>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          What the numbers mean for your next move: training paths, pay and how to get hired.
+        </p>
+        <GuideList entries={SORTED_ENTRIES} />
+      </section>
+
+      <div className="mt-24 flex flex-wrap items-end justify-between gap-6 border-b border-[color:var(--color-hairline)] pb-8">
         <label className="block">
           <span className={label}>Region</span>
           <select
@@ -222,15 +228,6 @@ function Insights() {
         ) : (
           <Unavailable />
         )}
-      </section>
-
-      {/* ---------------------------------------------------------- guides */}
-      <section id="guides" className="mt-24 scroll-mt-24">
-        <h2 className="text-3xl font-semibold">Guides</h2>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          What the numbers mean for your next move: training paths, pay and how to get hired.
-        </p>
-        <GuideList entries={SORTED_ENTRIES} />
       </section>
 
       <section className="mt-24 flex flex-wrap items-center justify-between gap-6 border border-[color:var(--color-hairline)] p-8">
