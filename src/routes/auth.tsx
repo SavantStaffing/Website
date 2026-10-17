@@ -9,7 +9,6 @@ import {
   type UsernameStatus,
 } from "@/components/site/UsernameField";
 import { PasswordInput } from "@/components/site/PasswordInput";
-import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
 type Mode = "login" | "signup" | "forgot";
@@ -147,6 +146,8 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  // The email belongs to an account made with Google that has no password.
+  const [googleOnly, setGoogleOnly] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -157,14 +158,31 @@ function LoginForm() {
     }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword(parsed.data);
-    setLoading(false);
     if (error) {
+      const { data: needsPassword } = await supabase.rpc("email_needs_password", {
+        _email: parsed.data.email,
+      });
+      setLoading(false);
+      if (needsPassword) return setGoogleOnly(true);
       toast.error(error.message);
       return;
     }
+    setLoading(false);
     toast.success("Signed in.");
     if (next) window.location.assign(next);
     else navigate({ to: "/dashboard" });
+  }
+
+  if (googleOnly) {
+    return (
+      <SetPasswordOffer
+        email={email.trim()}
+        onBack={() => {
+          setGoogleOnly(false);
+          setPassword("");
+        }}
+      />
+    );
   }
 
   return (
@@ -182,10 +200,61 @@ function LoginForm() {
   );
 }
 
+/** Shown when someone tries a password on an account made with Google.
+ *  Setting the password goes through an emailed link, so only the owner of
+ *  the inbox can add one. */
+function SetPasswordOffer({ email, onBack }: { email: string; onBack: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function sendLink() {
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password?set=1`,
+    });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    setSent(true);
+  }
+
+  return (
+    <div className="rounded-sm border border-[color:var(--color-hairline)] p-6">
+      <h2 className="text-lg font-medium">{sent ? "Check your email" : "Set a password"}</h2>
+      {sent ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          We sent a link to <span className="text-foreground">{email}</span>. Click it to set your
+          password. After that you can sign in with your email or with Google.
+        </p>
+      ) : (
+        <>
+          <p className="mt-3 text-sm text-muted-foreground">
+            <span className="text-foreground">{email}</span> signs in with Google and doesn't have a
+            password yet. Continue with Google below, or set a password so you can also sign in with
+            your email.
+          </p>
+          <div className="mt-6">
+            <SubmitBtn loading={loading} type="button" onClick={sendLink}>
+              Email me a link to set a password
+            </SubmitBtn>
+          </div>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={onBack}
+        className="mt-5 text-[12px] uppercase tracking-[0.2em] text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+      >
+        Use a different email
+      </button>
+    </div>
+  );
+}
+
 function SignupForm() {
   const next = useNextTarget();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
@@ -201,6 +270,7 @@ function SignupForm() {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
+    if (password !== confirm) return toast.error("Passwords do not match");
     if (usernameStatus === "taken") return toast.error("That username is taken. Pick another one.");
     if (!usernameOk(usernameStatus))
       return toast.error("Still checking your username. Try again in a moment.");
@@ -281,6 +351,13 @@ function SignupForm() {
         onChange={setPassword}
         autoComplete="new-password"
       />
+      <Field
+        label="Confirm password"
+        type="password"
+        value={confirm}
+        onChange={setConfirm}
+        autoComplete="new-password"
+      />
       <SubmitBtn loading={loading}>Create account</SubmitBtn>
     </form>
   );
@@ -358,27 +435,24 @@ function GoogleButton() {
   const [loading, setLoading] = useState(false);
   async function go() {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri:
-        window.location.origin +
-        "/auth/callback" +
-        (next ? `?next=${encodeURIComponent(next)}` : ""),
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo:
+          window.location.origin +
+          "/auth/callback" +
+          (next ? `?next=${encodeURIComponent(next)}` : ""),
+      },
     });
-    if (result.error) {
+    // On success the browser is already on its way to Google.
+    if (error) {
       setLoading(false);
-      const message = result.error.message || "";
+      const message = error.message || "";
       toast.error(
         /not supported|not enabled/i.test(message)
           ? "Google sign-in isn't turned on yet. Please use your email and password."
           : `Google sign-in failed${message ? `: ${message}` : ""}`,
       );
-      return;
-    }
-    // Most of the time the page has already redirected to Google. In a popup
-    // (e.g. Lovable's preview) the session is set here instead: finish the
-    // sign-in the same way the callback page does.
-    if (!("redirected" in result && result.redirected)) {
-      window.location.assign("/auth/callback" + (next ? `?next=${encodeURIComponent(next)}` : ""));
     }
   }
   return (
@@ -433,10 +507,21 @@ function Field({
   );
 }
 
-function SubmitBtn({ children, loading }: { children: React.ReactNode; loading: boolean }) {
+function SubmitBtn({
+  children,
+  loading,
+  type = "submit",
+  onClick,
+}: {
+  children: React.ReactNode;
+  loading: boolean;
+  type?: "submit" | "button";
+  onClick?: () => void;
+}) {
   return (
     <button
-      type="submit"
+      type={type}
+      onClick={onClick}
       disabled={loading}
       className="mt-2 w-full rounded-sm bg-foreground py-3 text-[12px] font-medium uppercase tracking-[0.2em] text-background disabled:opacity-50"
     >

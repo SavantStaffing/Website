@@ -2,7 +2,7 @@
 
 Staffing company website.
 
-Site Tech: TanStack Start (React) + Tailwind CSS v4 + shadcn/ui, structured for the [Lovable](https://lovable.dev) editor.
+Site Tech: TanStack Start (React) + Tailwind CSS v4 + shadcn/ui, hosted on Cloudflare Workers.
 
 Authentication: Supabase Auth with Row Level Security (role-based — Admin, Talent, Recruiter)
 
@@ -42,7 +42,7 @@ Jobs are pulled from companies' public ATS boards (Greenhouse, Lever, Ashby, Sma
 
 ## Pages
 
-All pages are scaffolded with placeholder ("Content coming soon") copy, ready to be filled in from the Lovable editor.
+All pages are scaffolded with placeholder ("Content coming soon") copy.
 
 **Home** — Hero, services preview, programs preview, calls to action for job seekers and employers.
 
@@ -76,14 +76,13 @@ Auth pages: Sign Up, Login, Password Reset, Email Verification (confirmation scr
 
 Adding a new role or permission means: add the enum value in a migration, add its RLS policies, add it to `ROLE_PERMISSIONS` in `src/lib/authz/permissions.ts`, and add a route group if it needs its own dashboard. Nothing about the existing roles needs to change for that to work — the `has_role()` / `own_organization_id()` SQL helpers and the `requireRole()` route guard were written generically for this.
 
-## Connecting to Lovable
+## Hosting & deployment
 
-This repo isn't yet linked to a Lovable project, so Supabase isn't connected either — auth and job-posting features will show a "Connect Supabase" error in the console until it is. To connect:
-
-1. Create a new project at [lovable.dev](https://lovable.dev) and choose "Import from GitHub."
-2. Point it at this repository.
-3. Enable Lovable Cloud / Supabase for the project. Lovable will provision a Supabase project and apply the schema in `supabase/migrations/`.
-4. Once connected, edits made in the Lovable editor sync straight back to this repo, and `git push` to the connected branch syncs back into the editor.
+- **Site:** Cloudflare Worker `savantalent` serving savantalent.com and www (config in `wrangler.jsonc`). Test address: https://savantalent.savantstaffing.workers.dev
+- **Database, auth, file storage:** Supabase project `savantalent-prod` (`auldwzcqtjpwmliqqoyj`). Public URL and publishable key are in `.env` and `wrangler.jsonc`.
+- **Private keys** (`SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY`) are Cloudflare secrets: `npx wrangler secret put NAME`.
+- **Deploy:** `npm run deploy` (builds, then uploads with Wrangler).
+- **Job Scout:** Supabase Edge Function `job-scout`, called by pg_cron every 15 minutes. Deploy with `npx supabase functions deploy job-scout --project-ref auldwzcqtjpwmliqqoyj --use-api`.
 
 ## Development
 

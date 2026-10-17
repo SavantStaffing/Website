@@ -1716,6 +1716,16 @@ export type Database = {
         };
         Returns: Json;
       };
+      email_needs_password: {
+        Args: {
+          _email: string;
+        };
+        Returns: boolean;
+      };
+      my_has_password: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
       coach_invite_status: {
         Args: {
           _code: string;
