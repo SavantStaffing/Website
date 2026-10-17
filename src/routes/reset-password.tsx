@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 export const Route = createFileRoute("/reset-password")({
+  // ?set=1: a Google-only account adding its first password (same flow, own wording).
+  // Kept as 1 so it round-trips through the router's URL normalising unchanged.
+  validateSearch: (s: Record<string, unknown>): { set?: 1 } =>
+    s.set === 1 || s.set === "1" || s.set === true ? { set: 1 } : {},
   head: () => ({
     meta: [
       { title: "Reset password — Savant Staffing" },
@@ -18,6 +22,7 @@ export const Route = createFileRoute("/reset-password")({
 
 function ResetPassword() {
   const navigate = useNavigate();
+  const { set } = Route.useSearch();
   const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -52,15 +57,21 @@ function ResetPassword() {
       toast.error(error.message);
       return;
     }
-    toast.success("Password updated.");
+    toast.success(
+      set ? "Password set. You can now sign in with your email too." : "Password updated.",
+    );
     navigate({ to: "/dashboard" });
   }
 
   return (
     <div className="mx-auto grid min-h-[70vh] max-w-md place-items-center px-6">
       <div className="w-full">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Recovery</p>
-        <h1 className="mt-6 text-4xl font-semibold leading-tight">Set a new password.</h1>
+        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+          {set ? "Account" : "Recovery"}
+        </p>
+        <h1 className="mt-6 text-4xl font-semibold leading-tight">
+          {set ? "Set a password." : "Set a new password."}
+        </h1>
 
         {!ready ? (
           <p className="mt-8 text-sm text-muted-foreground">
@@ -70,7 +81,7 @@ function ResetPassword() {
           <form onSubmit={submit} className="mt-10 space-y-5">
             <label className="block">
               <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-                New password
+                {set ? "Password" : "New password"}
               </span>
               <span className="mt-2 block">
                 <PasswordInput
@@ -101,7 +112,7 @@ function ResetPassword() {
               disabled={loading}
               className="mt-2 w-full rounded-sm bg-foreground py-3 text-[12px] font-medium uppercase tracking-[0.2em] text-background disabled:opacity-50"
             >
-              {loading ? "…" : "Update password"}
+              {loading ? "…" : set ? "Set password" : "Update password"}
             </button>
           </form>
         )}

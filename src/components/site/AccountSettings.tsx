@@ -27,6 +27,12 @@ export function AccountSettings({
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [saving, setSaving] = useState(false);
+  // Google-only accounts have no password yet: offer to set one.
+  const [hasPassword, setHasPassword] = useState(true);
+
+  useEffect(() => {
+    supabase.rpc("my_has_password").then(({ data }) => setHasPassword(data !== false));
+  }, [userId]);
 
   useEffect(() => {
     supabase
@@ -59,7 +65,10 @@ export function AccountSettings({
     if (error) return toast.error(error.message);
     setPassword("");
     setConfirm("");
-    toast.success("Password updated.");
+    toast.success(
+      hasPassword ? "Password updated." : "Password set. You can now sign in with your email too.",
+    );
+    setHasPassword(true);
   }
 
   return (
@@ -84,17 +93,29 @@ export function AccountSettings({
       {children}
 
       <div>
-        <h2 className="text-2xl font-semibold">Change password</h2>
+        <h2 className="text-2xl font-semibold">
+          {hasPassword ? "Change password" : "Set password"}
+        </h2>
+        {!hasPassword && (
+          <p className="mt-3 max-w-md text-sm text-muted-foreground">
+            You sign in with Google. Set a password to also sign in with your email.
+          </p>
+        )}
         <form onSubmit={changePassword} className="mt-8 max-w-md space-y-6">
-          <Field label="New password" type="password" value={password} onChange={setPassword} />
           <Field
-            label="Confirm new password"
+            label={hasPassword ? "New password" : "Password"}
+            type="password"
+            value={password}
+            onChange={setPassword}
+          />
+          <Field
+            label={hasPassword ? "Confirm new password" : "Confirm password"}
             type="password"
             value={confirm}
             onChange={setConfirm}
           />
           <button type="submit" disabled={saving} className={primaryButton}>
-            {saving ? "…" : "Update password"}
+            {saving ? "…" : hasPassword ? "Update password" : "Set password"}
           </button>
         </form>
       </div>
