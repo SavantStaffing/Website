@@ -38,8 +38,8 @@ function walk(dir) {
   );
 }
 
-// Supabase project behind savantalent.com (Lovable Cloud), where résumés live.
-const STORAGE_HOST = "https://bncdlyvvdhsbtafxhiya.supabase.co/*";
+// Supabase project behind savantalent.com (savantalent-prod), where résumés live.
+const STORAGE_HOST = "https://auldwzcqtjpwmliqqoyj.supabase.co/*";
 
 function storeManifest() {
   const m = structuredClone(manifest);

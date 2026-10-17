@@ -9,7 +9,6 @@ import {
   type UsernameStatus,
 } from "@/components/site/UsernameField";
 import { PasswordInput } from "@/components/site/PasswordInput";
-import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
 type Mode = "login" | "signup" | "forgot";
@@ -358,27 +357,24 @@ function GoogleButton() {
   const [loading, setLoading] = useState(false);
   async function go() {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri:
-        window.location.origin +
-        "/auth/callback" +
-        (next ? `?next=${encodeURIComponent(next)}` : ""),
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo:
+          window.location.origin +
+          "/auth/callback" +
+          (next ? `?next=${encodeURIComponent(next)}` : ""),
+      },
     });
-    if (result.error) {
+    // On success the browser is already on its way to Google.
+    if (error) {
       setLoading(false);
-      const message = result.error.message || "";
+      const message = error.message || "";
       toast.error(
         /not supported|not enabled/i.test(message)
           ? "Google sign-in isn't turned on yet. Please use your email and password."
           : `Google sign-in failed${message ? `: ${message}` : ""}`,
       );
-      return;
-    }
-    // Most of the time the page has already redirected to Google. In a popup
-    // (e.g. Lovable's preview) the session is set here instead: finish the
-    // sign-in the same way the callback page does.
-    if (!("redirected" in result && result.redirected)) {
-      window.location.assign("/auth/callback" + (next ? `?next=${encodeURIComponent(next)}` : ""));
     }
   }
   return (
