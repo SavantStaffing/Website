@@ -9,6 +9,7 @@ import {
   type UsernameStatus,
 } from "@/components/site/UsernameField";
 import { PasswordInput } from "@/components/site/PasswordInput";
+import { GoogleSignInButton } from "@/components/site/GoogleSignInButton";
 import { toast } from "sonner";
 
 type Mode = "login" | "signup" | "forgot";
@@ -430,40 +431,25 @@ function ForgotForm() {
   );
 }
 
+/** Google's own sign-in button, so Google's screen names savantalent.com. */
 function GoogleButton() {
   const next = useNextTarget();
-  const [loading, setLoading] = useState(false);
-  async function go() {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo:
-          window.location.origin +
-          "/auth/callback" +
-          (next ? `?next=${encodeURIComponent(next)}` : ""),
-      },
-    });
-    // On success the browser is already on its way to Google.
-    if (error) {
-      setLoading(false);
-      const message = error.message || "";
-      toast.error(
-        /not supported|not enabled/i.test(message)
-          ? "Google sign-in isn't turned on yet. Please use your email and password."
-          : `Google sign-in failed${message ? `: ${message}` : ""}`,
-      );
-    }
-  }
+  const navigate = useNavigate();
   return (
-    <button
-      type="button"
-      onClick={go}
-      disabled={loading}
-      className="w-full rounded-sm border border-foreground py-3 text-[12px] font-medium uppercase tracking-[0.2em] [@media(hover:hover)]:hover:bg-foreground [@media(hover:hover)]:hover:text-background active:bg-foreground active:text-background transition-colors disabled:opacity-50"
-    >
-      {loading ? "…" : "Continue with Google"}
-    </button>
+    <GoogleSignInButton
+      clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
+      onSignedIn={() => {
+        if (next) window.location.assign(next);
+        else navigate({ to: "/dashboard" });
+      }}
+      onError={(message) =>
+        toast.error(
+          /not supported|not enabled/i.test(message)
+            ? "Google sign-in isn't turned on yet. Please use your email and password."
+            : `Google sign-in failed${message ? `: ${message}` : ""}`,
+        )
+      }
+    />
   );
 }
 
