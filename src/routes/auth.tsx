@@ -185,6 +185,7 @@ function SignupForm() {
   const next = useNextTarget();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
@@ -200,6 +201,7 @@ function SignupForm() {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
+    if (password !== confirm) return toast.error("Passwords do not match");
     if (usernameStatus === "taken") return toast.error("That username is taken. Pick another one.");
     if (!usernameOk(usernameStatus))
       return toast.error("Still checking your username. Try again in a moment.");
@@ -278,6 +280,13 @@ function SignupForm() {
         type="password"
         value={password}
         onChange={setPassword}
+        autoComplete="new-password"
+      />
+      <Field
+        label="Confirm password"
+        type="password"
+        value={confirm}
+        onChange={setConfirm}
         autoComplete="new-password"
       />
       <SubmitBtn loading={loading}>Create account</SubmitBtn>

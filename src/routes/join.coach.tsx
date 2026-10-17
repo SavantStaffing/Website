@@ -45,6 +45,7 @@ function CoachSignup() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -59,6 +60,7 @@ function CoachSignup() {
     e.preventDefault();
     const parsed = schema.safeParse({ fullName, email, password });
     if (!parsed.success) return toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+    if (password !== confirm) return toast.error("Passwords do not match");
     setLoading(true);
     // Re-check right before signing up: an account made with a dead invite
     // would silently become a talent account.
@@ -136,6 +138,13 @@ function CoachSignup() {
                 type="password"
                 value={password}
                 onChange={setPassword}
+                autoComplete="new-password"
+              />
+              <Field
+                label="Confirm password"
+                type="password"
+                value={confirm}
+                onChange={setConfirm}
                 autoComplete="new-password"
               />
               <button
