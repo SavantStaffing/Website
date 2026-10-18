@@ -86,7 +86,7 @@ export const FAQ: Record<HelpRole, Faq[]> = {
     },
     {
       q: "How do I send an application request?",
-      a: "On a talent card in the Talent Feed, click Request application, choose one of your open roles and click Send invitation. The talent is notified in their Inbox. Their email and phone are shared with you once they accept. Talent & Schedule tracks the invitations you've sent and the replies. You need at least one open job posted to send a request.",
+      a: "On a talent card in the Talent Feed, click Request application, choose one of your open roles and click Send invitation. The talent is notified in their Inbox. Their email and phone are shared with you once they accept. Schedule tracks the invitations you've sent and the replies. You need at least one open job posted to send a request.",
       links: [
         { label: "Talent Feed", to: "/recruiter/talent" },
         { label: "Post a job", to: "/recruiter/jobs" },
@@ -94,11 +94,10 @@ export const FAQ: Record<HelpRole, Faq[]> = {
     },
     {
       q: "How do I schedule an interview?",
-      a: "In Applications, move the candidate to Interviewing. On Talent & Schedule, set a date and time for anyone marked Interviewing, or schedule an interview directly. Put the Zoom or Google Meet link, or the address, in the note. The candidate is notified with the time, and the interview appears on both of your Calendars.",
+      a: "In Applications, move the candidate to Interviewing. On Schedule, set a date and time for anyone marked Interviewing, or schedule an interview directly. Put the Zoom or Google Meet link, or the address, in the note. The candidate is notified with the time, and the interview appears on both of your Calendars (at the bottom of Schedule).",
       links: [
         { label: "Applications", to: "/recruiter/applications" },
-        { label: "Talent & Schedule", to: "/recruiter/schedule" },
-        { label: "Calendar", to: "/recruiter/calendar" },
+        { label: "Schedule", to: "/recruiter/schedule" },
       ],
     },
     {
@@ -238,11 +237,10 @@ export const PAGES: Record<HelpRole, { label: string; to: string; what: string }
       to: "/recruiter/chat",
       what: "messages with talent and Savant's team; file attachments",
     },
-    { label: "Calendar", to: "/recruiter/calendar", what: "interviews; sync to your own calendar" },
     {
-      label: "Talent & Schedule",
+      label: "Schedule",
       to: "/recruiter/schedule",
-      what: "schedule interviews, track invitations",
+      what: "schedule interviews, track invitations, and your calendar with sync",
     },
     {
       label: "Talent Feed",
