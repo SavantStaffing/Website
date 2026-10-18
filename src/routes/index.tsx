@@ -3,11 +3,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Savant Staffing — Talent, Placed with Precision" },
+      { title: "Savant Talent — Talent, Placed with Precision" },
       {
         name: "description",
         content:
-          "Savant Staffing connects businesses with vetted talent across temporary, direct-hire, and executive search placements.",
+          "Savant Talent connects businesses with vetted talent across temporary, direct-hire, and executive search placements.",
       },
     ],
   }),

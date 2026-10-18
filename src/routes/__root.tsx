@@ -77,13 +77,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Savant Staffing — Talent, Placed with Precision" },
+      { title: "Savant Talent — Talent, Placed with Precision" },
       {
         name: "description",
         content:
-          "Savant Staffing connects businesses with vetted talent across temporary, direct-hire, and executive search placements.",
+          "Savant Talent connects businesses with vetted talent across temporary, direct-hire, and executive search placements.",
       },
-      { property: "og:title", content: "Savant Staffing" },
+      { property: "og:title", content: "Savant Talent" },
+      { property: "og:site_name", content: "Savant Talent" },
+      { name: "twitter:title", content: "Savant Talent" },
       {
         property: "og:description",
         content:
