@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Empty, SectionHeading, Stat, linkButton, list } from "@/components/site/ui";
+import { Calendar } from "@/components/site/Calendar";
+import { CoachMeetingRequests } from "@/components/meetings/MeetingRequests";
 import {
   ServiceRequestCard,
   splitUpcoming,
@@ -11,15 +13,17 @@ import {
 
 export const Route = createFileRoute("/coach/schedule")({
   head: () => ({
-    meta: [{ title: "Talent & Schedule" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Schedule" }, { name: "robots", content: "noindex" }],
   }),
   component: CoachSchedule,
 });
 
-/** Talent assigned to this coach, and their sessions. */
+/** Talent assigned to this coach, their sessions and meetings, and the calendar. */
 function CoachSchedule() {
   const { userId } = Route.useRouteContext();
   const [rows, setRows] = useState<ServiceRequest[] | null>(null);
+  // Bumped when a meeting is cancelled so the calendar below reloads.
+  const [calendarKey, setCalendarKey] = useState(0);
 
   useEffect(() => {
     supabase
@@ -88,7 +92,9 @@ function CoachSchedule() {
       </div>
       {section("Upcoming sessions", upcoming, "No sessions on the calendar.")}
       {section("Assigned — needs a time", needsTime, "Everyone assigned to you has a session.")}
+      <CoachMeetingRequests userId={userId} onChange={() => setCalendarKey((k) => k + 1)} />
       {section("Past & completed", past, "Nothing here yet.")}
+      <Calendar userId={userId} refreshKey={calendarKey} />
     </section>
   );
 }

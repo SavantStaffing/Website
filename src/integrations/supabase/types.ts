@@ -1296,6 +1296,57 @@ export type Database = {
         Update: { user_id?: string; token?: string; created_at?: string };
         Relationships: [];
       };
+      meeting_requests: {
+        Row: {
+          chosen_at: string | null;
+          created_at: string;
+          description: string | null;
+          duration_minutes: number;
+          id: string;
+          kind: string;
+          options: string[];
+          requester_id: string;
+          requester_name: string | null;
+          responded_at: string | null;
+          status: string;
+          talent_id: string;
+          talent_name: string | null;
+          talent_note: string | null;
+        };
+        Insert: {
+          chosen_at?: string | null;
+          created_at?: string;
+          description?: string | null;
+          duration_minutes?: number;
+          id?: string;
+          kind: string;
+          options: string[];
+          requester_id: string;
+          requester_name?: string | null;
+          responded_at?: string | null;
+          status?: string;
+          talent_id: string;
+          talent_name?: string | null;
+          talent_note?: string | null;
+        };
+        Update: {
+          chosen_at?: string | null;
+          created_at?: string;
+          description?: string | null;
+          duration_minutes?: number;
+          id?: string;
+          kind?: string;
+          options?: string[];
+          requester_id?: string;
+          requester_name?: string | null;
+          responded_at?: string | null;
+          status?: string;
+          talent_id?: string;
+          talent_name?: string | null;
+          talent_note?: string | null;
+        };
+        Relationships: [];
+      };
       notifications: {
         Row: {
           actions: Json | null;
@@ -1571,6 +1622,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      respond_meeting_request: {
+        Args: { _id: string; _choice: string | null; _note?: string | null };
+        Returns: Database["public"]["Tables"]["meeting_requests"]["Row"];
+      };
+      cancel_meeting_request: {
+        Args: { _id: string };
+        Returns: Database["public"]["Tables"]["meeting_requests"]["Row"];
+      };
       mark_application_completed: {
         Args: { application_id: string };
         Returns: undefined;

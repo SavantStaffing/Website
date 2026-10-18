@@ -49,14 +49,19 @@ function CoachWelcome() {
         },
         {
           title: "Schedule sessions",
-          where: "Talent & Schedule",
+          where: "Schedule · Talent",
           body: (
             <p>
               Set a date and time for each person you're working with. They're notified in their
-              Inbox, and the page shows who still needs a session.
+              Inbox, and the page shows who still needs a session. To meet someone first, use
+              Request intro meeting on their profile under Talent: offer three times and they pick
+              one. Your calendar is at the bottom of Schedule.
             </p>
           ),
-          links: [{ label: "Talent & Schedule", to: "/coach/schedule" }],
+          links: [
+            { label: "Schedule", to: "/coach/schedule" },
+            { label: "Talent", to: "/coach/talent" },
+          ],
         },
         {
           title: "Work on résumés",

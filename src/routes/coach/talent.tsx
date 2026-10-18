@@ -113,10 +113,12 @@ function CoachTalent() {
         <SectionHeading title="Your talent" />
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
           People an admin has assigned you to coach, with their full profile, contact details and
-          résumé. Talent from coaching requests assigned to you are on Service Requests.
+          résumé. Ask any of them to meet: offer three times and they pick one. Talent from
+          coaching requests assigned to you are on Service Requests.
         </p>
         <AssignedTalentList
           staffId={userId}
+          canRequestMeetings
           emptyText="No one assigned yet. Ask to coach someone below, or wait for an admin to assign you."
         />
       </div>

@@ -2,8 +2,17 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { personName } from "@/lib/people";
-import { Badge, Empty, label, list, mutedButton, timeAgo } from "@/components/site/ui";
+import {
+  Badge,
+  Empty,
+  label,
+  list,
+  mutedButton,
+  outlineButton,
+  timeAgo,
+} from "@/components/site/ui";
 import { intakeSummary, type IntakeRow } from "@/lib/talent/intake";
+import { MeetingRequestForm, type MeetingKind } from "@/components/meetings/MeetingRequests";
 
 /** How long a résumé link opened from here stays valid. */
 const RESUME_LINK_SECONDS = 600;
@@ -40,10 +49,20 @@ const yesNo = (v: boolean | null) => (v === null ? "—" : v ? "Yes" : "No");
  * The talent an admin assigned to this recruiter or coach, with everything
  * assignment unlocks (row-level security: public.is_assigned): full profile,
  * contact details, job preferences and the résumé file.
+ * Coaches (canRequestMeetings) can also ask each one to meet.
  */
-export function AssignedTalentList({ staffId, emptyText }: { staffId: string; emptyText: string }) {
+export function AssignedTalentList({
+  staffId,
+  emptyText,
+  canRequestMeetings = false,
+}: {
+  staffId: string;
+  emptyText: string;
+  canRequestMeetings?: boolean;
+}) {
   const [rows, setRows] = useState<Assigned[] | null>(null);
   const [openResume, setOpenResume] = useState<string | null>(null);
+  const [meeting, setMeeting] = useState<{ talentId: string; kind: MeetingKind } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -219,6 +238,22 @@ export function AssignedTalentList({ staffId, emptyText }: { staffId: string; em
           )}
 
           <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+            {canRequestMeetings && (
+              <>
+                <button
+                  onClick={() => setMeeting({ talentId: r.talentId, kind: "intro" })}
+                  className={outlineButton}
+                >
+                  Request intro meeting
+                </button>
+                <button
+                  onClick={() => setMeeting({ talentId: r.talentId, kind: "general" })}
+                  className={outlineButton}
+                >
+                  Request meeting
+                </button>
+              </>
+            )}
             {r.resumePath ? (
               <button onClick={() => downloadResume(r.resumePath!)} className={mutedButton}>
                 Open résumé{r.resumeFilename ? ` (${r.resumeFilename})` : ""} ↗
@@ -247,6 +282,16 @@ export function AssignedTalentList({ staffId, emptyText }: { staffId: string; em
               </a>
             ))}
           </div>
+          {meeting?.talentId === r.talentId && (
+            <MeetingRequestForm
+              key={meeting.kind}
+              coachId={staffId}
+              talentId={r.talentId}
+              talentName={r.name}
+              kind={meeting.kind}
+              onClose={() => setMeeting(null)}
+            />
+          )}
           {openResume === r.talentId && r.resumeText && (
             <pre className="mt-4 max-h-96 max-w-4xl overflow-auto whitespace-pre-wrap rounded-sm border border-[color:var(--color-hairline)] p-4 font-sans text-sm leading-relaxed">
               {r.resumeText}

@@ -137,10 +137,10 @@ export const FAQ: Record<HelpRole, Faq[]> = {
     },
     {
       q: "How does coaching through Savant work?",
-      a: "1. Get talent: Savant's team assigns you service requests, or you request talent yourself. 2. Schedule an intro meeting on Zoom or Google Meet, covering a questionnaire about their background and goals, their career trajectory, and optimizing their Savant profile. 3. Set up the work they signed up for: Resume Building (Yale University template, structured for applicant tracking systems), Interview Development, Job Fairs or a career program. 4. Schedule each session on Talent & Schedule; they're notified and it appears on both Calendars. 5. Keep in touch in Chat, exchange résumé drafts as attachments, and send them suitable jobs with Send to talent. Track each request on Service Requests and mark it completed when done.",
+      a: "1. Get talent: Savant's team assigns you service requests, or you request talent yourself. 2. Schedule an intro meeting on Zoom or Google Meet, covering a questionnaire about their background and goals, their career trajectory, and optimizing their Savant profile. 3. Set up the work they signed up for: Resume Building (Yale University template, structured for applicant tracking systems), Interview Development, Job Fairs or a career program. 4. Schedule each session on Schedule; they're notified and it appears on both Calendars. 5. Keep in touch in Chat, exchange résumé drafts as attachments, and send them suitable jobs with Send to talent. Track each request on Service Requests and mark it completed when done.",
       links: [
         { label: "Service Requests", to: "/coach" },
-        { label: "Talent & Schedule", to: "/coach/schedule" },
+        { label: "Schedule", to: "/coach/schedule" },
       ],
     },
     {
@@ -149,10 +149,15 @@ export const FAQ: Record<HelpRole, Faq[]> = {
     },
     {
       q: "How do I schedule a session?",
-      a: "Open Talent & Schedule, pick the person and set a date and time. Put the Zoom or Google Meet link in the note. The talent is notified, and the session appears on both of your Calendars. You can add the Calendar feed to Google, Outlook or Apple Calendar.",
+      a: "Open Schedule, pick the person and set a date and time. Put the Zoom or Google Meet link in the note. The talent is notified, and the session appears on both of your Calendars (at the bottom of Schedule). You can add the Calendar feed to Google, Outlook or Apple Calendar.",
+      links: [{ label: "Schedule", to: "/coach/schedule" }],
+    },
+    {
+      q: "How do I ask a talent to meet?",
+      a: "On Talent, open the person under Your talent and click Request intro meeting, or Request meeting for anything else (describe what it's about). Offer three times and a length. They pick one from their dashboard, or tell you none work, and you're notified either way. Confirmed meetings appear on both Calendars. Track and cancel requests on Schedule.",
       links: [
-        { label: "Talent & Schedule", to: "/coach/schedule" },
-        { label: "Calendar", to: "/coach/calendar" },
+        { label: "Talent", to: "/coach/talent" },
+        { label: "Schedule", to: "/coach/schedule" },
       ],
     },
     {
@@ -264,9 +269,16 @@ export const PAGES: Record<HelpRole, { label: string; to: string; what: string }
       to: "/coach/chat",
       what: "messages with talent and Savant's team; file attachments",
     },
-    { label: "Calendar", to: "/coach/calendar", what: "sessions; sync to your own calendar" },
-    { label: "Talent & Schedule", to: "/coach/schedule", what: "schedule sessions" },
-    { label: "Talent", to: "/coach/talent", what: "your talent, and find talent to coach" },
+    {
+      label: "Schedule",
+      to: "/coach/schedule",
+      what: "schedule sessions, meeting requests, and your calendar with sync",
+    },
+    {
+      label: "Talent",
+      to: "/coach/talent",
+      what: "your talent (request intro or general meetings), and find talent to coach",
+    },
     {
       label: "Recruiters",
       to: "/coach/recruiters",
