@@ -954,7 +954,11 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
-          job_id: string;
+          job_id: string | null;
+          external_url: string | null;
+          external_title: string | null;
+          external_company: string | null;
+          external_location: string | null;
           note: string | null;
           shared_by: string | null;
           shared_by_name: string;
@@ -963,7 +967,11 @@ export type Database = {
         Insert: {
           created_at?: string;
           id?: string;
-          job_id: string;
+          job_id?: string | null;
+          external_url?: string | null;
+          external_title?: string | null;
+          external_company?: string | null;
+          external_location?: string | null;
           note?: string | null;
           shared_by?: string | null;
           shared_by_name: string;
@@ -972,7 +980,11 @@ export type Database = {
         Update: {
           created_at?: string;
           id?: string;
-          job_id?: string;
+          job_id?: string | null;
+          external_url?: string | null;
+          external_title?: string | null;
+          external_company?: string | null;
+          external_location?: string | null;
           note?: string | null;
           shared_by?: string | null;
           shared_by_name?: string;
@@ -1669,6 +1681,17 @@ export type Database = {
           p_hours?: number;
         };
         Returns: Json;
+      };
+      share_external_job: {
+        Args: {
+          _talent_id: string;
+          _url: string;
+          _title: string;
+          _company?: string | null;
+          _location?: string | null;
+          _note?: string | null;
+        };
+        Returns: string;
       };
       share_job: {
         Args: { _job_id: string; _talent_ids: string[]; _note?: string | null };
