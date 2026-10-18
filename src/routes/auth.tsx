@@ -333,6 +333,16 @@ function SignupForm() {
             onClick={() => setRole("recruiter")}
           />
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Career coach?{" "}
+          <Link
+            to="/contact"
+            search={{ topic: "coach" }}
+            className="text-foreground underline underline-offset-4"
+          >
+            Apply to coach
+          </Link>
+        </p>
       </div>
       <Field label="Full name" value={fullName} onChange={setFullName} autoComplete="name" />
       <UsernameField value={username} onChange={setUsername} onStatus={setUsernameStatus} />

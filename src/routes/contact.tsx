@@ -10,6 +10,9 @@ import {
 } from "@/lib/contact.functions";
 
 export const Route = createFileRoute("/contact")({
+  // ?topic=coach preselects "Becoming a coach" (Apply to coach on sign-up).
+  validateSearch: (s: Record<string, unknown>): { topic?: "coach" } =>
+    s.topic === "coach" ? { topic: "coach" } : {},
   head: () => ({
     meta: [
       { title: "Contact — Savant Staffing" },
@@ -23,11 +26,13 @@ export const Route = createFileRoute("/contact")({
 });
 
 function Contact() {
+  const { topic } = Route.useSearch();
+  const coach = topic === "coach";
   const [form, setForm] = useState({
     name: "",
     email: "",
     company: "",
-    topic: TOPICS[0] as string,
+    topic: (coach ? "Becoming a coach" : TOPICS[0]) as string,
     message: "",
   });
   const [sending, setSending] = useState(false);
@@ -74,6 +79,8 @@ function Contact() {
             <div className="text-2xl font-medium">Thanks — message received.</div>
             <p className="mt-3 text-sm text-muted-foreground">
               Someone from Savant will reply to {form.email}.
+              {form.topic === "Becoming a coach" &&
+                " If you're a fit, we'll email you a link to create your coach account."}
             </p>
           </div>
         ) : (
@@ -97,7 +104,17 @@ function Contact() {
                 </select>
               </label>
             </div>
-            <TextArea label="Message" rows={6} value={form.message} onChange={set("message")} />
+            <TextArea
+              label="Message"
+              rows={6}
+              value={form.message}
+              onChange={set("message")}
+              placeholder={
+                form.topic === "Becoming a coach"
+                  ? "Your coaching background, what you help people with (résumés, interviews, job fairs, career programs) and a link to your LinkedIn"
+                  : undefined
+              }
+            />
             <button type="submit" disabled={sending} className={primaryButton}>
               {sending ? "…" : "Send message"}
             </button>

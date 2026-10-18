@@ -35,6 +35,11 @@ type SavedJobRow = { id: string; job_id: string; jobs: JobLite | null };
 type SharedJobRow = {
   id: string;
   shared_by_name: string;
+  // A job on another site, shared by link (no Savant listing).
+  external_url: string | null;
+  external_title: string | null;
+  external_company: string | null;
+  external_location: string | null;
   note: string | null;
   created_at: string;
   jobs: JobLite | null;
@@ -98,7 +103,9 @@ function TalentDashboard() {
           .maybeSingle(),
         supabase
           .from("shared_jobs")
-          .select(`id, shared_by_name, note, created_at, ${job}`)
+          .select(
+            `id, shared_by_name, note, created_at, external_url, external_title, external_company, external_location, ${job}`,
+          )
           .eq("talent_id", userId)
           .order("created_at", { ascending: false }),
         supabase
@@ -228,17 +235,20 @@ function TalentDashboard() {
             {shared.map((s) => (
               <li key={s.id} className="flex flex-wrap items-start justify-between gap-4 py-5">
                 <div className="min-w-0">
-                  <div className="text-lg font-medium">{s.jobs?.title ?? "A role"}</div>
+                  <div className="text-lg font-medium">
+                    {s.jobs?.title ?? s.external_title ?? "A role"}
+                  </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {s.jobs?.company_name ?? "—"} · {s.jobs?.location ?? "—"} · from{" "}
-                    {s.shared_by_name} · {timeAgo(s.created_at)}
+                    {s.jobs?.company_name ?? s.external_company ?? "—"} ·{" "}
+                    {s.jobs?.location ?? s.external_location ?? "—"} · from {s.shared_by_name} ·{" "}
+                    {timeAgo(s.created_at)}
                   </div>
                   {s.note && <p className="mt-2 max-w-2xl whitespace-pre-line text-sm">{s.note}</p>}
                 </div>
                 <div className="flex shrink-0 gap-5">
-                  {s.jobs?.apply_url ? (
+                  {(s.jobs?.apply_url ?? s.external_url) ? (
                     <a
-                      href={s.jobs.apply_url}
+                      href={(s.jobs?.apply_url ?? s.external_url)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={linkButton}

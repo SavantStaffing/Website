@@ -101,6 +101,7 @@ import { Route as ApiAutofillAnswersRouteImport } from './routes/api.autofill.an
 import { Route as ApiAutofillPlanRouteImport } from './routes/api.autofill.plan'
 import { Route as ApiCalendarFeedRouteImport } from './routes/api.calendar.$feed'
 import { Route as ApiScoutRunRouteImport } from './routes/api.scout.run'
+import { Route as CoachTalentTalentIdRouteImport } from './routes/coach/talent_.$talentId'
 import { Route as PreparationCareerProgramsProgramRouteImport } from './routes/preparation_.career-programs.$program'
 
 const IndexRoute = IndexRouteImport.update({
@@ -563,6 +564,11 @@ const ApiScoutRunRoute = ApiScoutRunRouteImport.update({
   path: '/api/scout/run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoachTalentTalentIdRoute = CoachTalentTalentIdRouteImport.update({
+  id: '/talent_/$talentId',
+  path: '/talent/$talentId',
+  getParentRoute: () => CoachRouteRoute,
+} as any)
 const PreparationCareerProgramsProgramRoute =
   PreparationCareerProgramsProgramRouteImport.update({
     id: '/preparation_/career-programs/$program',
@@ -663,6 +669,7 @@ export interface FileRoutesByFullPath {
   '/api/autofill/plan': typeof ApiAutofillPlanRoute
   '/api/calendar/$feed': typeof ApiCalendarFeedRoute
   '/api/scout/run': typeof ApiScoutRunRoute
+  '/coach/talent/$talentId': typeof CoachTalentTalentIdRoute
   '/preparation/career-programs/$program': typeof PreparationCareerProgramsProgramRoute
 }
 export interface FileRoutesByTo {
@@ -754,6 +761,7 @@ export interface FileRoutesByTo {
   '/api/autofill/plan': typeof ApiAutofillPlanRoute
   '/api/calendar/$feed': typeof ApiCalendarFeedRoute
   '/api/scout/run': typeof ApiScoutRunRoute
+  '/coach/talent/$talentId': typeof CoachTalentTalentIdRoute
   '/preparation/career-programs/$program': typeof PreparationCareerProgramsProgramRoute
 }
 export interface FileRoutesById {
@@ -850,6 +858,7 @@ export interface FileRoutesById {
   '/api/autofill/plan': typeof ApiAutofillPlanRoute
   '/api/calendar/$feed': typeof ApiCalendarFeedRoute
   '/api/scout/run': typeof ApiScoutRunRoute
+  '/coach/talent_/$talentId': typeof CoachTalentTalentIdRoute
   '/preparation_/career-programs/$program': typeof PreparationCareerProgramsProgramRoute
 }
 export interface FileRouteTypes {
@@ -947,6 +956,7 @@ export interface FileRouteTypes {
     | '/api/autofill/plan'
     | '/api/calendar/$feed'
     | '/api/scout/run'
+    | '/coach/talent/$talentId'
     | '/preparation/career-programs/$program'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1038,6 +1048,7 @@ export interface FileRouteTypes {
     | '/api/autofill/plan'
     | '/api/calendar/$feed'
     | '/api/scout/run'
+    | '/coach/talent/$talentId'
     | '/preparation/career-programs/$program'
   id:
     | '__root__'
@@ -1133,6 +1144,7 @@ export interface FileRouteTypes {
     | '/api/autofill/plan'
     | '/api/calendar/$feed'
     | '/api/scout/run'
+    | '/coach/talent_/$talentId'
     | '/preparation_/career-programs/$program'
   fileRoutesById: FileRoutesById
 }
@@ -1820,6 +1832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiScoutRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/coach/talent_/$talentId': {
+      id: '/coach/talent_/$talentId'
+      path: '/talent/$talentId'
+      fullPath: '/coach/talent/$talentId'
+      preLoaderRoute: typeof CoachTalentTalentIdRouteImport
+      parentRoute: typeof CoachRouteRoute
+    }
     '/preparation_/career-programs/$program': {
       id: '/preparation_/career-programs/$program'
       path: '/preparation/career-programs/$program'
@@ -1891,6 +1910,7 @@ interface CoachRouteRouteChildren {
   CoachTalentRoute: typeof CoachTalentRoute
   CoachWelcomeRoute: typeof CoachWelcomeRoute
   CoachIndexRoute: typeof CoachIndexRoute
+  CoachTalentTalentIdRoute: typeof CoachTalentTalentIdRoute
 }
 
 const CoachRouteRouteChildren: CoachRouteRouteChildren = {
@@ -1904,6 +1924,7 @@ const CoachRouteRouteChildren: CoachRouteRouteChildren = {
   CoachTalentRoute: CoachTalentRoute,
   CoachWelcomeRoute: CoachWelcomeRoute,
   CoachIndexRoute: CoachIndexRoute,
+  CoachTalentTalentIdRoute: CoachTalentTalentIdRoute,
 }
 
 const CoachRouteRouteWithChildren = CoachRouteRoute._addFileChildren(

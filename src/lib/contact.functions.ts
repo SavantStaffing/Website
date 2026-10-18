@@ -5,6 +5,7 @@ export const CONTACT_TOPICS = [
   "Hiring talent",
   "Looking for work",
   "Career programs",
+  "Becoming a coach",
   "Something else",
 ] as const;
 
