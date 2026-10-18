@@ -9,13 +9,14 @@ import { Empty, SectionHeading, label, linkButton, mutedButton, primaryButton } 
 /**
  * Calendar: coaching sessions, interviews and personal events in one place
  * (my_calendar(), migration 20261012000001). Sessions and interviews come
- * from where they're scheduled (Talent & Schedule); personal events are added
- * here. A private feed link syncs it one way into Google, Outlook or Apple.
+ * from where they're scheduled (Schedule pages), and accepted meeting requests
+ * (migration 20261018000001); personal events are added here. A private feed link syncs it one way into Google, Outlook or Apple.
  */
 
 const KIND: Record<string, { label: string; dot: string }> = {
   session: { label: "Coaching session", dot: "bg-emerald-600" },
   interview: { label: "Interview", dot: "bg-sky-600" },
+  meeting: { label: "Meeting", dot: "bg-violet-600" },
   event: { label: "Your event", dot: "bg-[color:var(--color-brass)]" },
 };
 
@@ -39,7 +40,8 @@ function downloadIcs(item: CalendarItem) {
   URL.revokeObjectURL(a.href);
 }
 
-export function Calendar({ userId }: { userId: string }) {
+/** refreshKey: change it to reload, e.g. after a meeting is confirmed elsewhere on the page. */
+export function Calendar({ userId, refreshKey }: { userId: string; refreshKey?: number }) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [items, setItems] = useState<CalendarItem[] | null>(null);
   const [upcoming, setUpcoming] = useState<CalendarItem[] | null>(null);
@@ -76,7 +78,7 @@ export function Calendar({ userId }: { userId: string }) {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, refreshKey]);
 
   const byDay = useMemo(() => {
     const map = new Map<string, CalendarItem[]>();
@@ -114,7 +116,7 @@ export function Calendar({ userId }: { userId: string }) {
         </div>
       </SectionHeading>
       <p className="mt-2 text-sm text-muted-foreground">
-        Interviews and coaching sessions appear here automatically once they're scheduled.
+        Interviews, coaching sessions and confirmed meetings appear here automatically.
       </p>
 
       {adding && (

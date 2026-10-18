@@ -15,7 +15,7 @@ export const Route = createFileRoute("/privacy")({
   component: PrivacyPolicy,
 });
 
-const UPDATED = "October 2, 2026";
+const UPDATED = "October 18, 2026";
 const EMAIL = "info@savantalent.com";
 
 const SECTIONS = [
@@ -197,7 +197,7 @@ function PrivacyPolicy() {
               résumés) in their talent feed and invite you to apply. Your email address and phone
               number stay private until you accept an invitation.{" "}
               <strong>Your profile is visible to recruiters unless you turn this off</strong> using
-              the “Visible to recruiters” setting on your profile page.
+              the “Visible to recruiters and coaches” setting on your profile page.
             </li>
             <li>
               <strong>Recruiters and coaches a Savant admin assigns to you:</strong> while the
@@ -215,10 +215,13 @@ function PrivacyPolicy() {
               <strong>Career coaches:</strong> when you sign up for a career service, our admins
               review it and assign a coach, who then sees the details you shared. To ask to coach
               someone, coaches can browse a limited list showing first name and last initial,
-              headline, location and skills — never contact details or résumés.
+              headline, location and skills, and can read your résumé (the file and its text) if
+              your profile is visible. They don't see the contact fields on your profile until
+              they're assigned to you. Turning off “Visible to recruiters and coaches” hides your
+              résumé from coaches who aren't assigned to you.
             </li>
             <li>
-              <strong>Service providers</strong> who process data for us: Lovable (website hosting),
+              <strong>Service providers</strong> who process data for us: Cloudflare (website hosting),
               Supabase (database, sign-in and file storage), Google (optional sign-in), Resend
               (email delivery) and Anthropic (drafting suggested answers in Savant Apply). They may
               use it only to provide their services to us.

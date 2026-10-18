@@ -310,8 +310,8 @@ function Profile() {
           <Toggle
             checked={visible}
             onChange={setVisible}
-            label="Visible to recruiters"
-            description="Recruiters can find you in their talent feed and invite you to apply. Your email and phone stay private until you accept an invitation."
+            label="Visible to recruiters and coaches"
+            description="Recruiters can find you in their talent feed and invite you to apply, and Savant career coaches can read your résumé. Your email and phone stay private until you accept an invitation or are assigned a coach."
           />
           <button type="submit" disabled={savingPro} className={primaryButton}>
             {savingPro ? "…" : "Save profile"}

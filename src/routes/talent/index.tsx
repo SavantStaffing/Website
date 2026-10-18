@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MyServiceRequests } from "@/components/preparation/MyServiceRequests";
+import { TalentMeetingRequests } from "@/components/meetings/MeetingRequests";
 import { TALENT_STATUS_LABEL } from "@/lib/applications";
 import {
   Badge,
@@ -181,6 +182,8 @@ function TalentDashboard() {
         </Stat>
         <Stat label="Invitations waiting" value={requests ? pending.length : null} />
       </div>
+
+      <TalentMeetingRequests userId={userId} />
 
       <div>
         <SectionHeading title="Invitations from recruiters" />
