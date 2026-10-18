@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
 const SERVICES = [
   {
     slug: "temporary-staffing",
-    name: "Temporary Staffing",
+    name: "Instant Hire",
     tag: "Flexible coverage, fast",
     to: "/temporary-staffing",
   },

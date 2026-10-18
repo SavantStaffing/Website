@@ -239,7 +239,7 @@ function Insights() {
         </div>
         <div className="flex flex-wrap gap-6">
           <Link to="/jobs" search={{ track: "hourly" }} className={mutedButton}>
-            Temp & hourly roles →
+            Instant hire roles →
           </Link>
           <Link to="/jobs" search={{ track: "professional" }} className={mutedButton}>
             Professional roles →
