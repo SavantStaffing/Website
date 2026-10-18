@@ -52,12 +52,14 @@ function CoachWelcome() {
           title: "Schedule sessions",
           where: "Schedule · Talent",
           body: (
-            <p>
-              Set a date and time for each person you're working with. They're notified in their
-              Inbox, and the page shows who still needs a session. To meet someone first, use
-              Request intro meeting on their profile under Talent: offer three times and they pick
-              one. Your calendar is at the bottom of Schedule.
-            </p>
+            <ol className="list-decimal space-y-2 pl-5">
+              <li>
+                Agree on a date and time with each person you're working with: offer three times
+                and they pick one. <em>They're notified in their Inbox.</em>
+              </li>
+              <li>Send the meeting link and instructions (Discord, Google Meet, Zoom, etc.).</li>
+              <li>Your calendar updates to the agreed schedule.</li>
+            </ol>
           ),
           links: [
             { label: "Schedule", to: "/coach/schedule" },
