@@ -4,7 +4,7 @@ import { getDashboardPath } from "@/lib/auth/session";
 
 export const Route = createFileRoute("/forbidden")({
   head: () => ({
-    meta: [{ title: "Forbidden — Savant Staffing" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Forbidden — Savant Talent" }, { name: "robots", content: "noindex" }],
   }),
   component: Forbidden,
 });

@@ -12,7 +12,7 @@ export const Route = createFileRoute("/reset-password")({
     s.set === 1 || s.set === "1" || s.set === true ? { set: 1 } : {},
   head: () => ({
     meta: [
-      { title: "Reset password — Savant Staffing" },
+      { title: "Reset password — Savant Talent" },
       { name: "description", content: "Set a new password for your account." },
       { name: "robots", content: "noindex" },
     ],

@@ -5,11 +5,11 @@ import { SERVICES } from "@/lib/services";
 export const Route = createFileRoute("/preparation")({
   head: () => ({
     meta: [
-      { title: "Preparation — Savant Staffing" },
+      { title: "Preparation — Savant Talent" },
       {
         name: "description",
         content:
-          "Career programs, resume building, interview development, and job fairs with Savant Staffing's career coaches.",
+          "Career programs, resume building, interview development, and job fairs with Savant Talent's career coaches.",
       },
     ],
   }),

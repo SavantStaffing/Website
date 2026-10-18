@@ -4,7 +4,7 @@ import { TempStaffingOverview } from "@/components/temp/TempStaffingOverview";
 export const Route = createFileRoute("/temporary-staffing")({
   head: () => ({
     meta: [
-      { title: "Temporary Staffing — Savant Staffing" },
+      { title: "Temporary Staffing — Savant Talent" },
       {
         name: "description",
         content:

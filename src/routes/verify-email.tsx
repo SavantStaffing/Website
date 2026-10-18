@@ -8,7 +8,7 @@ export const Route = createFileRoute("/verify-email")({
   }),
   head: () => ({
     meta: [
-      { title: "Verify email — Savant Staffing" },
+      { title: "Verify email — Savant Talent" },
       { name: "description", content: "Verify your email address." },
       { name: "robots", content: "noindex" },
     ],

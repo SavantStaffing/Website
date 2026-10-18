@@ -39,7 +39,7 @@ async function fetchPage(start: URL): Promise<string | null> {
       redirect: "manual",
       signal: AbortSignal.timeout(8000),
       headers: {
-        "User-Agent": "SavantJobScout/1.0 (+https://savantstaffing.com)",
+        "User-Agent": "SavantJobScout/1.0 (+https://savantalent.com)",
         Accept: "text/html,application/xhtml+xml",
       },
     });

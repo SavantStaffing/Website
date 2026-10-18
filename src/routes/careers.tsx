@@ -22,7 +22,7 @@ export const Route = createFileRoute("/careers")({
   }),
   head: () => ({
     meta: [
-      { title: "Careers — Savant Staffing" },
+      { title: "Careers — Savant Talent" },
       {
         name: "description",
         content: "Career programs and local career events, organised by industry.",

@@ -59,7 +59,7 @@ export const notifyContactMessage = createServerFn({ method: "POST" })
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM || "Savant Staffing <onboarding@resend.dev>",
+        from: process.env.RESEND_FROM || "Savant Talent <onboarding@resend.dev>",
         to: [process.env.CONTACT_NOTIFY_TO || "info@savantalent.com"],
         reply_to: data.email,
         subject: `New contact message: ${data.topic} — ${data.name}`,

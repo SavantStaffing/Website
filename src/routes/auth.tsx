@@ -23,7 +23,7 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — Savant Staffing" },
+      { title: "Sign in — Savant Talent" },
       { name: "description", content: "Sign in or create an account." },
       { name: "robots", content: "noindex" },
     ],

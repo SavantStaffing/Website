@@ -101,7 +101,7 @@ export function SiteFooter() {
 
         <div className="mt-20 flex flex-wrap items-center justify-between gap-4 border-t border-[color:var(--color-hairline)] pt-8 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <span>© {new Date().getFullYear()} Savant Staffing</span>
+            <span>© {new Date().getFullYear()} Savant Talent</span>
             <Link to="/terms" className="[@media(hover:hover)]:hover:text-foreground">
               Terms of Use
             </Link>

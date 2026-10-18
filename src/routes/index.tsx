@@ -49,7 +49,7 @@ function HeroSection() {
   return (
     <section className="mx-auto max-w-7xl px-6 pt-20 pb-24 lg:px-10 lg:pt-28 lg:pb-32">
       <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-        Savant Staffing
+        Savant Talent
       </p>
       <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
         Path to <span className="text-brass">greatness.</span>

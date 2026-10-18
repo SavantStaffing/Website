@@ -163,7 +163,7 @@ in-memory store — no database needed. Pass a careers URL to try one company:
 | `SCOUT_CRON_SECRET` | scheduled scans via `/api/scout/run` |
 | `RESEND_API_KEY` | email alert to the team for each contact-page message |
 | `CONTACT_NOTIFY_TO` | optional; who gets contact alerts (default info@savantalent.com) |
-| `RESEND_FROM` | optional; sender, e.g. `Savant Staffing <noreply@savantalent.com>` once the domain is verified in Resend |
+| `RESEND_FROM` | optional; sender, e.g. `Savant Talent <noreply@savantalent.com>` once the domain is verified in Resend |
 | `ANTHROPIC_API_KEY` (optional `DRAFT_MODEL`, default `claude-sonnet-5`) | autofill drafting answers to open-ended questions from the resume |
 | `JOBSPY_URL`, `JOBSPY_TOKEN` | job-board scraping — read `services/jobspy/README.md` first |
 | `VITE_SAVANT_APPLY_EXTENSION_ID` | optional; only if the extension is published under a different ID (e.g. Chrome Web Store) |

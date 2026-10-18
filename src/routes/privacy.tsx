@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Savant Staffing" },
+      { title: "Privacy Policy — Savant Talent" },
       {
         name: "description",
         content:
-          "How Savant Staffing collects, uses, shares and protects personal information on savantalent.com, and your privacy rights.",
+          "How Savant Talent collects, uses, shares and protects personal information on savantalent.com, and your privacy rights.",
       },
     ],
   }),
@@ -51,7 +51,7 @@ function PrivacyPolicy() {
       <p className="mt-4 text-sm text-muted-foreground">Last updated {UPDATED}</p>
 
       <p className="mt-10 text-base leading-relaxed">
-        This policy explains what personal information Savant Staffing collects when you use
+        This policy explains what personal information Savant Talent collects when you use
         savantalent.com and its tools, how we use and share it, and the choices and rights you have.
         The short version: we use your information to help you find work (or find people), we don't
         sell it, and we don't use advertising trackers.
@@ -78,7 +78,7 @@ function PrivacyPolicy() {
       <div className="mt-12 space-y-12 text-sm leading-relaxed">
         <Section id="who">
           <p>
-            Savant Staffing (“Savant,” “we” or “us”) operates savantalent.com, the Savant job feed,
+            Savant Talent (“Savant,” “we” or “us”) operates savantalent.com, the Savant job feed,
             Employer Ratings, Insights, the talent, recruiter and coach hubs, and the Savant Apply
             browser extension (together, the “Services”). Savant is responsible for the personal
             information described here. Contact us at <Mail />. Use of the Services is also governed
