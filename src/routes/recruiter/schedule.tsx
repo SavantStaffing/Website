@@ -16,10 +16,11 @@ import {
   usePeople,
   type Application,
 } from "@/components/schedule/parts";
+import { Calendar } from "@/components/site/Calendar";
 
 export const Route = createFileRoute("/recruiter/schedule")({
   head: () => ({
-    meta: [{ title: "Talent & Schedule" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Schedule" }, { name: "robots", content: "noindex" }],
   }),
   component: RecruiterSchedule,
 });
@@ -37,11 +38,14 @@ const INVITE_TONE = { pending: "warn", accepted: "good", declined: "bad" } as co
 /**
  * Talent this recruiter's organization has picked for something: applicants
  * moved to review or interviews (with interview times), and invitations sent.
+ * The calendar sits at the bottom.
  */
 function RecruiterSchedule() {
   const { userId, profile } = Route.useRouteContext();
   const [apps, setApps] = useState<Application[] | null>(null);
   const [invites, setInvites] = useState<Invite[] | null>(null);
+  // Bumped when an interview time changes so the calendar below reloads.
+  const [calendarKey, setCalendarKey] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -94,8 +98,10 @@ function RecruiterSchedule() {
     ...(apps ?? []).map((a) => a.applicant_id),
     ...(invites ?? []).map((i) => i.talent_id),
   ]);
-  const patchApp = (id: string) => (patch: Partial<Application>) =>
+  const patchApp = (id: string) => (patch: Partial<Application>) => {
     setApps((prev) => prev?.map((x) => (x.id === id ? { ...x, ...patch } : x)) ?? null);
+    setCalendarKey((k) => k + 1);
+  };
 
   const { upcoming, interviewing, shortlisted, hired } = useMemo(() => {
     const open = (apps ?? []).filter((a) => a.status !== "hired");
@@ -185,6 +191,7 @@ function RecruiterSchedule() {
           </ul>
         )}
       </div>
+      <Calendar userId={userId} refreshKey={calendarKey} />
     </section>
   );
 }

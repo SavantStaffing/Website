@@ -97,21 +97,24 @@ function RecruiterWelcome() {
         },
         {
           title: "Schedule interviews",
-          where: "Applications · Talent & Schedule",
+          where: "Applications · Schedule",
           body: (
             <>
               <p>
                 In <strong>Applications</strong>, move a candidate through Reviewed and{" "}
-                <strong>Interviewing</strong>. On <strong>Talent &amp; Schedule</strong>, pick a
-                time for anyone marked Interviewing, or schedule an interview directly. The
-                candidate is notified with the date and time.
+                <strong>Interviewing</strong>. On <strong>Schedule</strong>, pick a time for anyone
+                marked Interviewing, or schedule an interview directly. The candidate is notified
+                with the date and time.
               </p>
-              <p>The same page tracks the invitations you've sent and who has replied.</p>
+              <p>
+                The same page tracks the invitations you've sent and who has replied, with your
+                calendar at the bottom.
+              </p>
             </>
           ),
           links: [
             { label: "Applications", to: "/recruiter/applications" },
-            { label: "Talent & Schedule", to: "/recruiter/schedule" },
+            { label: "Schedule", to: "/recruiter/schedule" },
           ],
         },
         {

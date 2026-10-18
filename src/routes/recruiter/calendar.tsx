@@ -1,14 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Calendar } from "@/components/site/Calendar";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** The calendar now lives at the bottom of Schedule. */
 export const Route = createFileRoute("/recruiter/calendar")({
-  head: () => ({
-    meta: [{ title: "Calendar" }, { name: "robots", content: "noindex" }],
-  }),
-  component: CalendarPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/recruiter/schedule", replace: true });
+  },
 });
-
-function CalendarPage() {
-  const { userId } = Route.useRouteContext();
-  return <Calendar userId={userId} />;
-}
