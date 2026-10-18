@@ -17,7 +17,7 @@ export const Route = createFileRoute("/join/coach")({
   }),
   head: () => ({
     meta: [
-      { title: "Coach sign up — Savant Staffing" },
+      { title: "Coach sign up — Savant Talent" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

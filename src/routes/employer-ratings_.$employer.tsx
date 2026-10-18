@@ -17,7 +17,7 @@ import { useEmployerRatings } from "@/lib/ratings/use-employer-ratings";
 export const Route = createFileRoute("/employer-ratings_/$employer")({
   head: () => ({
     meta: [
-      { title: "Employer rating — Savant Staffing" },
+      { title: "Employer rating — Savant Talent" },
       {
         name: "description",
         content:
@@ -39,7 +39,7 @@ function EmployerPage() {
   const e = index ? employerBySlug(index, slug) : null;
 
   useEffect(() => {
-    if (e) document.title = `${e.name} employer rating — Savant Staffing`;
+    if (e) document.title = `${e.name} employer rating — Savant Talent`;
   }, [e]);
 
   return (

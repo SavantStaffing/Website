@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Use — Savant Staffing" },
+      { title: "Terms of Use — Savant Talent" },
       {
         name: "description",
         content:
@@ -85,7 +85,7 @@ function Terms() {
             These Terms of Use (“Terms”) govern your access to and use of savantalent.com, its job
             feed, Employer Ratings, Insights, talent, recruiter and coach tools, the Savant Apply
             browser extension, and any related services (together, the “Services”), provided by
-            Savant Staffing (“Savant,” “we” or “us”). By accessing or using the Services, or by
+            Savant Talent (“Savant,” “we” or “us”). By accessing or using the Services, or by
             creating an account, you agree to these Terms. If you don't agree, don't use the
             Services.
           </p>
@@ -216,7 +216,7 @@ function Terms() {
             distribution, sale or commercial use needs our written permission.
           </p>
           <p>
-            “Savant,” “Savant Staffing,” “Savant Apply” and our logos are our trademarks. Don't use
+            “Savant,” “Savant Talent,” “Savant Apply” and our logos are our trademarks. Don't use
             them in a way that suggests we endorse or are affiliated with you or your product.
           </p>
         </Section>

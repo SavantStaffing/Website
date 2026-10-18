@@ -50,7 +50,7 @@ export class HttpError extends Error {
   }
 }
 
-const USER_AGENT = "SavantJobScout/1.0 (+https://savantstaffing.com)";
+const USER_AGENT = "SavantJobScout/1.0 (+https://savantalent.com)";
 
 /**
  * GET with timeout, and one polite retry on 429/5xx honoring Retry-After

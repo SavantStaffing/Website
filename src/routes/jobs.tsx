@@ -7,8 +7,8 @@ export const Route = createFileRoute("/jobs")({
   validateSearch: parseTrackSearch,
   head: () => ({
     meta: [
-      { title: "Jobs — Savant Staffing" },
-      { name: "description", content: "Open roles placed by Savant Staffing." },
+      { title: "Jobs — Savant Talent" },
+      { name: "description", content: "Open roles placed by Savant Talent." },
     ],
   }),
   component: Jobs,

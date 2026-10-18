@@ -15,7 +15,7 @@ export const Route = createFileRoute("/pending-approval")({
   },
   head: () => ({
     meta: [
-      { title: "Account pending approval — Savant Staffing" },
+      { title: "Account pending approval — Savant Talent" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -11,7 +11,7 @@ export const Route = createFileRoute("/preparation_/career-programs/$program")({
   },
   head: ({ loaderData }) => ({
     meta: [
-      { title: `${loaderData?.name ?? "Career Programs"} — Savant Staffing` },
+      { title: `${loaderData?.name ?? "Career Programs"} — Savant Talent` },
       { name: "description", content: loaderData?.tag ?? "Savant career programs." },
     ],
   }),

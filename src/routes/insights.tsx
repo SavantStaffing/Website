@@ -21,7 +21,7 @@ export const Route = createFileRoute("/insights")({
   loader: ({ deps }) => getRegionInsights({ data: { region: deps.region } }),
   head: () => ({
     meta: [
-      { title: "Insights — Savant Staffing" },
+      { title: "Insights — Savant Talent" },
       {
         name: "description",
         content:

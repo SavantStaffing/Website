@@ -40,7 +40,7 @@ export function toIcs(items: CalendarItem[], name = "Savant"): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Savant Staffing//Calendar//EN",
+    "PRODID:-//Savant Talent//Calendar//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${esc(name)}`,

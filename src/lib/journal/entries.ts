@@ -304,7 +304,7 @@ export const ENTRIES: JournalEntry[] = [
     date: "2026-10-15",
     category: "Job search",
     summary:
-      "Navigate automated hiring systems, tailor your resume, and improve your application strategy with Savant Staffing.",
+      "Navigate automated hiring systems, tailor your resume, and improve your application strategy with Savant Talent.",
     blocks: [
       { type: "h2", text: "What is an applicant tracking system?" },
       {
@@ -359,7 +359,7 @@ export const ENTRIES: JournalEntry[] = [
         type: "p",
         content: [
           {
-            bold: "Savant Staffing helps address this challenge through resume building designed to support multiple role-specific alternatives.",
+            bold: "Savant Talent helps address this challenge through resume building designed to support multiple role-specific alternatives.",
           },
           " Instead of relying on one general-purpose resume, job seekers can develop and refine different versions that emphasize their qualifications for distinct positions and career paths.",
         ],
@@ -380,7 +380,7 @@ export const ENTRIES: JournalEntry[] = [
       },
     ],
     cta: {
-      title: "Build your resume with Savant Staffing",
+      title: "Build your resume with Savant Talent",
       body: "Create alternatives for different roles, tailor your qualifications to each opportunity, and approach your next application with a more focused strategy.",
       label: "Start your resume →",
       to: "/talent/profile",

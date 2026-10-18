@@ -6,7 +6,7 @@ import { CONTACT_EMAIL, FAQ, ROLE_LABEL, type HelpRole } from "@/lib/help/knowle
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "FAQ — Savant Staffing" },
+      { title: "FAQ — Savant Talent" },
       {
         name: "description",
         content:

@@ -34,9 +34,9 @@ import { ATS_PLATFORMS, type AtsPlatform } from "@/lib/scout/types";
 export const Route = createFileRoute("/admin/scout")({
   head: () => ({
     meta: [
-      { title: "Job Scout Admin — Savant Staffing" },
-      { name: "description", content: "Manage Savant Staffing job sources and review scan results." },
-      { property: "og:title", content: "Job Scout Admin — Savant Staffing" },
+      { title: "Job Scout Admin — Savant Talent" },
+      { name: "description", content: "Manage Savant Talent job sources and review scan results." },
+      { property: "og:title", content: "Job Scout Admin — Savant Talent" },
       { property: "og:description", content: "Manage job sources and review scan results." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

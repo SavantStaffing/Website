@@ -15,10 +15,10 @@ export const Route = createFileRoute("/contact")({
     s.topic === "coach" ? { topic: "coach" } : {},
   head: () => ({
     meta: [
-      { title: "Contact — Savant Staffing" },
+      { title: "Contact — Savant Talent" },
       {
         name: "description",
-        content: "Talk to Savant Staffing about hiring, finding work, or our programs.",
+        content: "Talk to Savant Talent about hiring, finding work, or our programs.",
       },
     ],
   }),

@@ -26,7 +26,7 @@ import { useEmployerRatings } from "@/lib/ratings/use-employer-ratings";
 export const Route = createFileRoute("/employer-ratings")({
   head: () => ({
     meta: [
-      { title: "Employer Ratings — Savant Staffing" },
+      { title: "Employer Ratings — Savant Talent" },
       {
         name: "description",
         content:
