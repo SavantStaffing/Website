@@ -70,7 +70,7 @@ export const FAQ: Record<HelpRole, Faq[]> = {
     },
     {
       q: "Who can see my profile?",
-      a: "Recruiters on Savant can find your profile in their Talent Feed while “Visible to recruiters” is on in your profile; turn it off any time. Your email and phone stay private until you accept a recruiter's invitation. Coaches and recruiters assigned to you by Savant's team can see your profile and résumé.",
+      a: "Recruiters on Savant can find your profile in their Talent Feed, and Savant career coaches can read your résumé, while “Visible to recruiters and coaches” is on in your profile; turn it off any time. Your email and phone stay private until you accept a recruiter's invitation. Coaches and recruiters assigned to you by Savant's team can see your full profile, contact details and résumé.",
       links: [{ label: "Talent Profile", to: "/talent/profile" }],
     },
   ],

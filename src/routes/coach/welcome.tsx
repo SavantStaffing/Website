@@ -39,7 +39,8 @@ function CoachWelcome() {
           body: (
             <>
               <p>
-                Under <strong>Find talent to coach</strong>, browse talent and click{" "}
+                Under <strong>Find talent to coach</strong>, browse talent, read their résumés
+                and click{" "}
                 <strong>Request to coach</strong>. Once Savant's team approves, they move to{" "}
                 <strong>Your talent</strong>, with their profile, résumé and contact details.
               </p>

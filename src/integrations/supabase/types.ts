@@ -1649,6 +1649,15 @@ export type Database = {
           skills: string[];
           joined_at: string;
           assignment_status: string | null;
+          has_resume: boolean;
+        }[];
+      };
+      coach_talent_resume: {
+        Args: { _talent: string };
+        Returns: {
+          resume_text: string | null;
+          resume_path: string | null;
+          resume_filename: string | null;
         }[];
       };
       is_assigned: {
