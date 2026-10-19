@@ -36,6 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const ctx = await loadAuthContext();
     setAuth(ctx);
     setLoading(false);
+    // Activity for the Job Scout's adaptive regions. Runs on load and on every
+    // auth event (token refreshes included); the database writes once an hour at most.
+    if (ctx)
+      void supabase.rpc("touch_last_active").then(({ error }) => {
+        if (error) console.warn("touch_last_active:", error.message);
+      });
   }, []);
 
   useEffect(() => {

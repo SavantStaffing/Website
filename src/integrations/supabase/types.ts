@@ -108,6 +108,7 @@ export type Database = {
           email_notifications: boolean;
           full_name: string | null;
           id: string;
+          last_active_at: string | null;
           org_permission: string;
           organization_id: string | null;
           phone: string | null;
@@ -120,6 +121,7 @@ export type Database = {
           email_notifications?: boolean;
           full_name?: string | null;
           id: string;
+          last_active_at?: string | null;
           org_permission?: string;
           organization_id?: string | null;
           phone?: string | null;
@@ -132,6 +134,7 @@ export type Database = {
           email_notifications?: boolean;
           full_name?: string | null;
           id?: string;
+          last_active_at?: string | null;
           org_permission?: string;
           organization_id?: string | null;
           phone?: string | null;
@@ -573,6 +576,7 @@ export type Database = {
           ethics_min_fair_pay: number | null;
           ethics_min_cultures: number | null;
           ethics_min_honest: number | null;
+          region_active_days: number;
         };
         Insert: {
           as_you_sow_min_employees?: number;
@@ -592,6 +596,7 @@ export type Database = {
           ethics_min_fair_pay?: number | null;
           ethics_min_cultures?: number | null;
           ethics_min_honest?: number | null;
+          region_active_days?: number;
         };
         Update: {
           as_you_sow_min_employees?: number;
@@ -611,6 +616,7 @@ export type Database = {
           ethics_min_fair_pay?: number | null;
           ethics_min_cultures?: number | null;
           ethics_min_honest?: number | null;
+          region_active_days?: number;
         };
         Relationships: [];
       };
@@ -1308,6 +1314,12 @@ export type Database = {
         Update: { user_id?: string; token?: string; created_at?: string };
         Relationships: [];
       };
+      scout_region_overrides: {
+        Row: { metro: string; mode: string; updated_by: string | null; updated_at: string };
+        Insert: { metro: string; mode: string; updated_by?: string | null; updated_at?: string };
+        Update: { metro?: string; mode?: string; updated_by?: string | null; updated_at?: string };
+        Relationships: [];
+      };
       meeting_requests: {
         Row: {
           chosen_at: string | null;
@@ -1634,6 +1646,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      touch_last_active: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      scout_region_demand: {
+        Args: { _days?: number | null };
+        Returns: { metro: string; active_talent: number; last_active_at: string | null }[];
+      };
       respond_meeting_request: {
         Args: { _id: string; _choice: string | null; _note?: string | null };
         Returns: Database["public"]["Tables"]["meeting_requests"]["Row"];

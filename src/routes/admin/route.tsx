@@ -25,6 +25,7 @@ const NAV = [
   { to: "/admin/architecture", label: "Architecture" },
   { to: "/admin/jobs", label: "Jobs" },
   { to: "/admin/scanners", label: "Unique scanners" },
+  { to: "/admin/regions", label: "Regional scanners" },
   { to: "/admin/organizations", label: "Organizations" },
   { to: "/admin/messages", label: "Messages" },
   { to: "/temporary-staffing", label: "Temp Partners" },
