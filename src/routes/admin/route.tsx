@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { HubLayout } from "@/components/site/HubLayout";
 import { requireRole } from "@/lib/auth/guards";
 
@@ -34,7 +36,30 @@ const NAV = [
 
 function AdminLayout() {
   const { userId, displayName } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [unassigned, setUnassigned] = useState(0);
+
+  // Recruiters with no organization yet, shown as "Recruiters (n)" as a reminder to assign them.
+  // Re-counted on each admin page change so it drops after assigning on /admin/recruiters.
+  useEffect(() => {
+    (async () => {
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "recruiter");
+      const ids = (roleRows ?? []).map((r) => r.user_id);
+      if (!ids.length) return setUnassigned(0);
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .in("id", ids)
+        .is("organization_id", null);
+      setUnassigned(count ?? 0);
+    })();
+  }, [pathname]);
+
+  const nav = NAV.map((n) => (n.to === "/admin/recruiters" ? { ...n, count: unassigned } : n));
   return (
-    <HubLayout eyebrow="Admin hub" name={displayName} userId={userId} nav={NAV} root="/admin" />
+    <HubLayout eyebrow="Admin hub" name={displayName} userId={userId} nav={nav} root="/admin" />
   );
 }
