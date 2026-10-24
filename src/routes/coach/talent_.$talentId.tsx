@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { APPLICATION_STATUS_LABEL } from "@/lib/applications";
 import { loadTalent, TalentProfile, type Assigned } from "@/components/talent/AssignedTalentList";
+import { EngagementProgress } from "@/components/talent/EngagementProgress";
 import {
   Badge,
   Empty,
@@ -173,6 +174,17 @@ function CoachTalentProfile() {
         <BackLink />
         <div className="mt-6">
           <TalentProfile r={profile} staffId={userId} canRequestMeetings />
+        </div>
+      </div>
+
+      <div>
+        <SectionHeading title="Engagement" />
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Where {profile.name} is in each Savant service. Click a service for its steps, and click a
+          step to mark it done or undo it.
+        </p>
+        <div className="mt-6">
+          <EngagementProgress talentId={talentId} canEdit bare />
         </div>
       </div>
 

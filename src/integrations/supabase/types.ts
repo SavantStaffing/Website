@@ -881,6 +881,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      engagement_steps: {
+        Row: {
+          completed_at: string
+          completed_by: string | null
+          id: string
+          service: string
+          step: string
+          talent_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          service: string
+          step: string
+          talent_id: string
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          service?: string
+          step?: string
+          talent_id?: string
+        }
+        Relationships: []
+      }
       fair_chance_employers: {
         Row: {
           created_at: string;
@@ -1646,6 +1673,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      engagement_auto: {
+        Args: { _talent: string };
+        Returns: { resume_uploaded: boolean; intake_done: boolean }[];
+      };
       touch_last_active: {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
