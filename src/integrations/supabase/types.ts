@@ -883,31 +883,31 @@ export type Database = {
       };
       engagement_steps: {
         Row: {
-          completed_at: string
-          completed_by: string | null
-          id: string
-          service: string
-          step: string
-          talent_id: string
-        }
+          completed_at: string;
+          completed_by: string | null;
+          id: string;
+          service: string;
+          step: string;
+          talent_id: string;
+        };
         Insert: {
-          completed_at?: string
-          completed_by?: string | null
-          id?: string
-          service: string
-          step: string
-          talent_id: string
-        }
+          completed_at?: string;
+          completed_by?: string | null;
+          id?: string;
+          service: string;
+          step: string;
+          talent_id: string;
+        };
         Update: {
-          completed_at?: string
-          completed_by?: string | null
-          id?: string
-          service?: string
-          step?: string
-          talent_id?: string
-        }
-        Relationships: []
-      }
+          completed_at?: string;
+          completed_by?: string | null;
+          id?: string;
+          service?: string;
+          step?: string;
+          talent_id?: string;
+        };
+        Relationships: [];
+      };
       fair_chance_employers: {
         Row: {
           created_at: string;
