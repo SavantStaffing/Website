@@ -37,7 +37,7 @@ CREATE TABLE public.engagement_steps (
 );
 CREATE INDEX engagement_steps_talent_idx ON public.engagement_steps (talent_id);
 
-REVOKE ALL ON public.engagement_steps FROM anon;
+REVOKE ALL ON public.engagement_steps FROM anon, authenticated;  -- undo Supabase's default grants
 GRANT SELECT, INSERT, DELETE ON public.engagement_steps TO authenticated;
 GRANT ALL ON public.engagement_steps TO service_role;
 ALTER TABLE public.engagement_steps ENABLE ROW LEVEL SECURITY;
