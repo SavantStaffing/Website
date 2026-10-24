@@ -14,7 +14,7 @@ function TalentManagement() {
       <h2 className="text-2xl font-semibold">Talent</h2>
       <p className="mt-2 text-sm text-muted-foreground">Accounts registered as job seekers.</p>
       <div className="mt-8">
-        <UserList roleFilter="talent" />
+        <UserList roleFilter="talent" showEngagement />
       </div>
     </section>
   );
