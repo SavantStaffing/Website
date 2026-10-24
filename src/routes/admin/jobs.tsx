@@ -189,7 +189,7 @@ function AdminJobs() {
               </div>
               <div className="flex gap-4">
                 <button onClick={() => moveTrack(j)} className={mutedButton}>
-                  Move to {effectiveTrack(j) === "hourly" ? "Professional" : "Temp & hourly"}
+                  Move to {effectiveTrack(j) === "hourly" ? "Professional" : "Instant hire"}
                 </button>
                 {j.status !== "active" && (
                   <button onClick={() => setJobStatus(j.id, "active")} className={mutedButton}>

@@ -11,7 +11,7 @@ export const Route = createFileRoute("/services")({
 });
 
 const SERVICES = [
-  { name: "Temporary Staffing", tag: "Flexible coverage, fast", to: "/temporary-staffing" },
+  { name: "Instant Hire", tag: "Flexible coverage, fast", to: "/temporary-staffing" },
   {
     name: "Professional Roles",
     tag: "Full-time placements",

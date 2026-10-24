@@ -225,7 +225,7 @@ function Preferences() {
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Shifts on these apps rank higher in your Temp & hourly feed.{" "}
+            Shifts on these apps rank higher in your Instant hire feed.{" "}
             <Link
               to="/talent/temporary-work"
               className="text-foreground underline underline-offset-4"

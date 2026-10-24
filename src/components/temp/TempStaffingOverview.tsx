@@ -180,7 +180,7 @@ export function TempStaffingOverview({ withSignup = false }: { withSignup?: bool
             search={{ track: "hourly" }}
             className="text-foreground underline underline-offset-4"
           >
-            Temp & hourly job feed
+            Instant hire job feed
           </Link>
           , filterable by position, industry, location and pay. Each sign-up opens that platform's
           own site, where you create your worker account and complete their onboarding. Shifts are

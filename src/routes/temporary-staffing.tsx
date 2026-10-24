@@ -4,7 +4,7 @@ import { TempStaffingOverview } from "@/components/temp/TempStaffingOverview";
 export const Route = createFileRoute("/temporary-staffing")({
   head: () => ({
     meta: [
-      { title: "Temporary Staffing — Savant Talent" },
+      { title: "Instant Hire — Savant Talent" },
       {
         name: "description",
         content:
@@ -19,7 +19,7 @@ function TemporaryStaffing() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-24 lg:px-10 lg:py-32">
       <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-        Temporary Staffing
+        Instant Hire
       </p>
       <h1 className="mt-6 text-5xl font-semibold leading-tight md:text-6xl">
         Flexible work, through partners we trust.

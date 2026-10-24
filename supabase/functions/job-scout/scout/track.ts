@@ -21,7 +21,7 @@ export const JOB_TRACKS = ["hourly", "professional"] as const;
 export type JobTrack = (typeof JOB_TRACKS)[number];
 
 export const JOB_TRACK_LABELS: Record<JobTrack, string> = {
-  hourly: "Temp & hourly",
+  hourly: "Instant hire",
   professional: "Professional",
 };
 
