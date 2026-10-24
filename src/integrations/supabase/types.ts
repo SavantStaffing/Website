@@ -107,6 +107,11 @@ export type Database = {
           email: string | null;
           email_notifications: boolean;
           full_name: string | null;
+          company_name: string | null;
+          company_website: string | null;
+          first_name: string | null;
+          last_name: string | null;
+          linkedin_url: string | null;
           id: string;
           last_active_at: string | null;
           org_permission: string;
@@ -120,6 +125,11 @@ export type Database = {
           email?: string | null;
           email_notifications?: boolean;
           full_name?: string | null;
+          company_name?: string | null;
+          company_website?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          linkedin_url?: string | null;
           id: string;
           last_active_at?: string | null;
           org_permission?: string;
@@ -133,6 +143,11 @@ export type Database = {
           email?: string | null;
           email_notifications?: boolean;
           full_name?: string | null;
+          company_name?: string | null;
+          company_website?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          linkedin_url?: string | null;
           id?: string;
           last_active_at?: string | null;
           org_permission?: string;

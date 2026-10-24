@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieNotice } from "@/components/site/CookieNotice";
+import { CompleteProfileDialog } from "@/components/site/CompleteProfileDialog";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 function NotFoundComponent() {
@@ -88,8 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "Savant Talent" },
       {
         property: "og:description",
-        content:
-          "Path to greatness. Top-rated companies, jobs and premium career services.",
+        content: "Path to greatness. Top-rated companies, jobs and premium career services.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -140,6 +140,7 @@ function RootComponent() {
           </main>
           <SiteFooter />
         </div>
+        <CompleteProfileDialog />
         <CookieNotice />
         <Toaster theme="light" position="top-center" />
       </AuthProvider>
