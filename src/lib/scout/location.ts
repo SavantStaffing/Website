@@ -488,6 +488,52 @@ export const METROS: Metro[] = [
 
 export const ACTIVE_METROS = METROS.filter((m) => m.active);
 
-/** Is a posting in one of the active metros? Used to prefer local postings when capping. */
-export const inActiveMetro = (location: string | null | undefined) =>
-  !!location && ACTIVE_METROS.some((m) => m.match.test(location.replace(/\./g, "")));
+/** Is a posting in one of the given metros (by default the baseline active ones)? */
+export const inActiveMetro = (location: string | null | undefined, metros = ACTIVE_METROS) =>
+  !!location && metros.some((m) => m.match.test(location.replace(/\./g, "")));
+
+/**
+ * Adaptive regions. The `active` flag above is the baseline; on top of it a
+ * metro scans while any talent living there has used the site recently
+ * (scout_region_demand(), within scout_settings.region_active_days), and an
+ * admin override ('on' / 'off', scout_region_overrides) beats both.
+ */
+export type RegionDemand = { metro: string; active_talent: number; last_active_at: string | null };
+export type RegionOverride = "on" | "off";
+export type RegionStatus = {
+  metro: Metro;
+  active: boolean;
+  why: "override_on" | "override_off" | "baseline" | "active_talent" | "idle";
+  override: RegionOverride | null;
+  activeTalent: number;
+  lastActiveAt: string | null;
+};
+
+export function resolveRegions(
+  demand: RegionDemand[],
+  overrides: Record<string, RegionOverride>,
+): RegionStatus[] {
+  return METROS.map((metro) => {
+    const d = demand.find((x) => x.metro === metro.name);
+    const override = overrides[metro.name] ?? null;
+    const activeTalent = d?.active_talent ?? 0;
+    const why: RegionStatus["why"] =
+      override === "on"
+        ? "override_on"
+        : override === "off"
+          ? "override_off"
+          : metro.active
+            ? "baseline"
+            : activeTalent > 0
+              ? "active_talent"
+              : "idle";
+    return {
+      metro,
+      active: why !== "override_off" && why !== "idle",
+      why,
+      override,
+      activeTalent,
+      lastActiveAt: d?.last_active_at ?? null,
+    };
+  });
+}

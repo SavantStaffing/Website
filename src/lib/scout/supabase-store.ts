@@ -18,6 +18,12 @@ import {
 import type { CompanyType } from "./track.ts";
 import type { AdzunaCredentials, ApiUsage } from "./aggregators.ts";
 import type { AtsPlatform, BoardSource, ScoutCompany } from "./types.ts";
+import {
+  resolveRegions,
+  type RegionDemand,
+  type RegionOverride,
+  type RegionStatus,
+} from "./location.ts";
 
 /**
  * Supabase-backed ScoutStore and run recording, shared by the app
@@ -262,6 +268,29 @@ export async function loadScoutSettings(db: ScoutDb): Promise<ScoutSettings> {
   };
 }
 
+/**
+ * Each metro's adaptive status (location.ts resolveRegions): baseline, talent
+ * active within scout_settings.region_active_days, or an admin override. If
+ * the lookups fail, scans fall back to the baseline metros.
+ */
+export async function loadRegions(db: ScoutDb): Promise<RegionStatus[]> {
+  const [demand, overrides] = await Promise.all([
+    db.rpc("scout_region_demand"),
+    db.from("scout_region_overrides").select("metro, mode"),
+  ]);
+  if (demand.error) console.error("scout_region_demand:", demand.error.message);
+  if (overrides.error) console.error("scout_region_overrides:", overrides.error.message);
+  return resolveRegions(
+    (demand.data ?? []) as RegionDemand[],
+    Object.fromEntries(
+      ((overrides.data ?? []) as { metro: string; mode: RegionOverride }[]).map((o) => [
+        o.metro,
+        o.mode,
+      ]),
+    ),
+  );
+}
+
 /** JUST Capital / As You Sow lists and the cutoffs from scout_settings. */
 export async function loadRatings(
   db: ScoutDb,
@@ -380,6 +409,7 @@ export async function runAndRecord(
     const summary = await runScout(createScoutStore(db), {
       companyIds: opts.companyIds,
       settings: await loadScoutSettings(db),
+      metros: (await loadRegions(db)).filter((r) => r.active).map((r) => r.metro),
       jobspyUrl: opts.jobspyUrl ?? null,
       jobspyToken: opts.jobspyToken ?? null,
       ratings: await loadRatings(db),

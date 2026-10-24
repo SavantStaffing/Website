@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgo } from "./ui";
 
-type NavItem = { to: LinkProps["to"]; label: string };
+type NavItem = { to: LinkProps["to"]; label: string; count?: number };
 
 /**
  * Shared shell for the /talent, /recruiter and /admin hubs: header with the
@@ -63,6 +63,7 @@ export function HubLayout({
             activeOptions={{ exact: n.to === root }}
           >
             {n.label}
+            {n.count ? ` (${n.count})` : ""}
           </Link>
         ))}
       </nav>

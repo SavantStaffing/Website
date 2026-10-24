@@ -9,7 +9,7 @@ import {
 } from "./ethics.ts";
 import { scoreGhost, GHOST_FLAG_THRESHOLD } from "./ghost.ts";
 import { HttpError, MetricsRecorder, mapLimit } from "./http.ts";
-import { classifyLocation, inActiveMetro } from "./location.ts";
+import { ACTIVE_METROS, classifyLocation, inActiveMetro, type Metro } from "./location.ts";
 import { positionType } from "./position.ts";
 import {
   cleanTitle,
@@ -29,7 +29,7 @@ import {
 } from "./ratings.ts";
 import {
   API_BUDGETS,
-  DEFAULT_AGGREGATOR_QUERIES,
+  defaultAggregatorQueries,
   adzunaSearch,
   joobleSearch,
   requestAllowance,
@@ -210,12 +210,18 @@ export async function runScout(
     ratings?: { config: RatingsConfig; list: CompanyRating[] };
     /** Live employer-ethics lookups. Omit to skip them. */
     ethics?: EthicsOptions;
+    /**
+     * Metros to search and to prefer when capping: the adaptive region list
+     * (location.ts resolveRegions). Omit for the baseline active metros.
+     */
+    metros?: Metro[];
     /** Validate + score but don't write jobs (used by the admin "preview" button). */
     dryRun?: boolean;
     now?: Date;
   } = {},
 ): Promise<RunSummary> {
   const settings = opts.settings ?? DEFAULT_SETTINGS;
+  const metros = opts.metros ?? ACTIVE_METROS;
   const now = opts.now ?? new Date();
   const runStartedAt = now.toISOString();
   const rec = new MetricsRecorder();
@@ -353,6 +359,7 @@ export async function runScout(
       const result = await ingest(store, raw, {
         company,
         settings,
+        metros,
         now,
         runStartedAt,
         dryRun: !!opts.dryRun,
@@ -426,6 +433,7 @@ export async function runScout(
       const r = await ingest(store, rows, {
         company: null,
         settings,
+        metros,
         now,
         runStartedAt,
         dryRun: !!opts.dryRun,
@@ -454,7 +462,7 @@ export async function runScout(
   if (joobleKey) searches.push(["jooble", "Jooble", (q) => joobleSearch(rec, joobleKey, q)]);
   const queries = settings.board_queries.length
     ? settings.board_queries
-    : DEFAULT_AGGREGATOR_QUERIES;
+    : defaultAggregatorQueries(metros);
   for (const [source, label, search] of searches) {
     const outcome: CompanyOutcome = {
       company: `Job search API: ${label}`,
@@ -597,6 +605,8 @@ async function ingest(
     descriptionAvailable: boolean;
     tally: SourceTally;
     badgesFor: (companyName: string) => string[];
+    /** Metros whose postings win when capping. */
+    metros: Metro[];
     /** The employer's ethics lookup, copied onto every posting. */
     ethics?: EthicsRecord | null;
   },
@@ -633,7 +643,7 @@ async function ingest(
   const unique =
     ctx.company?.company_type === "staffing_agency"
       ? fresh
-      : capPerPosition(fresh, ctx.settings.max_per_position);
+      : capPerPosition(fresh, ctx.settings.max_per_position, ctx.metros);
   const skipped = deduped.length - unique.length;
 
   const existing = new Map<string, ExistingJob>();
@@ -766,12 +776,14 @@ async function ingest(
  * Keep at most `max` postings per (employer, position type): postings in
  * an active metro (location.ts) first, then the most recently posted.
  */
-export function capPerPosition(jobs: RawJob[], max: number): RawJob[] {
+export function capPerPosition(
+  jobs: RawJob[],
+  max: number,
+  metros: Metro[] = ACTIVE_METROS,
+): RawJob[] {
   const time = (j: RawJob) => (j.posted_at ? Date.parse(j.posted_at) : 0);
-  const ordered = [...jobs].sort(
-    (a, b) =>
-      Number(inActiveMetro(b.location)) - Number(inActiveMetro(a.location)) || time(b) - time(a),
-  );
+  const local = (j: RawJob) => Number(inActiveMetro(j.location, metros));
+  const ordered = [...jobs].sort((a, b) => local(b) - local(a) || time(b) - time(a));
   const counts = new Map<string, number>();
   return ordered.filter((j) => {
     const key = `${j.company_name.toLowerCase()}|${positionType(j.title, j.department)}`;

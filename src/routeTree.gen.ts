@@ -48,6 +48,7 @@ import { Route as AdminMessagesRouteImport } from './routes/admin/messages'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
 import { Route as AdminRatingsRouteImport } from './routes/admin/ratings'
 import { Route as AdminRecruitersRouteImport } from './routes/admin/recruiters'
+import { Route as AdminRegionsRouteImport } from './routes/admin/regions'
 import { Route as AdminScannersRouteImport } from './routes/admin/scanners'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
 import { Route as AdminScoutRouteImport } from './routes/admin/scout'
@@ -297,6 +298,11 @@ const AdminRatingsRoute = AdminRatingsRouteImport.update({
 const AdminRecruitersRoute = AdminRecruitersRouteImport.update({
   id: '/recruiters',
   path: '/recruiters',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRegionsRoute = AdminRegionsRouteImport.update({
+  id: '/regions',
+  path: '/regions',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminScannersRoute = AdminScannersRouteImport.update({
@@ -615,6 +621,7 @@ export interface FileRoutesByFullPath {
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/regions': typeof AdminRegionsRoute
   '/admin/scanners': typeof AdminScannersRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/scout': typeof AdminScoutRoute
@@ -707,6 +714,7 @@ export interface FileRoutesByTo {
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/regions': typeof AdminRegionsRoute
   '/admin/scanners': typeof AdminScannersRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/scout': typeof AdminScoutRoute
@@ -804,6 +812,7 @@ export interface FileRoutesById {
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/ratings': typeof AdminRatingsRoute
   '/admin/recruiters': typeof AdminRecruitersRoute
+  '/admin/regions': typeof AdminRegionsRoute
   '/admin/scanners': typeof AdminScannersRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/scout': typeof AdminScoutRoute
@@ -902,6 +911,7 @@ export interface FileRouteTypes {
     | '/admin/organizations'
     | '/admin/ratings'
     | '/admin/recruiters'
+    | '/admin/regions'
     | '/admin/scanners'
     | '/admin/schedule'
     | '/admin/scout'
@@ -994,6 +1004,7 @@ export interface FileRouteTypes {
     | '/admin/organizations'
     | '/admin/ratings'
     | '/admin/recruiters'
+    | '/admin/regions'
     | '/admin/scanners'
     | '/admin/schedule'
     | '/admin/scout'
@@ -1090,6 +1101,7 @@ export interface FileRouteTypes {
     | '/admin/organizations'
     | '/admin/ratings'
     | '/admin/recruiters'
+    | '/admin/regions'
     | '/admin/scanners'
     | '/admin/schedule'
     | '/admin/scout'
@@ -1459,6 +1471,13 @@ declare module '@tanstack/react-router' {
       path: '/recruiters'
       fullPath: '/admin/recruiters'
       preLoaderRoute: typeof AdminRecruitersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/regions': {
+      id: '/admin/regions'
+      path: '/regions'
+      fullPath: '/admin/regions'
+      preLoaderRoute: typeof AdminRegionsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/scanners': {
@@ -1863,6 +1882,7 @@ interface AdminRouteRouteChildren {
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminRatingsRoute: typeof AdminRatingsRoute
   AdminRecruitersRoute: typeof AdminRecruitersRoute
+  AdminRegionsRoute: typeof AdminRegionsRoute
   AdminScannersRoute: typeof AdminScannersRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
   AdminScoutRoute: typeof AdminScoutRoute
@@ -1886,6 +1906,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminRatingsRoute: AdminRatingsRoute,
   AdminRecruitersRoute: AdminRecruitersRoute,
+  AdminRegionsRoute: AdminRegionsRoute,
   AdminScannersRoute: AdminScannersRoute,
   AdminScheduleRoute: AdminScheduleRoute,
   AdminScoutRoute: AdminScoutRoute,
