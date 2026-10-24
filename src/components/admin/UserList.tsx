@@ -4,6 +4,7 @@ import { personName } from "@/lib/people";
 import { updateUserRole } from "@/lib/authz/server-actions";
 import type { AppRole } from "@/lib/auth/session";
 import { toast } from "sonner";
+import { EngagementProgress } from "@/components/talent/EngagementProgress";
 
 type ProfileRow = {
   id: string;
@@ -27,16 +28,20 @@ export function UserList({
   showOrganization = false,
   allowRoleChange = false,
   showJoined = false,
+  showEngagement = false,
 }: {
   roleFilter?: AppRole;
   showOrganization?: boolean;
   allowRoleChange?: boolean;
   showJoined?: boolean;
+  /** Let admins open a talent's progress through each service from their row. */
+  showEngagement?: boolean;
 }) {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [roles, setRoles] = useState<Record<string, AppRole>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [engagementOpen, setEngagementOpen] = useState<string | null>(null);
 
   async function load() {
     const [{ data: profileRows }, { data: roleRows }] = await Promise.all([
@@ -108,6 +113,16 @@ export function UserList({
                 </div>
               )}
             </div>
+            {showEngagement && roles[p.id] === "talent" && (
+              <button
+                type="button"
+                onClick={() => setEngagementOpen(engagementOpen === p.id ? null : p.id)}
+                aria-expanded={engagementOpen === p.id}
+                className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground [@media(hover:hover)]:hover:text-foreground"
+              >
+                {engagementOpen === p.id ? "Hide progress" : "Progress"}
+              </button>
+            )}
             {allowRoleChange ? (
               <select
                 value={roles[p.id] ?? "talent"}
@@ -124,6 +139,11 @@ export function UserList({
               <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 {roles[p.id] ?? "—"}
               </span>
+            )}
+            {showEngagement && engagementOpen === p.id && (
+              <div className="basis-full pb-2">
+                <EngagementProgress talentId={p.id} canEdit />
+              </div>
             )}
           </li>
         ))}
