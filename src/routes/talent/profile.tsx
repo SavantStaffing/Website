@@ -12,6 +12,7 @@ import {
   type UsernameStatus,
 } from "@/components/site/UsernameField";
 import { SavedAnswers } from "@/components/talent/SavedAnswers";
+import { ProfileAvailability } from "@/components/talent/ProfileAvailability";
 import {
   Field,
   TagInput,
@@ -212,6 +213,7 @@ function Profile() {
           {[
             ["#resume", "Resume"],
             ["#professional-profile", "Professional profile"],
+            ["#availability", "Availability"],
             ["#saved-answers", "Saved answers"],
             ["#contact", "Contact info"],
           ].map(([href, text]) => (
@@ -318,6 +320,7 @@ function Profile() {
           </button>
         </form>
       </div>
+      <ProfileAvailability userId={userId} />
       <SavedAnswers userId={userId} />
 
       <div id="contact" className="scroll-mt-24">
