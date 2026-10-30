@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { APPLICATION_STATUS_LABEL } from "@/lib/applications";
 import { loadTalent, TalentProfile, type Assigned } from "@/components/talent/AssignedTalentList";
 import { EngagementProgress } from "@/components/talent/EngagementProgress";
+import { CoachEditTalentProfile } from "@/components/talent/CoachEditTalentProfile";
 import {
   Badge,
   Empty,
@@ -83,26 +84,17 @@ function CoachTalentProfile() {
   const [apps, setApps] = useState<AppRow[] | null>(null);
   const [tab, setTab] = useState<Tab>("shared");
 
-  useEffect(() => {
-    (async () => {
-      const { data: a } = await supabase
-        .from("talent_assignments")
-        .select("id, note, decided_at, created_at")
-        .eq("staff_id", userId)
-        .eq("talent_id", talentId)
-        .eq("status", "active")
-        .maybeSingle();
-      const [r] = await loadTalent([
-        {
-          assignmentId: a?.id ?? talentId,
-          talentId,
-          note: a?.note ?? null,
-          since: a ? (a.decided_at ?? a.created_at) : null,
-        },
-      ]);
-      setProfile(r ?? null);
-    })();
+  const loadProfile = useCallback(async () => {
+    const { data: a } = await supabase.from("talent_assignments")
+      .select("id, note, decided_at, created_at")
+      .eq("staff_id", userId).eq("talent_id", talentId).eq("status", "active").maybeSingle();
+    const [r] = await loadTalent([{
+      assignmentId: a?.id ?? talentId, talentId, note: a?.note ?? null,
+      since: a ? (a.decided_at ?? a.created_at) : null,
+    }]);
+    setProfile(r ?? null);
   }, [userId, talentId]);
+  useEffect(() => { void loadProfile(); }, [loadProfile]);
 
   // The talent's lists, read fresh. Reloaded when the coach comes back to the
   // tab, so changes the talent made in the meantime show up.
@@ -174,6 +166,7 @@ function CoachTalentProfile() {
         <BackLink />
         <div className="mt-6">
           <TalentProfile r={profile} staffId={userId} canRequestMeetings />
+          <CoachEditTalentProfile talentId={talentId} onSaved={loadProfile} />
         </div>
       </div>
 
