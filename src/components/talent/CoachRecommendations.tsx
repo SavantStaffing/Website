@@ -143,7 +143,7 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
                 </div>
                 {r.note && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{r.note}</p>}
                 <div className="mt-1 text-xs text-muted-foreground">{timeAgo(r.created_at)}</div>
-                {r.action === "internships" && <Link to="/talent/jobs" search={{ track: "professional" }} className="mt-2 inline-block text-sm underline underline-offset-4">Explore jobs and internships →</Link>}
+                {r.action === "internships" && <Link to="/talent/internships" className="mt-2 inline-block text-sm underline underline-offset-4">Explore internships →</Link>}
               </div>
               {canEdit && <button disabled={busy} className={mutedButton} onClick={() => void remove(r)}>Remove</button>}
             </li>)}
