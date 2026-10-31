@@ -1,4 +1,4 @@
-import { CoachRecommendations } from "@/components/talent/CoachRecommendations";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -191,7 +191,7 @@ function TalentDashboard() {
         <Stat label="Invitations waiting" value={requests ? pending.length : null} />
       </div>
 
-      <CoachRecommendations talentId={userId} />
+      <div className="flex flex-wrap gap-6 text-sm"><Link to="/talent/coach" className={linkButton}>Coach recommendations →</Link><Link to="/talent/tasks" className={linkButton}>My tasks →</Link></div>
 
       <TalentMeetingRequests userId={userId} />
 
