@@ -221,11 +221,13 @@ export function JobFeed({
   mode,
   userId,
   initialTrack,
+  initialEmploymentTypes,
 }: {
   mode: "talent" | "guest";
   userId?: string;
   /** Opens on this feed (from ?track=); otherwise the talent's saved choice. */
   initialTrack?: TrackFilter;
+  initialEmploymentTypes?: (typeof EMPLOYMENT_TYPES)[number][];
 }) {
   const { auth } = useAuth();
   // Signed-in recruiters/admins browsing the public preview aren't prompted to sign up.
@@ -238,6 +240,7 @@ export function JobFeed({
   const [filters, setFilters] = useState<FeedFilters>({
     ...EMPTY_FILTERS,
     track: initialTrack ?? "all",
+    employmentTypes: initialEmploymentTypes ?? [],
   });
   const [applied, setApplied] = useState<Map<string, string>>(new Map());
   const [saved, setSaved] = useState<Set<string>>(new Set());
@@ -280,6 +283,7 @@ export function JobFeed({
           ...f,
           postedWithinDays: p.posted_within_days || null,
           track: initialTrack ?? (p.job_track as TrackFilter),
+          employmentTypes: initialEmploymentTypes ?? f.employmentTypes,
           minPay: p.min_hourly_pay === null ? null : Number(p.min_hourly_pay),
           tempApps: p.temp_apps ?? [],
           // Every visit opens refined to the intake; "Show all jobs" widens it.
