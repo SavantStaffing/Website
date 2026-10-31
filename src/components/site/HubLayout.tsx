@@ -98,6 +98,18 @@ function Notifications({ userId, inboxTo }: { userId: string; inboxTo: string })
       .then(({ data }) => setItems(data ?? []));
   }, [userId]);
 
+  useEffect(() => {
+    const channel = supabase.channel("notifications-" + userId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: "user_id=eq." + userId },
+        (payload) => {
+          const item = payload.new as NotificationRow;
+          setItems(previous => [item, ...previous.filter(n => n.id !== item.id)].slice(0, 20));
+          toast.info(item.title, { description: item.body ?? undefined });
+        })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [userId]);
+
   const unread = items.filter((n) => !n.read_at);
 
   async function markAllRead() {
