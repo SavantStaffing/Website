@@ -172,6 +172,7 @@ function CoachTalentProfile() {
       </div>
 
       <CoachRecommendations talentId={talentId} canEdit />
+      <div className="mt-6"><SectionHeading title="Talent tasks" /><p className="mt-2 text-sm text-muted-foreground">Accepted recommendations above are active tasks. Completed tasks are marked done, and declined actions remain in the recommendation history.</p></div>
 
       <div>
         <SectionHeading title="Engagement" />
