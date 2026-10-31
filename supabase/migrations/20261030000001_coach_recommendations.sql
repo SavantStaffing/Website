@@ -12,6 +12,8 @@ CREATE TABLE public.coach_recommendations (
   CONSTRAINT follow_up_employer_required CHECK ((action = 'follow_up' AND NULLIF(btrim(employer),'') IS NOT NULL) OR (action <> 'follow_up' AND employer IS NULL)),
   CONSTRAINT employer_length CHECK (char_length(employer) <= 200)
 );
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.coach_recommendations TO authenticated;
+GRANT ALL ON public.coach_recommendations TO service_role;
 CREATE INDEX coach_recommendations_talent_idx ON public.coach_recommendations(talent_id, created_at DESC);
 ALTER TABLE public.coach_recommendations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Talent views recommendations" ON public.coach_recommendations
