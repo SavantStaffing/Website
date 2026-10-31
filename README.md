@@ -94,3 +94,5 @@ cd Website
 npm i
 npm run dev
 ```
+
+<!-- Cloudflare Git integration deployment trigger: 2026-10-30 -->
