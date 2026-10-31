@@ -7,7 +7,7 @@ import { SectionHeading, mutedButton, outlineButton, timeAgo } from "@/component
 type Action = "build_workspace" | "independent_research" | "internships" | "follow_up";
 type Recommendation = {
   id: string; talent_id: string; coach_id: string; action: Action; employer: string | null;
-  note: string | null; status: "recommended" | "completed"; created_at: string;
+  note: string | null; status: "recommended" | "accepted" | "declined" | "completed"; created_at: string;
 };
 const ACTIONS: { id: Action; label: string; help: string }[] = [
   { id: "build_workspace", label: "Build Workspace", help: "Create a portfolio or organized work area to demonstrate skills." },
@@ -68,11 +68,19 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
   }
   async function setStatus(r: Recommendation) {
     setBusy(true);
-    const status = r.status === "completed" ? "recommended" : "completed";
+    const status = r.status === "completed" ? "accepted" : "completed";
     const { error } = await db.from("coach_recommendations").update({ status })
       .eq("id", r.id).eq("talent_id", talentId);
     setBusy(false);
     if (error) return toast.error(error.message);
+    void reload();
+  }
+  async function decide(r: Recommendation, status: "accepted" | "declined") {
+    setBusy(true);
+    const { error } = await db.from("coach_recommendations").update({ status }).eq("id", r.id).eq("talent_id", talentId);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(status === "accepted" ? "Added to your tasks." : "Recommendation declined.");
     void reload();
   }
   async function remove(r: Recommendation) {
@@ -87,7 +95,7 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
     <section>
       <SectionHeading title="Coach's Recommendation" />
       <p className="mt-2 text-sm text-muted-foreground">
-        {canEdit ? "Select an action to recommend. Your talent will see the same checklist." : "Actions your coach recommends. Mark each one complete as you make progress."}
+        {canEdit ? "Select an action to recommend. Your talent will be notified and can accept or decline." : "Accept or decline your coach’s recommendations. Accepted actions become tasks."}
       </p>
       {canEdit && (
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -130,21 +138,23 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
         </div>
       )}
       <div className="mt-6 rounded-sm border border-[color:var(--color-hairline)] p-5">
-        <h3 className="font-medium">Recommended actions <span className="text-muted-foreground">({rows.filter(r => r.status !== "completed").length} open)</span></h3>
+        <h3 className="font-medium">Recommended actions <span className="text-muted-foreground">({rows.filter(r => r.status === "recommended").length} open)</span></h3>
         {loading ? <p className="mt-4 text-sm">Loading…</p> : rows.length === 0 ?
           <p className="mt-4 text-sm text-muted-foreground">No recommendations yet.</p> : (
           <ul className="mt-4 divide-y divide-[color:var(--color-hairline)]">
             {rows.map(r => <li key={r.id} className="flex flex-wrap items-start gap-4 py-4">
-              <input type="checkbox" aria-label={`Complete ${r.action}`} checked={r.status === "completed"}
-                disabled={busy} onChange={() => void setStatus(r)} className="mt-1 size-4" />
+              {(r.status === "accepted" || r.status === "completed") && <input type="checkbox" aria-label={`Complete ${r.action}`} checked={r.status === "completed"}
+                disabled={busy} onChange={() => void setStatus(r)} className="mt-1 size-4" />}
               <div className="min-w-0 flex-1">
                 <div className={r.status === "completed" ? "font-medium line-through opacity-60" : "font-medium"}>
                   {ACTIONS.find(a => a.id === r.action)?.label ?? r.action}{r.employer ? ` — ${r.employer}` : ""}
                 </div>
+                <div className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{r.status}</div>
                 {r.note && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{r.note}</p>}
                 <div className="mt-1 text-xs text-muted-foreground">{timeAgo(r.created_at)}</div>
                 {r.action === "internships" && <Link to="/talent/internships" className="mt-2 inline-block text-sm underline underline-offset-4">Explore internships →</Link>}
               </div>
+              {!canEdit && r.status === "recommended" && <div className="flex gap-3"><button disabled={busy} className={outlineButton} onClick={() => void decide(r,"accepted")}>Accept</button><button disabled={busy} className={mutedButton} onClick={() => void decide(r,"declined")}>Decline</button></div>}
               {canEdit && <button disabled={busy} className={mutedButton} onClick={() => void remove(r)}>Remove</button>}
             </li>)}
           </ul>
