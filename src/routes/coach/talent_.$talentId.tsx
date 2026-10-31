@@ -1,3 +1,4 @@
+import { CoachRecommendations } from "@/components/talent/CoachRecommendations";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -169,6 +170,8 @@ function CoachTalentProfile() {
           <CoachEditTalentProfile talentId={talentId} onSaved={loadProfile} />
         </div>
       </div>
+
+      <CoachRecommendations talentId={talentId} canEdit />
 
       <div>
         <SectionHeading title="Engagement" />
