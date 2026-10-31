@@ -11,14 +11,14 @@ export function normalizeEmploymentType(
   title = "",
 ): EmploymentType | null {
   const s = `${raw ?? ""}`.toLowerCase().replace(/[^a-z]/g, "");
-  if (/intern/.test(s)) return "internship";
+  if (/intern|coop|cooperativeeducation|studentplacement/.test(s)) return "internship";
   if (/parttime|halftime/.test(s)) return "part_time";
   if (/temp|seasonal|fixedterm/.test(s)) return "temporary";
   if (/contract|freelance|consultant|c2h|contracttohire/.test(s)) return "contract";
   if (/fulltime|permanent|regular/.test(s)) return "full_time";
   // No usable field: fall back to what the title says.
   const t = title.toLowerCase();
-  if (/\bintern(ship)?\b/.test(t)) return "internship";
+  if (/\b(intern(ship)?|co[- ]?op|student placement|summer analyst intern)\b/.test(t)) return "internship";
   if (/\bpart[- ]time\b/.test(t)) return "part_time";
   if (/\b(temp|temporary|seasonal)\b/.test(t)) return "temporary";
   if (/\b(contract|contractor|freelance)\b/.test(t)) return "contract";
