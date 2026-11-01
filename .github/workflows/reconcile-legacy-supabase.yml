@@ -1,0 +1,40 @@
+name: Audit / migrate legacy Savantalent database
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "audit (read-only) or migrate (additive inserts)"
+        required: true
+        type: choice
+        options: [audit, migrate]
+        default: audit
+permissions:
+  contents: read
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: savant-db-migration
+    env:
+      SOURCE_DATABASE_URL: ${{ secrets.SOURCE_DATABASE_URL }}
+      TARGET_DATABASE_URL: ${{ secrets.TARGET_DATABASE_URL }}
+      MIGRATION_MODE: ${{ inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'psycopg[binary]==3.2.10'
+      - name: Check required credentials
+        run: |
+          test -n "$SOURCE_DATABASE_URL"
+          test -n "$TARGET_DATABASE_URL"
+      - name: Reconcile databases
+        run: python scripts/reconcile_legacy_supabase.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: savant-db-${{ inputs.mode }}-report
+          path: migration-report.json
+          if-no-files-found: ignore
+          retention-days: 30
