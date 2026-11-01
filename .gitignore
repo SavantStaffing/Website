@@ -34,3 +34,5 @@ dist-extension/
 
 # Supabase CLI
 supabase/.temp/
+staging.settings.local.json
+.env.staging.local

@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "build:staging": "node scripts/staging.mjs",
+    "deploy:staging": "node scripts/staging.mjs --deploy",
+    "test:staging": "node --test scripts/staging-config.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
