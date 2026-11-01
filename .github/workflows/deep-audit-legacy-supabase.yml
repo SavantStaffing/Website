@@ -1,0 +1,27 @@
+name: Deep audit legacy Supabase
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: savant-db-migration
+    env:
+      SOURCE_DATABASE_URL: ${{ secrets.SOURCE_DATABASE_URL }}
+      TARGET_DATABASE_URL: ${{ secrets.TARGET_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'psycopg[binary]==3.2.10'
+      - run: test -n "$SOURCE_DATABASE_URL" && test -n "$TARGET_DATABASE_URL"
+      - run: python scripts/deep_audit_legacy_supabase.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: savant-deep-audit-report
+          path: deep-audit-report.json
+          if-no-files-found: ignore
