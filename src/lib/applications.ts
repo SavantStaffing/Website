@@ -28,6 +28,7 @@ export const TALENT_STATUS_LABEL: Record<string, string> = {
 export type TalentApplication = {
   id: string;
   status: string;
+  talent_progress: "incomplete" | "in_progress" | "complete";
   created_at: string;
   archived_at: string | null;
   external_url: string | null;
@@ -44,4 +45,4 @@ export type TalentApplication = {
 };
 
 export const APPLICATION_SELECT =
-  "id, status, created_at, archived_at, external_url, external_title, external_company, external_location, jobs (title, company_name, location, type, apply_url)";
+  "id, status, talent_progress, created_at, archived_at, external_url, external_title, external_company, external_location, jobs (title, company_name, location, type, apply_url)";
