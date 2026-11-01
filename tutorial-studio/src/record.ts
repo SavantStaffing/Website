@@ -16,7 +16,7 @@ if (!scene || !(scene in routes)) {
 const base = process.env.STAGING_BASE_URL;
 if (!base) throw new Error("STAGING_BASE_URL required");
 const origin = new URL(base);
-if (origin.protocol !== "https:" || /^(www\\.)?(savantalent\\.com)$/.test(origin.hostname)) {
+if (origin.protocol !== "https:" || /^(www\.)?savantalent\.com$/.test(origin.hostname)) {
   throw new Error("Only isolated HTTPS staging environments are allowed");
 }
 if (!process.env.TALENT_EMAIL || !process.env.TALENT_PASSWORD) {
@@ -41,7 +41,7 @@ try {
   if (!(await heading.isVisible())) throw new Error("Scene heading not found");
   if (scene === "applications") {
     const select = page.getByRole("combobox", { name: /application progress/i }).first();
-    if (await select.count()) await select.click(); // do not mutate status
+    if (await select.count()) await select.focus(); // do not mutate status
   }
   await page.waitForTimeout(2200);
   await page.screenshot({ path: path.join(dir, "thumbnail.png") });
