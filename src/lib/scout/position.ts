@@ -76,6 +76,11 @@ const rule = (type: PositionType, words: string): [PositionType, RegExp] => [
 ];
 
 const RULES: [PositionType, RegExp][] = [
+  // Classify occupation separately from the employer's industry.
+  rule(
+    "food_hospitality",
+    "cook|chef|sous[- ]chef|dishwasher|food (?:service|services|preparation|prep|worker)|dietary (?:aide|assistant|cook|worker)|nutrition services (?:aide|worker|assistant)|kitchen|catering|culinary",
+  ),
   // Tech titles that mention a driver or delivery aren't driving jobs.
   rule(
     "software_engineering",
