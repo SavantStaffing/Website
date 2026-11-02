@@ -78,11 +78,16 @@ function Applications() {
     );
   }
 
-  async function complete(id: string) {
-    const { error } = await supabase.rpc("mark_application_completed", { application_id: id });
+  const [progressBusy, setProgressBusy] = useState<string | null>(null);
+  async function changeProgress(id: string, progress: "incomplete" | "in_progress" | "complete") {
+    setProgressBusy(id);
+    const { error } = await supabase.rpc("set_application_talent_progress", {
+      application_id: id, progress,
+    } as any);
+    setProgressBusy(null);
     if (error) return toast.error(error.message);
-    setApplications((prev) => prev.map((a) => (a.id === id ? { ...a, status: "submitted" } : a)));
-    toast.success("Marked as completed.");
+    setApplications((prev) => prev.map((a) => a.id === id ? { ...a, talent_progress: progress } : a));
+    toast.success("Application progress updated.");
   }
 
   async function remove(a: ApplicationRow) {
@@ -194,11 +199,21 @@ function Applications() {
                       Visit ↗
                     </a>
                   )}
-                  {(a.status === "tracked" || a.status === "started") && (
-                    <button onClick={() => complete(a.id)} className={mutedButton}>
-                      Completed
-                    </button>
-                  )}
+                  <label className="inline-flex items-center gap-2 text-xs">
+                    <span aria-hidden="true" className={`h-2 w-2 rounded-full ${a.talent_progress === "complete" ? "bg-green-500" : a.talent_progress === "in_progress" ? "bg-yellow-500" : "bg-red-500"}`} />
+                    <span className="sr-only">Application progress</span>
+                    <select
+                      aria-label={`Application progress for ${a.jobs?.title ?? a.external_title ?? "application"}`}
+                      value={a.talent_progress ?? (["tracked", "started"].includes(a.status) ? "incomplete" : "complete")}
+                      disabled={progressBusy === a.id}
+                      onChange={(e) => changeProgress(a.id, e.target.value as "incomplete" | "in_progress" | "complete")}
+                      className="max-w-32 bg-transparent text-xs text-foreground outline-offset-2"
+                    >
+                      <option value="incomplete">Incomplete</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="complete">Complete</option>
+                    </select>
+                  </label>
                   <button onClick={() => setArchived(a.id, !a.archived_at)} className={mutedButton}>
                     {a.archived_at ? "Restore" : "Archive"}
                   </button>
