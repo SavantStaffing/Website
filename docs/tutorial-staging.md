@@ -1,10 +1,20 @@
 # Isolated tutorial staging
 
-This staging target uses the website code but a **new Supabase project** and a separate Cloudflare Worker named `savantalent-staging`. Both existing Savant Supabase projects are rejected by the staging tooling. Production domain routes and secrets are excluded from the generated deployment configuration.
+This staging target uses the website code, the isolated **Savantutorials** Supabase project, and a separate Cloudflare Worker named `savantalent-staging`. The production and previous Savant project references are rejected by the staging tooling. Production domain routes and secrets are excluded from the generated deployment configuration.
 
-## Current prerequisite
+## Current deployment — November 1, 2026
 
-Select the Supabase organization and approve any nonzero quoted project cost before provisioning. The connected organization is `Savant`. Do not repurpose either existing Savant project or copy production users, resumes, applications, storage objects, secrets or tokens.
+- Site: https://savantalent-staging.savantstaffing.workers.dev/auth
+- Database: `Savantutorials` (`adeoehrrhanaxzsudzll`) in the `Savant` organization. This user-created, empty project was reused; no additional project was provisioned.
+- Worker version: `5efd1fbe-d615-49b5-a914-c08edf4a6eb4`.
+- Demo content: synthetic Talent and Coach identities, three clearly labeled synthetic jobs with reserved `.invalid` application links, one application and one coaching assignment. Demo credentials are saved locally outside Git.
+- Verified with real browser/API requests: password login, profile row isolation, roles, job feed, applications and coach routes. Browser database traffic went only to the isolated project. Active cron jobs: zero. Scanners: disabled.
+- The legacy real-job/event/employer seed migrations were excluded. Subsequent mixed migrations were applied without their real-entity inserts or cron schedules. Reference lookup data from early schema migrations is not a copy of production user data.
+- Calendar/help-usage migration `20261012000001` was declined during approval and remains unapplied. Its dependent meeting migrations are also unapplied. Those features are not available in this staging environment yet.
+- The legacy anonymous email/password-status lookup was rejected by automatic approval review. Staging instead exposes a constant `false` response, revealing nothing about email ownership or authentication provider. The authenticated self-password check remains available.
+- No production credentials or server-side Resend/AI/scanner keys were copied. Advanced operations requiring a staging service-role secret are not configured.
+
+Do not copy production users, resumes, applications, storage objects, secrets or tokens into this environment.
 
 ## Configure and verify
 
