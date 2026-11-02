@@ -1183,6 +1183,60 @@ export type Database = {
         };
         Relationships: [];
       };
+      coach_listing_checks: {
+        Row: {
+          coach_id: string;
+          company: string | null;
+          confidence: string;
+          created_at: string;
+          desc_hash: string | null;
+          id: string;
+          llm_signals: Json | null;
+          location: string | null;
+          read_from: string;
+          result: Json;
+          score: number;
+          title: string | null;
+          url: string;
+          url_key: string;
+          verdict: string;
+        };
+        Insert: {
+          coach_id: string;
+          company?: string | null;
+          confidence: string;
+          created_at?: string;
+          desc_hash?: string | null;
+          id?: string;
+          llm_signals?: Json | null;
+          location?: string | null;
+          read_from: string;
+          result: Json;
+          score: number;
+          title?: string | null;
+          url: string;
+          url_key: string;
+          verdict: string;
+        };
+        Update: {
+          coach_id?: string;
+          company?: string | null;
+          confidence?: string;
+          created_at?: string;
+          desc_hash?: string | null;
+          id?: string;
+          llm_signals?: Json | null;
+          location?: string | null;
+          read_from?: string;
+          result?: Json;
+          score?: number;
+          title?: string | null;
+          url?: string;
+          url_key?: string;
+          verdict?: string;
+        };
+        Relationships: [];
+      };
       saved_talent: {
         Row: {
           created_at: string;

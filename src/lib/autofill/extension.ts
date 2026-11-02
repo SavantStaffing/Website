@@ -28,6 +28,25 @@ export const SAVANT_APPLY_EXTENSION_IDS = [
 
 export const SAVANT_APPLY_DOWNLOAD = "/downloads/savant-apply.zip";
 
+/**
+ * Savant Coach (extension-coach/), the career coaches' ghost-listing checker.
+ * Same arrangement as Savant Apply: the Chrome Web Store listing gets its own
+ * ID (STORE_COACH_ID or VITE_SAVANT_COACH_EXTENSION_ID); the /coach download's
+ * ID is fixed by the public "key" in extension-coach/manifest.json.
+ */
+const STORE_COACH_ID = "";
+const DOWNLOAD_COACH_ID = "kflijjonijofojcjkjhakldjfbfkkmlm";
+export const SAVANT_COACH_EXTENSION_IDS = [
+  ...new Set(
+    [
+      import.meta.env.VITE_SAVANT_COACH_EXTENSION_ID as string | undefined,
+      STORE_COACH_ID,
+      DOWNLOAD_COACH_ID,
+    ].filter((id): id is string => !!id),
+  ),
+];
+export const SAVANT_COACH_DOWNLOAD = "/downloads/savant-coach.zip";
+
 /** Application sites the extension can fill (content_scripts in the manifest). */
 export const AUTOFILL_ATS_LABEL: Record<string, string> = {
   greenhouse: "Greenhouse",
@@ -80,28 +99,34 @@ function pingOne(rt: ChromeRuntime, id: string, timeoutMs: number): Promise<Exte
 
 /** Asks each known Savant Apply ID whether it's installed. Chrome only exposes
  *  chrome.runtime to pages an installed extension lists in externally_connectable. */
-export async function pingExtension(timeoutMs = 1500): Promise<ExtensionStatus> {
+export async function pingExtension(
+  timeoutMs = 1500,
+  ids: string[] = SAVANT_APPLY_EXTENSION_IDS,
+): Promise<ExtensionStatus> {
   if (!isSupportedBrowser()) return { state: "unsupported" };
   const rt = runtime();
   if (!rt?.sendMessage) return { state: "missing" };
-  const results = await Promise.all(
-    SAVANT_APPLY_EXTENSION_IDS.map((id) => pingOne(rt, id, timeoutMs)),
-  );
+  const results = await Promise.all(ids.map((id) => pingOne(rt, id, timeoutMs)));
   return results.find((r) => r.state === "installed") ?? { state: "missing" };
 }
 
-/** Live extension status, with a `recheck` for "I've installed it". */
-export function useSavantApply() {
+function useExtensionStatus(ids: string[]) {
   const [status, setStatus] = useState<ExtensionStatus>({ state: "checking" });
   const recheck = useCallback(async () => {
     setStatus({ state: "checking" });
-    setStatus(await pingExtension());
-  }, []);
+    setStatus(await pingExtension(1500, ids));
+  }, [ids]);
   useEffect(() => {
     void recheck();
   }, [recheck]);
   return { status, recheck };
 }
+
+/** Live Savant Apply status, with a `recheck` for "I've installed it". */
+export const useSavantApply = () => useExtensionStatus(SAVANT_APPLY_EXTENSION_IDS);
+
+/** The same for Savant Coach, the career coaches' listing checker. */
+export const useSavantCoach = () => useExtensionStatus(SAVANT_COACH_EXTENSION_IDS);
 
 /** The application site's name if Savant Apply can fill this job's form. */
 export function autofillAtsFor(url: string | null | undefined): string | null {

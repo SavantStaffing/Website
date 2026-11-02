@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Savant Coach</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header>
+      <strong>Savant Coach</strong>
+      <span id="mode" class="muted"></span>
+    </header>
+    <main id="feed" aria-live="polite"></main>
+    <form id="composer" autocomplete="off">
+      <input id="ask" type="text" maxlength="1000" placeholder="Ask about these results…" aria-label="Ask about these results" />
+      <button type="submit" id="send">Ask</button>
+    </form>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

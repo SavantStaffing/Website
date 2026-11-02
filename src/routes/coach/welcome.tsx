@@ -102,6 +102,19 @@ function CoachWelcome() {
           ],
         },
         {
+          title: "Check jobs before you send them",
+          where: "Listing Checker",
+          body: (
+            <p>
+              Install the free <strong>Savant Coach</strong> browser extension. Open a job listing,
+              or a Google Sheet of them, and its side panel tells you <strong>Pass</strong> or{" "}
+              <strong>No pass</strong> with the reasons, so you know whether it's a ghost listing
+              before you click <strong>Send to talent</strong>.
+            </p>
+          ),
+          links: [{ label: "Install guide", to: "/coach/extension" }],
+        },
+        {
           title: "Keep in touch",
           where: "Chat · Inbox",
           body: (
