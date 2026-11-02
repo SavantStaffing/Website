@@ -720,7 +720,22 @@ function Filters({
       </div>
       <div className="flex flex-wrap items-end gap-5">
         <label className="block">
-          <span className={label}>Industry</span>
+          <span className={label}>Occupation / job function</span>
+          <select
+            value={filters.role}
+            onChange={(e) => set("role", e.target.value)}
+            className={`mt-2 block ${selectCls}`}
+          >
+            <option value="">All occupations</option>
+            {Object.entries(POSITION_LABELS)
+              .filter(([key]) => key !== "other")
+              .map(([key, name]) => (
+                <option key={key} value={key}>{name}</option>
+              ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className={label}>Employer industry</span>
           <select
             value={filters.naics}
             onChange={(e) => set("naics", e.target.value)}
