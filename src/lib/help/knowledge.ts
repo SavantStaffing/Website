@@ -169,6 +169,11 @@ export const FAQ: Record<HelpRole, Faq[]> = {
       a: "Open a job from Jobs and click Send to talent, then choose people you're coaching. It arrives in their Inbox.",
       links: [{ label: "Jobs", to: "/jobs" }],
     },
+    {
+      q: "How do I know a job listing is real before I recommend it?",
+      a: "Install the free Savant Coach browser extension (Chrome or Edge on a computer). Open a listing, or a Google Sheet of listings, and click its toolbar icon: the side panel says Pass or No pass with the reasons, and has a chat box for questions. It only reads pages and never changes them. The install guide has the steps.",
+      links: [{ label: "Install guide", to: "/coach/extension" }],
+    },
   ],
 };
 
@@ -283,6 +288,11 @@ export const PAGES: Record<HelpRole, { label: string; to: string; what: string }
       what: "recruiters and companies hiring on Savant",
     },
     { label: "Jobs", to: "/jobs", what: "job listings; send a job to talent" },
+    {
+      label: "Listing Checker",
+      to: "/coach/extension",
+      what: "browser extension that checks listings for ghost postings (Pass / No pass)",
+    },
     { label: "Settings", to: "/coach/settings", what: "your account" },
   ],
 };

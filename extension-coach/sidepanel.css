@@ -1,0 +1,78 @@
+:root {
+  --ink: #1a1714;
+  --muted: #6b645c;
+  --line: #e4dfd8;
+  --bg: #faf8f5;
+  --card: #fff;
+  --pass: #137333;
+  --pass-bg: #e6f4ea;
+  --fail: #b3261e;
+  --fail-bg: #fce8e6;
+  --warn: #8a5a00;
+  --warn-bg: #fff4d6;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  display: flex; flex-direction: column;
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink); background: var(--bg);
+}
+header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--card);
+}
+.muted { color: var(--muted); font-size: 12px; }
+main { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.card h3 { margin: 0 0 6px; font-size: 13px; }
+.card p { margin: 6px 0; }
+
+.verdict { border-radius: 10px; padding: 14px; border: 1px solid; }
+.verdict.pass { background: var(--pass-bg); color: var(--pass); border-color: #b7dfc1; }
+.verdict.no_pass { background: var(--fail-bg); color: var(--fail); border-color: #f2b8b5; }
+.verdict .big { font-size: 22px; font-weight: 800; letter-spacing: .02em; }
+.verdict .sub { font-size: 13px; margin-top: 2px; color: var(--ink); }
+.title { font-weight: 600; margin: 0; }
+
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin: 6px 0 2px; position: relative; }
+.bar > span { display: block; height: 100%; background: var(--pass); }
+.bar.high > span { background: var(--fail); }
+.bar::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--ink); opacity: .45; }
+
+ul.signals { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+ul.signals li { padding: 8px 10px; border-radius: 8px; background: var(--bg); border-left: 3px solid var(--line); }
+ul.signals li.block { border-left-color: var(--fail); background: var(--fail-bg); }
+ul.signals li.warn { border-left-color: #d99a00; background: var(--warn-bg); }
+ul.signals q { display: block; margin-top: 3px; font-size: 12px; color: var(--muted); quotes: "“" "”"; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
+.chip.on { background: var(--ink); color: #fff; border-color: var(--ink); cursor: pointer; }
+.chip.pick { cursor: pointer; }
+
+button, .btn {
+  font: inherit; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--ink); background: var(--ink); color: #fff;
+}
+button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+button:disabled { opacity: .5; cursor: default; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+textarea { width: 100%; min-height: 70px; font: inherit; padding: 8px; border: 1px solid var(--line); border-radius: 8px; resize: vertical; }
+
+.msg { max-width: 92%; padding: 8px 11px; border-radius: 12px; white-space: pre-wrap; }
+.msg.user { align-self: flex-end; background: var(--ink); color: #fff; }
+.msg.bot { align-self: flex-start; background: var(--card); border: 1px solid var(--line); }
+
+.item { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; }
+.badge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+.badge.pass { background: var(--pass-bg); color: var(--pass); }
+.badge.no_pass { background: var(--fail-bg); color: var(--fail); }
+.badge.err { background: var(--warn-bg); color: var(--warn); }
+.item .why { grid-column: 2; font-size: 12px; color: var(--muted); }
+.item a { color: inherit; }
+
+#composer { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); background: var(--card); }
+#composer input { flex: 1; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }

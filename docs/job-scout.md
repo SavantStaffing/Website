@@ -167,6 +167,8 @@ in-memory store — no database needed. Pass a careers URL to try one company:
 | `ANTHROPIC_API_KEY` (optional `DRAFT_MODEL`, default `claude-sonnet-5`) | autofill drafting answers to open-ended questions from the resume |
 | `JOBSPY_URL`, `JOBSPY_TOKEN` | job-board scraping — read `services/jobspy/README.md` first |
 | `VITE_SAVANT_APPLY_EXTENSION_ID` | optional; only if the extension is published under a different ID (e.g. Chrome Web Store) |
+| `COACH_MODEL` | optional; model for the Savant Coach AI reviewer and chat (default `DRAFT_MODEL`, then `claude-sonnet-5`) |
+| `VITE_SAVANT_COACH_EXTENSION_ID` | optional; only if Savant Coach is published under a different ID |
 
 ## Savant Apply extension (`extension/`)
 
@@ -188,3 +190,15 @@ what needs review, and remembers answers when the talent submits.
   autofill (or install steps). "Autofill & continue" opens the form with
   `#savant-autofill`, and the extension fills it as soon as it loads.
   "Always autofill" is a per-browser setting (also on Saved Answers).
+
+## Savant Coach extension (`extension-coach/`)
+
+A side-panel extension for career coaches: **Pass / No pass** on a job listing (or every link in a
+Google Sheet) before it is recommended, with reasons and a chat box. It reuses this document's
+Ghost Job Detector (`ghost.ts`, same threshold of 50) and adds live checks: the hiring board
+(Greenhouse, Lever, Ashby) no longer lists the posting, a "no longer accepting" banner, an expired
+`validThrough`, Savant's own `jobs` row (closed, first seen, reposts), and an optional AI reviewer
+whose findings must quote text that is on the page. Verdict logic: `src/lib/coach/listing.ts`;
+gathering and API: `src/lib/coach/listing.server.ts`, `/api/coach/check`, `/api/coach/chat`. Every
+check is logged in `coach_listing_checks` (migration `20261101000000_coach_listing_checks.sql`).
+See `extension-coach/README.md` for install, permissions and sheet mode.

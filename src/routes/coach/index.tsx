@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CoachExtensionPrompt } from "@/components/coach/ExtensionPrompt";
 import { supabase } from "@/integrations/supabase/client";
 import { personName } from "@/lib/people";
 import {
@@ -110,6 +111,7 @@ function ServiceRequests() {
 
   return (
     <section className="space-y-12">
+      <CoachExtensionPrompt />
       <div className="grid gap-6 sm:grid-cols-3">
         <Stat label="Not started" value={count("new")} />
         <Stat label="In progress" value={count("in_progress")} />

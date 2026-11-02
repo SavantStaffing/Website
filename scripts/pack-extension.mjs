@@ -6,6 +6,10 @@
 //        install guide. Files sit under a "savant-apply/" folder, so
 //        unzipping gives the folder to pick in Chrome's "Load unpacked".
 //
+//   node scripts/pack-extension.mjs --dir=extension-coach [--store [out-dir]]
+//     -> the same for Savant Coach: public/downloads/savant-coach.zip, or
+//        <out-dir>/savant-coach-<version>-chrome-web-store.zip.
+//
 //   node scripts/pack-extension.mjs --store [out-dir]
 //     -> <out-dir>/savant-apply-<version>-chrome-web-store.zip (default
 //        out-dir: dist-extension/), for upload to the Chrome Web Store:
@@ -19,7 +23,9 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { crc32, deflateRawSync } from "node:zlib";
 
-const SRC = "extension";
+const SRC = process.argv.find((a) => a.startsWith("--dir="))?.slice(6) ?? "extension";
+const SLUG = SRC === "extension-coach" ? "savant-coach" : "savant-apply";
+const NAME = SRC === "extension-coach" ? "Savant Coach" : "Savant Apply";
 const store = process.argv.includes("--store");
 const manifest = JSON.parse(readFileSync(join(SRC, "manifest.json"), "utf8"));
 
@@ -28,9 +34,9 @@ const outDir = store
   : join("public", "downloads");
 const out = join(
   outDir,
-  store ? `savant-apply-${manifest.version}-chrome-web-store.zip` : "savant-apply.zip",
+  store ? `${SLUG}-${manifest.version}-chrome-web-store.zip` : `${SLUG}.zip`,
 );
-const root = store ? "" : "savant-apply/";
+const root = store ? "" : `${SLUG}/`;
 
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
@@ -112,4 +118,4 @@ end.writeUInt32LE(offset, 16);
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(out, Buffer.concat([...locals, ...centrals, end]));
-console.log(`Wrote ${out} (Savant Apply ${manifest.version}, ${files.length} files)`);
+console.log(`Wrote ${out} (${NAME} ${manifest.version}, ${files.length} files)`);
