@@ -36,9 +36,7 @@ export function CoachExtensionPrompt() {
       </p>
       {!connecting && (
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          A free browser extension that tells you Pass or No pass on a listing, or on a whole Google
-          Sheet of them, so you know if it's a ghost listing before you send it to talent. It takes
-          about 2 minutes to install.
+          Savant Coach's Browser Extension allows you to filter out ghost listings before you recommend a position.
         </p>
       )}
       <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
