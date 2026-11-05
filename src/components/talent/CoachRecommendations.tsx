@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { WorkspaceDialog } from "./WorkspaceDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SectionHeading, mutedButton, outlineButton, timeAgo } from "@/components/site/ui";
@@ -26,6 +27,7 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
   const [employer, setEmployer] = useState("");
   const [customEmployer, setCustomEmployer] = useState("");
   const [note, setNote] = useState("");
+  const [workspace, setWorkspace] = useState<Recommendation | null>(null);
 
   const reload = useCallback(async () => {
     const { data, error } = await db.from("coach_recommendations").select("*")
@@ -81,6 +83,7 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(status === "accepted" ? "Added to your tasks." : "Recommendation declined.");
+    if (status === "accepted" && r.action === "build_workspace") setWorkspace(r);
     void reload();
   }
   async function remove(r: Recommendation) {
@@ -93,6 +96,7 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
 
   return (
     <section>
+      <WorkspaceDialog open={workspace !== null} onOpenChange={open => { if (!open) setWorkspace(null); }} note={workspace?.note} />
       <SectionHeading title="Coach's Recommendation" />
       <p className="mt-2 text-sm text-muted-foreground">
         {canEdit ? "Select an action to recommend. Your talent will be notified and can accept or decline." : "Accept or decline your coach’s recommendations. Accepted actions become tasks."}
@@ -152,6 +156,7 @@ export function CoachRecommendations({ talentId, canEdit = false }: { talentId: 
                 <div className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{r.status}</div>
                 {r.note && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{r.note}</p>}
                 <div className="mt-1 text-xs text-muted-foreground">{timeAgo(r.created_at)}</div>
+                {!canEdit && r.action === "build_workspace" && (r.status === "accepted" || r.status === "completed") && <button type="button" onClick={() => setWorkspace(r)} className="mt-2 inline-block text-sm underline underline-offset-4">Open Notion workspace →</button>}
                 {r.action === "internships" && <Link to="/talent/internships" className="mt-2 inline-block text-sm underline underline-offset-4">Explore internships →</Link>}
               </div>
               {!canEdit && r.status === "recommended" && <div className="flex gap-3"><button disabled={busy} className={outlineButton} onClick={() => void decide(r,"accepted")}>Accept</button><button disabled={busy} className={mutedButton} onClick={() => void decide(r,"declined")}>Decline</button></div>}

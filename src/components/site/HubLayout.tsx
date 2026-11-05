@@ -1,5 +1,5 @@
 import { Link, Outlet, useNavigate, type LinkProps } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgo } from "./ui";
@@ -87,6 +87,11 @@ type NotificationRow = {
 function Notifications({ userId, inboxTo }: { userId: string; inboxTo: string }) {
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  function closeNotifications() {
+    setOpen(false);
+    triggerRef.current?.focus();
+  }
 
   useEffect(() => {
     supabase
@@ -126,8 +131,12 @@ function Notifications({ userId, inboxTo }: { userId: string; inboxTo: string })
   }
 
   return (
-    <div className="relative flex">
+    <div className="relative flex" onKeyDown={event => {
+      if (event.key === "Escape" && open) { event.stopPropagation(); closeNotifications(); }
+    }}>
       <button
+        ref={triggerRef}
+        type="button"
         onClick={() => {
           setOpen((v) => !v);
           if (!open) markAllRead();
@@ -139,6 +148,13 @@ function Notifications({ userId, inboxTo }: { userId: string; inboxTo: string })
       </button>
       {open && (
         <div className="absolute right-0 z-30 mt-3 w-[min(22rem,calc(100vw-3rem))] rounded-sm border border-[color:var(--color-hairline)] bg-background p-2 shadow-lg">
+          <div className="flex items-center justify-between gap-4 border-b border-[color:var(--color-hairline)] px-3 py-2">
+            <span className="text-sm font-medium">Notifications</span>
+            <button type="button" aria-label="Close notifications" onClick={closeNotifications}
+              className="flex size-8 items-center justify-center rounded-sm text-xl text-muted-foreground hover:text-foreground focus-visible:outline focus-visible:outline-2">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
           {items.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">Nothing yet.</p>
           ) : (
